@@ -234,10 +234,11 @@ public final class VisionExtras {
             double z = mc.player.getZ() + facing.z * 2.8 + (RANDOM.nextDouble() - .5) * 2.5;
             spawningOwnAmbient = true;
             try {
-                // Add directly to the local particle engine: multiplayer servers do not
-                // broadcast the user's personal decorative effects.
-                if (snow) mc.particleEngine.addParticle(ParticleTypes.SNOWFLAKE, x, y, z, 0, -.005, 0);
-                if (hearts) mc.particleEngine.addParticle(ParticleTypes.HEART, x + .35, y, z, 0, .02, 0);
+                // Emit particles through ClientLevel (Minecraft 1.21.11 API).
+                // On the client this remains local; the ambient-spawning flag
+                // lets our particle filter preserve explicitly enabled FX.
+                if (snow) mc.level.addParticle(ParticleTypes.SNOWFLAKE, x, y, z, 0, -.005, 0);
+                if (hearts) mc.level.addParticle(ParticleTypes.HEART, x + .35, y, z, 0, .02, 0);
             } finally {
                 spawningOwnAmbient = false;
             }
