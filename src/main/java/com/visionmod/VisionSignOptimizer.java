@@ -23,7 +23,6 @@ import java.util.WeakHashMap;
 public final class VisionSignOptimizer {
     private static final long TEXT_REFRESH_NANOS = 10_000_000_000L;
     private static final double LIVE_TEXT_DISTANCE_SQR = 12.0 * 12.0;
-    private static final double OUTLINE_DISTANCE_SQR = 16.0 * 16.0;
 
     // Weak keys prevent unloaded signs from being retained by the cache.
     private static final WeakHashMap<SignBlockEntity, CachedText> TEXT_CACHE = new WeakHashMap<>();
@@ -71,15 +70,10 @@ public final class VisionSignOptimizer {
             state.backText = cached.back;
         }
 
-        // Glowing text remains readable. Skip the extra expensive outline
-        // passes at a distance; the sign model and its text still render.
-        if (distanceSqr > OUTLINE_DISTANCE_SQR) {
-            state.renderTextOutline = false;
-        }
     }
 
     private static boolean appearanceChanged(SignText oldText, SignText newText) {
-        return oldText.isGlowing() != newText.isGlowing()
+        return oldText.hasGlowingText() != newText.hasGlowingText()
                 || oldText.getColor() != newText.getColor();
     }
 
