@@ -1,0 +1,1 @@
+Vision Mod 1.0.0 • Open Beta • Fabric 1.21.11 • 56 hotkeys • custom UI, ore/target outlines, crosshair, FPS controls, totem scaling, 9x3 shulker preview, optional mod integrations

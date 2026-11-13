@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "id": "visionmod",
+  "version": "${version}",
+  "name": "Vision Mod",
+  "description": "Vision Mod 1.0.0 Open Beta: configurable visuals, client FPS limits, and bundled Just Enough Items.",
+  "environment": "client",
+  "entrypoints": {
+    "client": [
+      "com.visionmod.VisionModClient"
+    ],
+    "main": [
+      "com.visionmod.VisionMod"
+    ]
+  },
+  "mixins": [
+    "visionmod.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=0.19.3",
+    "minecraft": "1.21.11",
+    "java": ">=21",
+    "fabric-api": "*",
+    "jei": "*"
+  }
+}
