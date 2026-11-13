@@ -14,5 +14,5 @@
 - Cache distant normal and hanging sign render text for up to 10 seconds (client-side only).
 - Signs within 12 blocks always update visually immediately; changing glow/dye color refreshes without delay at all distances.
 - Keep the sign model and text rendered every frame; no blinking or disappearing text between refreshes.
-- Keep vanilla glowing-text rendering intact while stabilizing frequent distant text updates. Vanilla server packets are not delayed or intercepted.
+- In FPS Boost / busy-spawn mode, skip extra glowing text outline passes beyond 12 blocks, keeping the text and sign body visible. Vanilla server packets are not delayed or intercepted.
 - This only reduces some client CPU/GPU rendering work, not server tick load; measure FPS at a sign-heavy spawn to confirm impact.
