@@ -1,0 +1,68 @@
+
+name: Build Vision Mod 1.0.0
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build Fabric 1.21.11 / Java 21
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '9.2.1'
+
+      - name: Build
+        run: gradle clean build --no-daemon --stacktrace
+
+      - name: Verify JEI is included
+        run: |
+          python3 - <<'PYCODE'
+          import io, json, zipfile
+
+          path = 'build/libs/visionmod-1.0.0.jar'
+
+          with zipfile.ZipFile(path) as outer:
+              metadata = json.loads(
+                  outer.read('fabric.mod.json')
+              )
+              assert metadata['version'] == '1.0.0'
+
+              found_jei = False
+              for nested in metadata.get('jars', []):
+                  with zipfile.ZipFile(
+                      io.BytesIO(outer.read(nested['file']))
+                  ) as inner:
+                      child = json.loads(
+                          inner.read('fabric.mod.json')
+                      )
+                      if child.get('id') == 'jei':
+                          found_jei = True
+
+              assert found_jei, 'JEI is NOT bundled'
+          PYCODE
+
+      - name: Upload JAR
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: VisionMod-1.0.0
+          path: build/libs/visionmod-1.0.0.jar
+          if-no-files-found: error
+          retention-days: 30
