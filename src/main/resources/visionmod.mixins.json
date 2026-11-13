@@ -8,6 +8,7 @@
     "FogRendererMixin",
     "PlayerHeartsMixin",
     "ParticleEngineMixin",
+    "VisionSignRendererMixin",
     "ClientLevelParticlesMixin",
     "SprintParticleMixin",
     "FreeLookMouseMixin",
