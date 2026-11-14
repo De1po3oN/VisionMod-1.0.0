@@ -53,7 +53,7 @@ public final class VisionPerformance {
     public static int effectiveOutlineLimit() { return busy() ? Math.max(16, outlineLimit / 2) : outlineLimit; }
     public static boolean drawHearts() { return !busy() || !limitHudOnBusySpawn; }
     /** User-enabled local particles stay visible even at spawn; only frequency is reduced. */
-    public static int ambientInterval() { return busy() && reduceAmbientOnBusySpawn ? 24 : 8; }
+    public static int ambientInterval() { return busy() && reduceAmbientOnBusySpawn ? 10 : 4; }
     public static boolean spawnAmbient() { return true; }
 
     public static void load() {
@@ -91,7 +91,8 @@ public final class VisionPerformance {
         adaptive = true; limitHudOnBusySpawn = true; reduceAmbientOnBusySpawn = true; busyPlayerThreshold = 12;
         VisionModClient.oreHighlight = false; VisionModClient.playerHearts = false;
         VisionModClient.particles = true; VisionModClient.hideAllParticles = true;
-        VisionExtras.snow = false; VisionExtras.hearts = false; VisionExtras.targetOutline = false;
+        // Keep user-selected ambient effects: they already have a strict per-tick budget.
+        VisionExtras.targetOutline = false;
         VisionRenderBoost.enabled = true;
         VisionRenderBoost.chunkCap = 4;
         VisionRenderBoost.save();
