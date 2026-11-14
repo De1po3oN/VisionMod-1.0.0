@@ -1,3 +1,11 @@
+# Vision Mod 1.1.0 — GUI / Free Look / Ambient FX (2026-11-14)
+
+- New original graphite/lavender GUI skin inspired by the general modern visual style of the attached reference, without importing any proprietary textures/code.
+- Free Look: smooth, time-based third-person orbit, mouse-delta clamp and perspective restoration when disabled. F5 cancels the orbit; configurable smoothness saved to extras.properties.
+- Air Hearts/Snowflakes: two modes (WORLD and CAMERA), three density settings, controlled local emission, no hiding of explicitly enabled effects in MAX FPS. Added settings to EXTRAS page 3 and right-click shortcuts.
+- Vanilla HEART/SNOWFLAKE particles are still used. Exact desired visual style and runtime behavior must be confirmed by the user in-game.
+- Java/Minecraft runtime tests and FPS measurements are pending; CI build results must be verified independently.
+
 # Vision Mod 1.0.0 — Open Beta (version unchanged)
 
 - Removed cosmetics feature at source level, including external Worker and texture files.
