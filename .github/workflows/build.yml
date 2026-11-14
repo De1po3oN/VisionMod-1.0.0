@@ -1,5 +1,5 @@
 
-name: Build Vision Mod 1.1.0
+name: Build Vision Mod 2.0.0
 
 on:
   push:
@@ -39,13 +39,13 @@ jobs:
           python3 - <<'PYCODE'
           import io, json, zipfile
 
-          path = 'build/libs/visionmod-1.1.0.jar'
+          path = 'build/libs/visionmod-2.0.0.jar'
 
           with zipfile.ZipFile(path) as outer:
               metadata = json.loads(
                   outer.read('fabric.mod.json')
               )
-              assert metadata['version'] == '1.1.0'
+              assert metadata['version'] == '2.0.0'
 
               found_jei = False
               for nested in metadata.get('jars', []):
@@ -65,7 +65,7 @@ jobs:
         if: success()
         uses: actions/upload-artifact@v4
         with:
-          name: VisionMod-1.1.0
-          path: build/libs/visionmod-1.1.0.jar
+          name: VisionMod-2.0.0
+          path: build/libs/visionmod-2.0.0.jar
           if-no-files-found: error
           retention-days: 30
