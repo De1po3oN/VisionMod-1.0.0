@@ -11,6 +11,8 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.item.PrimedTnt;
+import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.EntityHitResult;
 
@@ -166,16 +168,47 @@ public final class VisionFeaturePack {
             Entity e = mc.level.getEntity(nearestTnt);
             if (e != null && e.isAlive()) {
                 double dist = Math.sqrt(e.distanceToSqr(mc.player));
-                String label = "TNT nearby: " + Math.round(dist * 10.0) / 10.0 + "m";
-                g.drawCenteredString(mc.font, label, w / 2, 26, 0xFFFFA177);
+                String label = "TNT: " + Math.round(dist * 10.0) / 10.0 + "m";
+                if (e instanceof PrimedTnt primed) {
+                    label += "  " + Math.max(0, primed.getFuse() / 20.0f) + "s";
+                }
+                g.drawCenteredString(mc.font, label, w / 2, 26,
+                    e instanceof PrimedTnt primed && primed.getFuse() < 20 ? 0xFFFF5B67 : 0xFFFFA177);
             }
         }
         if (ENABLED[5] && nearestArrow >= 0) {
             Entity e = mc.level.getEntity(nearestArrow);
             if (e != null && e.isAlive()) {
-                String label = e.getName().getString() + "  " +
-                    Math.round(Math.sqrt(e.distanceToSqr(mc.player)) * 10.0) / 10.0 + "m";
-                g.drawString(mc.font, label, w - mc.font.width(label) - 12, h - 39, 0xFFBFC4FF);
+                // Project the real arrow position into the GUI. The text stays
+                // above the arrow as the camera or Free Look orientation moves.
+                // One cached nearest arrow is rendered; no per-frame entity scan.
+                var camera = mc.gameRenderer.getMainCamera();
+                if (camera.isInitialized()) {
+                    Vec3 forward = Vec3.directionFromRotation(camera.xRot(), camera.yRot());
+                    Vec3 right = forward.cross(new Vec3(0, 1, 0));
+                    if (right.lengthSqr() > 0.00001) {
+                        right = right.normalize();
+                        Vec3 up = right.cross(forward).normalize();
+                        Vec3 toward = e.position().add(0, e.getBbHeight() + 0.20, 0)
+                            .subtract(camera.position());
+                        double depth = toward.dot(forward);
+                        if (depth > .3 && depth < 32) {
+                            double factor = h / (2.0 * Math.tan(Math.toRadians(
+                                mc.options.fov().get() * .5)));
+                            int sx = (int) Math.round(w / 2.0 + toward.dot(right) * factor / depth);
+                            int sy = (int) Math.round(h / 2.0 - toward.dot(up) * factor / depth);
+                            String label = e.getName().getString();
+                            int width = mc.font.width(label);
+                            if (sx > width / 2 + 5 && sx < w - width / 2 - 5 &&
+                                sy > 20 && sy < h - 25) {
+                                g.fill(sx - width / 2 - 4, sy - 14,
+                                    sx + width / 2 + 4, sy,
+                                    0xB5171529);
+                                g.drawCenteredString(mc.font, label, sx, sy - 11, 0xFFBFC4FF);
+                            }
+                        }
+                    }
+                }
             }
         }
         if (hitPulse > 0 && (ENABLED[6] || ENABLED[7])) {
