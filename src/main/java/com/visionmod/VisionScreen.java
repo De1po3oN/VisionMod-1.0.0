@@ -293,7 +293,7 @@ public final class VisionScreen extends Screen {
             }
             g.drawString(font, "World-space effects (optional, bounded render budget)",
                 x + 131, y + 211, VisionMenuTheme.MUTED);
-        } else {
+        } else if (extrasPage == 5) {
             for (int i = 0; i < VisionExtendedFeatures.count(); i++) {
                 int bx = colX(x, i), by = rowY(y, i);
                 VisionMenuTheme.moduleRow(g, font, bx, by, 149, 41,
@@ -302,14 +302,23 @@ public final class VisionScreen extends Screen {
                     i == 2 ? "LMB: toggle / RMB: color" : "LMB: toggle",
                     hit(mx, my, bx, by, 149, 41));
             }
-            // Longer configuration hints are documented in README and FOR_AI.
+        } else {
+            for (int i = 0; i < VisionMotionEffects.count(); i++) {
+                int bx = colX(x, i), by = rowY(y, i);
+                VisionMenuTheme.moduleRow(g, font, bx, by, 149, 41,
+                    VisionMotionEffects.NAMES[i], VisionMotionEffects.selected(i),
+                    "LMB: toggle", hit(mx, my, bx, by, 149, 41));
+            }
+            g.drawString(font, "Spear FX are client visuals, not combat overrides.",
+                x + 131, y + 212, VisionMenuTheme.MUTED);
         }
         String subsection = extrasPage == 2 ? "НАСТРОЙКИ" :
             extrasPage == 3 ? "2.0 / HUD & COMBAT" :
             extrasPage == 4 ? "2.0 / WORLD FX" :
-            extrasPage == 5 ? "2.0 / EXTRA FX" : "МОДУЛИ " + (extrasPage + 1) + "/2";
+            extrasPage == 5 ? "2.0 / EXTRA FX" :
+            extrasPage == 6 ? "2.0 / MOTION FX" : "МОДУЛИ " + (extrasPage + 1) + "/2";
         g.drawString(font, "EXTRAS / " + subsection, x + 131, y + 59, VisionMenuTheme.PAGE_GOLD);
-        VisionMenuTheme.pageNavigator(g, font, x, y, extrasPage, 6, mx, my);
+        VisionMenuTheme.pageNavigator(g, font, x, y, extrasPage, 7, mx, my);
     }
 
     private void renderPerformance(GuiGraphics g, int mx, int my, int x, int y) {
@@ -540,9 +549,17 @@ public final class VisionScreen extends Screen {
                             return true;
                         }
                     }
+                } else if (extrasPage == 6) {
+                    for (int i = 0; i < VisionMotionEffects.count(); i++) {
+                        int bx = colX(x, i), by = rowY(y, i);
+                        if (hit(mx, my, bx, by, 149, 41)) {
+                            if (button == GLFW.GLFW_MOUSE_BUTTON_LEFT) VisionMotionEffects.toggle(i);
+                            return true;
+                        }
+                    }
                 }
                 if (button == GLFW.GLFW_MOUSE_BUTTON_LEFT) {
-                    int step = VisionMenuTheme.pageNavigationHit(mx, my, x, y, extrasPage, 6);
+                    int step = VisionMenuTheme.pageNavigationHit(mx, my, x, y, extrasPage, 7);
                     if (step != 0) {
                         extrasPage += step;
                         pageChangedAt = System.nanoTime();
