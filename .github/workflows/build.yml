@@ -34,7 +34,7 @@ jobs:
       - name: Build
         run: gradle clean build --no-daemon --stacktrace
 
-      - name: Verify JEI is included
+      - name: Verify JEI and MezzConfig are included
         run: |
           python3 - <<'PYCODE'
           import io, json, zipfile
@@ -48,6 +48,7 @@ jobs:
               assert metadata['version'] == '2.0.0'
 
               found_jei = False
+              found_mezz = False
               for nested in metadata.get('jars', []):
                   with zipfile.ZipFile(
                       io.BytesIO(outer.read(nested['file']))
@@ -57,8 +58,11 @@ jobs:
                       )
                       if child.get('id') == 'jei':
                           found_jei = True
+                      if child.get('id') == 'mezz_config':
+                          found_mezz = True
 
               assert found_jei, 'JEI is NOT bundled'
+              assert found_mezz, 'MezzConfig dependency is NOT bundled'
           PYCODE
 
       - name: Upload JAR
