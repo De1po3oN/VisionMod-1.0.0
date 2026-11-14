@@ -53,6 +53,9 @@ public final class VisionDashboardScreen extends Screen {
     private Module details;
     private int captureBind = -1;
     private EditBox search;
+    private List<Module> cachedModules = List.of();
+    private String cachedQuery = null;
+    private int cachedCategory = -1;
     private long pageAt = System.nanoTime();
     private final long openedAt = System.nanoTime();
 
@@ -312,6 +315,7 @@ public final class VisionDashboardScreen extends Screen {
 
     private List<Module> filtered() {
         String q=search==null?"":search.getValue().trim().toLowerCase(Locale.ROOT);
+        if(cachedCategory==category && q.equals(cachedQuery))return cachedModules;
         List<Module> result=new ArrayList<>();
         for(Module m:CATALOG) {
             if(q.isEmpty() && m.category!=category) continue;
@@ -320,7 +324,12 @@ public final class VisionDashboardScreen extends Screen {
                 !m.info.toLowerCase(Locale.ROOT).contains(q)) continue;
             result.add(m);
         }
-        return result;
+        cachedQuery=q;
+        cachedCategory=category;
+        cachedModules=List.copyOf(result);
+        page=0;
+        pageAt=System.nanoTime();
+        return cachedModules;
     }
 
     @Override public void render(GuiGraphics g,int mx,int my,float delta) {
@@ -418,12 +427,26 @@ public final class VisionDashboardScreen extends Screen {
         textFit(g,details.info,x+16,y+55,ww-28,MUTED);
         g.drawString(font,details.enabled.getAsBoolean()?"STATUS: ENABLED":"STATUS: DISABLED",
             x+16,y+78,details.enabled.getAsBoolean()?GREEN:MUTED);
+        if(details.title.equals("Air Hearts") || details.title.equals("Snowflakes")) {
+            g.drawString(font,"MODE: "+VisionExtras.ambientStyleLabel(),x+16,y+102,WHITE);
+            g.drawString(font,"DENSITY: "+VisionExtras.ambientDensityLabel(),x+16,y+116,WHITE);
+        } else if(details.title.equals("Free Look")) {
+            g.drawString(font,"SMOOTH CAMERA: "+(FreeLook.smooth?"ON":"OFF"),x+16,y+102,WHITE);
+        } else if(details.title.equals("World Color")) {
+            g.drawString(font,"PALETTE: "+VisionExtendedFeatures.colorLabel(),x+16,y+102,WHITE);
+        } else if(details.title.equals("Hit Color")) {
+            g.drawString(font,"PALETTE: "+VisionTools2.hitColorName(),x+16,y+102,WHITE);
+        }
         int actionY=y+hh-37;
         round(g,x+13,actionY,Math.min(115,(ww-45)/2),27,6,0xFF42345F);
         g.drawString(font,"TOGGLE",x+28,actionY+10,WHITE);
-        if(details.options!=null){
+        if(details.options!=null && ww>280){
             round(g,x+131,actionY,Math.min(118,ww-145),27,6,0xFF303950);
             g.drawString(font,"OPTIONS",x+149,actionY+10,WHITE);
+        }
+        if((details.title.equals("Air Hearts") || details.title.equals("Snowflakes")) && ww>395) {
+            round(g,x+259,actionY,110,27,6,0xFF303950);
+            g.drawString(font,"DENSITY",x+276,actionY+10,WHITE);
         }
         g.drawString(font,"[x]",x+ww-24,y+16,MUTED);
     }
@@ -454,9 +477,13 @@ public final class VisionDashboardScreen extends Screen {
                 if(inside(mx,my,x+13,y+hh-37,Math.min(115,(ww-45)/2),27)){
                     details.toggle.run();return true;
                 }
-                if(details.options!=null &&
+                if(details.options!=null && ww>280 &&
                     inside(mx,my,x+131,y+hh-37,Math.min(118,ww-145),27)){
                     details.options.run();return true;
+                }
+                if((details.title.equals("Air Hearts") || details.title.equals("Snowflakes")) &&
+                    ww>395 && inside(mx,my,x+259,y+hh-37,110,27)){
+                    VisionExtras.cycleAmbientDensity();return true;
                 }
             }
             return true;
