@@ -32,6 +32,7 @@ public final class VisionModClient implements ClientModInitializer {
         VisionFeaturePack.init();
         VisionWorldEffects.init();
         VisionExtendedFeatures.init();
+        VisionPetRenderer.init();
         VisionMotionEffects.init();
         VisionCustomModels.init();
         VisionTools2.init();
