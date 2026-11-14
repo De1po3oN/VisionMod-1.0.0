@@ -1,3 +1,8 @@
+*** СБОРКА VISION MOD 2.0.0 ПОДТВЕРЖДЕНА (ДОБАВЛЕНО 2026-11-14) ***
+GitHub Actions #57, run https://github.com/De1po3oN/VisionMod-1.0.0/actions/runs/43578320155, HEAD сборки 6fb80a0a42a08846bf2b11778beb655085143c1b, status SUCCESS, artifacts id 14107252915 («VisionMod-2.0.0»).
+Фактически скачан ZIP и вручную проверен visionmod-2.0.0.jar (4 431 836 байт), SHA256=3754c594c3c6c6be73bc03a5dcc95928188e8e568733057cfbb266fcb408f5b6; fabric.mod.json version=2.0.0; классы VisionFeaturePack.class и VisionWorldEffects.class присутствуют; вложенный JEI mod id=jei version 27.54.0.113. Это ПОДТВЕРЖДАЕТ CI И СОДЕРЖИМОЕ JAR, НО НЕ ИГРОВУЮ РАБОТОСПОСОБНОСТЬ.
+После #57 были изменения ТОЛЬКО в .md/.txt документации; при проверке в будущем сверить текущий HEAD и Actions. Самый точный список реализованных/недоделанных модулей в FEATURE_REQUESTS_2_0_0.md. Никакие сотни функций из другого мода не переносились автоматически.
+
 *** АКТУАЛЬНО ДЛЯ СЛЕДУЮЩЕГО ЧАТА: VISION MOD 2.0.0 ***
 Дата: 2026-11-14.
 Репозиторий НЕ переименовывали: https://github.com/De1po3oN/VisionMod-1.0.0
