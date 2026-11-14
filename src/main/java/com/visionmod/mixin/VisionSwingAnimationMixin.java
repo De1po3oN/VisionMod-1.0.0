@@ -19,7 +19,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public abstract class VisionSwingAnimationMixin {
     @Inject(
         method = "applyItemArmAttackTransform(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/world/entity/HumanoidArm;F)V",
-        at = @At("HEAD"), require = 0)
+        at = @At("HEAD"), require = 1)
     private void visionmod$customSwing(PoseStack pose, HumanoidArm arm, float progress,
         CallbackInfo ci) {
         if (!VisionMotionEffects.enabled(0)) return;
