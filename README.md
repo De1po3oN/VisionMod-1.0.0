@@ -1,6 +1,13 @@
-# Vision Mod 1.1.0 — Open Beta
+# Vision Mod 2.0.0 — Open Beta development
 
 Minecraft Java 1.21.11 / Fabric Loader >=0.19.3 / Java 21.
+
+## What's new in 2.0.0 (work in progress)
+- Added eight optional HUD/combat modules in **EXTRAS / 2.0 HUD & COMBAT**: Aspect Bars, Armor Colorful (durability HUD), Target Health, Hit Range, TNT Indicator (distance), Arrow Names (nearest arrow HUD), Hit Pulse, Blood Hit (edge tint).
+- Added four optional original world-space effects in **EXTRAS / 2.0 WORLD FX**: Target ESP outline, capped Trails, ring of Jump Circles dots, low-poly third-person China Hat. No external cosmetics networking.
+- All new effects are OFF by default. Settings persist in config/visionmod/features-2.properties and world-effects-2.properties.
+- The user supplied a third-party 2.0 JAR for reference, but its All-Rights-Reserved code/assets/fonts/sounds have not been copied.
+- **Incomplete:** Many requested modules remain pending; see FEATURE_REQUESTS_2_0_0.md for full status. CI build is not an in-game runtime test.
 
 ## What's new in 1.1.0 (source/CI candidate; runtime not yet tested)
 - Free Look: smoothed, independent third-person camera orbit; camera perspective cleanup and configurable smoothing. Hold Left Alt, release to keep the chosen view, F5 to reset.
@@ -21,7 +28,7 @@ Minecraft Java 1.21.11 / Fabric Loader >=0.19.3 / Java 21.
 All project cosmetics renderer/menus, bundled textures, cloud service/worker, assets, imports/exports and settings. Previously shared profiles are still accepted, but old cosmetics fields are ignored. Existing local files in the user's config directory are **not** deleted automatically.
 
 ## Build
-`gradle clean build --no-daemon --stacktrace` (Java 21, Gradle 9.2.1). The nested JEI JAR will be downloaded on the build runner from Modrinth Maven. Build result: `build/libs/visionmod-1.1.0.jar`.
+`gradle clean build --no-daemon --stacktrace` (Java 21, Gradle 9.2.1). The nested JEI JAR will be downloaded on the build runner from Modrinth Maven. Build result: `build/libs/visionmod-2.0.0.jar`.
 
 Status: 1.1.0 source update. GitHub Actions compilation is checked separately; in-game performance and visual behavior are **not yet verified**. Exact FPS gains depend on CPU/GPU, entity count, shaders and baseline draw distance.
 
