@@ -22,12 +22,12 @@ public abstract class ClientLevelParticlesMixin {
             (VisionModClient.hideAllParticles || VisionModClient.hideBlockParticles);
     }
 
-    @Inject(method = "addBreakingBlockEffect(Lnet/minecraft/core/BlockPos;Lnet/minecraft/core/Direction;)V", at = @At("HEAD"), cancellable = true, require = 0)
+    @Inject(method = "addBreakingBlockEffect(Lnet/minecraft/core/BlockPos;Lnet/minecraft/core/Direction;)V", at = @At("HEAD"), cancellable = true, require = 1)
     private void visionmod$hideMiningProgress(BlockPos pos, Direction direction, CallbackInfo ci) {
         if (hide()) ci.cancel();
     }
 
-    @Inject(method = "addDestroyBlockEffect(Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;)V", at = @At("HEAD"), cancellable = true, require = 0)
+    @Inject(method = "addDestroyBlockEffect(Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;)V", at = @At("HEAD"), cancellable = true, require = 1)
     private void visionmod$hideBlockDestruction(BlockPos pos, BlockState state, CallbackInfo ci) {
         if (hide()) ci.cancel();
     }
