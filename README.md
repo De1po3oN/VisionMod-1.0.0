@@ -1,3 +1,11 @@
+## Важное обновление 2.0.0 / критические исправления (2026-11-14)
+**Free Look:** удерживать Left Alt => камера вращается отдельно от игрока, отпускание => автоматический возврат предыдущей перспективы и сброс угла. Удержание орбиты после отпускания отменено по прямому требованию пользователя; F5 для сброса не нужен.
+
+**Реальные баги исправлены в исходниках:** в MC 1.21.11 метод ParticleEngine называется `createParticle` / `add`, а не `addParticle`; прежний particle filter мог вообще не применяться. Исправлены точки внедрения Mixin и включено требование успешной инъекции. Система MAX FPS/Hide All теперь должна пропускать явно включённые частицы Vision. Hit/Blood/Kill/Sound FX наблюдают событие нашей атаки, а не потерянную после удара цель под прицелом; исправлены пороги и позиционирование spear particles. Убран переход `ADVANCED` в старое главное GUI; текст World Lyrics и имена Social Radar вводятся в новом интерфейсе.
+
+**Проверки:** Actions Build #146 SUCCESS, Minecraft startup smoke #45 SUCCESS, `VISIONMOD_SELFTEST` проверил **54 переключателя и сохранение их конфигураций**. Это **НЕ** равно 54 успешно работающим визуальным функциям. Реальная приемка 35 требований 2.0.0, FPS и визуальные тесты всё ещё не завершены — `QA_35_QUALITY_GATE_RU.md`. До этого нельзя обещать 80% уверенности по каждому модулю. Скачать тестовый JAR из [GitHub Actions #146](https://github.com/De1po3oN/VisionMod-1.0.0/actions/runs/43595887218).
+
+---
 ## Обновление GUI и исправление запуска (2026-11-14)
 
 **Новый главный экран:** Right Shift теперь открывает `VisionDashboardScreen` с категоризированными карточками, поиском, подробностями по ПКМ, биндами старых модулей по СКМ, настройками Air Hearts и Snowflakes. Старый `VisionScreen` сохранён в **Advanced** для сложных редакторов.
@@ -36,7 +44,7 @@ Minecraft Java 1.21.11 / Fabric Loader >=0.19.3 / Java 21.
 - **Incomplete:** Many requested modules remain pending; see FEATURE_REQUESTS_2_0_0.md for full status. CI build is not an in-game runtime test.
 
 ## What's new in 1.1.0 (source/CI candidate; runtime not yet tested)
-- Free Look: smoothed, independent third-person camera orbit; camera perspective cleanup and configurable smoothing. Hold Left Alt, release to keep the chosen view, F5 to reset.
+- Free Look: smoothed, independent third-person camera orbit; camera perspective cleanup and configurable smoothing. Hold Left Alt, release to restore the previous perspective immediately.
 - Atmospheric Air Hearts / Snowflakes: configurable density (1–3) and placement (near player in world space or distributed in the viewing direction). Effects remain explicitly enabled in MAX FPS.
 - GUI refresh: original graphite/lavender design, refined module switches and navigation; no copied reference-mod files or assets.
 - Extras page 3 contains Heart FX mode, Ambient density and Smooth Free Look settings. These three settings are mouse-controlled and have no new hotkey IDs.
@@ -64,5 +72,5 @@ Status: 1.1.0 source update. GitHub Actions compilation is checked separately; i
 ## 1.1.0 GUI and ambient options
 - New graphite/lavender Vision theme with original geometry, muted contrast and clearer module switches. Does not contain Fading Light code or assets.
 - Extras → Settings (page 3) lets users choose Ambient Mode (WORLD/CAMERA), Ambient Density (LOW/MEDIUM/HIGH), Smooth Free Look (ON/OFF). Right-click Air Hearts or Snowflakes to jump to this page; right-click Free Look for quick smooth toggle.
-- Free Look controls the independent third-person camera on Left Alt; release keeps the orbit; F5 cancels. Smooth interpolation can be disabled.
+- Free Look controls the independent third-person camera on Left Alt; release resets the orbit and restores the previous camera perspective. Smooth interpolation can be disabled.
 - AIR HEARTS and Snowflakes are still vanilla particle types, but emit across a world-space area or an optional camera-space halo. No custom heart texture was copied. Visual correctness requires a client test.
