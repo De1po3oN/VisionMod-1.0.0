@@ -35,6 +35,7 @@ public final class VisionModClient implements ClientModInitializer {
         VisionMotionEffects.init();
         VisionCustomModels.init();
         VisionTools2.init();
+        if ("1".equals(System.getenv("VISIONMOD_SELFTEST"))) VisionSelfTest.run();
         TargetOutline.init();
         KeyMapping.Category category=KeyMapping.Category.register(Identifier.fromNamespaceAndPath("visionmod","general"));
         KeyMapping toggleAll=KeyBindingHelper.registerKeyBinding(new KeyMapping("key.visionmod.toggle",InputConstants.Type.KEYSYM,InputConstants.KEY_END,category));
