@@ -1,64 +1,67 @@
 package com.visionmod;
 
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.CameraType;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
-import net.fabricmc.loader.api.FabricLoader;
+import net.minecraft.util.Mth;
 
 /**
- * Third-person orbit camera: mouse moves the camera, not the player's aim.
- * After the hold key is released the chosen view angle stays locked.
- * F5 (or changing the game's perspective) restores ordinary camera control.
+ * Independent, client-only orbit camera for the third-person view.
+ *
+ * Left Alt changes only the camera orientation, never the player/entity yaw.
+ * Releasing Alt retains the chosen orbit. F5 resets it back to vanilla.
+ * All angles are in degrees; optional interpolation only affects the view.
  */
 public final class FreeLook {
     public static boolean enabled = true;
-    /** True only while the Free Look hotkey is held. */
+    public static boolean smooth = true;
     public static boolean active;
-    /** True while the third-person camera remains independent from player yaw. */
     public static boolean locked;
     public static float yaw;
     public static float pitch;
 
+    private static float renderedYaw;
+    private static float renderedPitch;
+    private static long lastRenderNanos;
     private static boolean wasHeld;
     private static boolean warnedAboutExternal;
+    private static CameraType previousCameraType;
 
     private FreeLook() { }
 
     public static void tick(boolean held) {
         Minecraft mc = Minecraft.getInstance();
-
         if (mc.player == null || mc.level == null || !enabled || !VisionModClient.enabled) {
-            stop();
+            stop(true);
             return;
         }
 
-        // Do not capture a fresh key press while a settings/chat screen is open.
-        held = held && mc.screen == null;
+        held &= mc.screen == null;
 
-        // The user pressed F5 or changed the view in settings: never fight it.
+        // Changing perspective (including F5) explicitly cancels the orbit.
         if (locked && mc.options.getCameraType() != CameraType.THIRD_PERSON_BACK) {
-            locked = false;
-            active = false;
+            stop(false);
             wasHeld = held;
             return;
         }
 
         if (held && !wasHeld && !locked) {
-            // Initialise once. Releasing the key must not restore the player's
-            // yaw or teleport the camera to its previous view direction.
+            previousCameraType = mc.options.getCameraType();
             yaw = mc.player.getYRot();
             pitch = mc.player.getXRot();
+            renderedYaw = yaw;
+            renderedPitch = pitch;
+            lastRenderNanos = 0L;
             locked = true;
             mc.options.setCameraType(CameraType.THIRD_PERSON_BACK);
 
-            if (!warnedAboutExternal &&
-                (FabricLoader.getInstance().isModLoaded("freelook") ||
-                 FabricLoader.getInstance().isModLoaded("perspectivereborn"))) {
+            if (!warnedAboutExternal && (FabricLoader.getInstance().isModLoaded("freelook")
+                    || FabricLoader.getInstance().isModLoaded("perspectivereborn"))) {
                 warnedAboutExternal = true;
-                String message = "[Vision Mod] Another FreeLook mod is installed. "
-                    + "Unbind its camera key while testing Vision Mod's Left Alt orbit.";
-                System.err.println(message);
-                mc.player.displayClientMessage(Component.literal(message), false);
+                String warning = "[Vision Mod] External FreeLook detected. Unbind its camera key to avoid conflicts.";
+                System.err.println(warning);
+                mc.player.displayClientMessage(Component.literal(warning), false);
             }
         }
 
@@ -66,27 +69,51 @@ public final class FreeLook {
         wasHeld = held;
     }
 
-    /** Used by the mouse hook, only while holding the configured hotkey. */
+    /** Called from MouseHandler; do not mutate the player's rotation. */
     public static void rotate(double dx, double dy) {
         if (!active) return;
         Minecraft mc = Minecraft.getInstance();
-        double slider = mc.options.sensitivity().get();
-        double factor = slider * 0.6d + 0.2d;
-        double multiplier = factor * factor * factor * 8d * 0.15d;
-
-        yaw += (float) (dx * multiplier);
-        pitch = Math.max(-90.0f, Math.min(90.0f,
-            pitch + (float) (dy * multiplier)));
+        double sensitivity = mc.options.sensitivity().get();
+        double factor = sensitivity * 0.6 + 0.2;
+        double multiplier = factor * factor * factor * 8.0 * 0.15;
+        // Large deltas can occur when the game regains mouse focus.
+        dx = Mth.clamp(dx, -250.0, 250.0);
+        dy = Mth.clamp(dy, -250.0, 250.0);
+        yaw = Mth.wrapDegrees(yaw + (float)(dx * multiplier));
+        pitch = Mth.clamp(pitch + (float)(dy * multiplier), -89.9f, 89.9f);
     }
 
-    /** Camera orientation remains fixed until F5 or module/world reset. */
-    public static boolean isOrbitCamera() {
-        return locked;
+    /** Once per rendered Camera.setup; a time-based easing that is frame-rate independent. */
+    public static void stepCamera() {
+        if (!locked) return;
+        long now = System.nanoTime();
+        if (!smooth || lastRenderNanos == 0L) {
+            renderedYaw = yaw;
+            renderedPitch = pitch;
+        } else {
+            double seconds = Mth.clamp((now - lastRenderNanos) / 1_000_000_000.0, 0.0, 0.1);
+            float blend = (float)(1.0 - Math.exp(-22.0 * seconds));
+            renderedYaw = Mth.wrapDegrees(renderedYaw + Mth.wrapDegrees(yaw - renderedYaw) * blend);
+            renderedPitch += (pitch - renderedPitch) * blend;
+        }
+        lastRenderNanos = now;
     }
 
-    private static void stop() {
+    public static float cameraYaw() { return renderedYaw; }
+    public static float cameraPitch() { return renderedPitch; }
+    public static boolean isOrbitCamera() { return locked; }
+
+    private static void stop(boolean restorePerspective) {
+        if (restorePerspective && locked && previousCameraType != null) {
+            Minecraft mc = Minecraft.getInstance();
+            if (mc.options.getCameraType() == CameraType.THIRD_PERSON_BACK) {
+                mc.options.setCameraType(previousCameraType);
+            }
+        }
         active = false;
         locked = false;
         wasHeld = false;
+        previousCameraType = null;
+        lastRenderNanos = 0L;
     }
 }
