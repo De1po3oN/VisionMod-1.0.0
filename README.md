@@ -1,3 +1,19 @@
+## VisionMod 2.0.0 — актуальная проверенная сборка кода
+
+Последний проверенный **кодовый** коммит: `19c713cd`. [GitHub Actions #80](https://github.com/De1po3oN/VisionMod-1.0.0/actions/runs/43579928856) — SUCCESS; артефакт VisionMod-2.0.0 содержит `visionmod-2.0.0.jar` и вложенный JEI 27.54.0.113. Это CI-подтверждение, **не игровой QA**.
+
+EXTRAS содержит 8 страниц. 2.0 группы:
+- **HUD & COMBAT:** Aspect Bars, colored armor durability, Target Health, Hit Range, TNT distance, nearest Arrow Name, Hit Pulse, Blood Hit.
+- **WORLD FX:** Target ESP outline, Trail dots, Jump Circle dots, wireframe China Hat.
+- **EXTRA FX:** Block Overlay, target death notice, screen color grading, own-text lyrics HUD, local wire pet, friend name radar, vanilla hit sound, rain/snow particle suppression.
+- **MOTION FX:** optional first-person Swing Animation, dropped-item pose tilt/spin, visual spear lunge/pierce particle feedback, Camera Streaks (not actual motion blur).
+- **TOOLS:** Fast Use (bounded normal vanilla use action), original JSON custom box models in `config/visionmod/custom-model.json`, selectable Hit Color (RMB changes color).
+
+All new options are OFF by default; toggles are in Extras with persistent local .properties settings. Some features are prototypes or only partial equivalents. **Motion Blur itself, source-accurate UI/animations and full behavior of all 35 features are not finished.** See `FEATURE_REQUESTS_2_0_0.md`. Avoid marketing this as a complete recreation of any proprietary visual mod.
+
+
+---
+
 # Vision Mod 2.0.0 — Open Beta development
 
 Minecraft Java 1.21.11 / Fabric Loader >=0.19.3 / Java 21.
