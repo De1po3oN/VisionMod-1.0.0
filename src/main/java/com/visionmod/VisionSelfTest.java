@@ -61,6 +61,20 @@ public final class VisionSelfTest {
 
         if (passed != 54) throw new IllegalStateException(
             "[VisionMod][SELFTEST] Expected 54 toggle+save checks, got "+passed);
+        if (!"FIRST".equals(VisionWorldLyrics.previewLine("FIRST | SECOND",0)) ||
+            !"SECOND".equals(VisionWorldLyrics.previewLine("FIRST | SECOND",70)) ||
+            VisionWorldLyrics.previewLine("",0).isBlank())
+            throw new IllegalStateException("[VisionMod][SELFTEST] World Lyrics line playback failed");
+        try (InputStream texture=VisionSelfTest.class.getResourceAsStream(
+            "/assets/visionmod/textures/entity/pet_surface.png")) {
+            if(texture==null)throw new IllegalStateException("Pet texture is not packaged");
+            java.awt.image.BufferedImage image=javax.imageio.ImageIO.read(texture);
+            if(image==null || image.getWidth()!=32 || image.getHeight()!=32)
+                throw new IllegalStateException("Pet texture invalid 32x32 image");
+        } catch(Exception e) {
+            throw new IllegalStateException("[VisionMod][SELFTEST] Pet texture QA failed",e);
+        }
+        System.out.println("[VisionMod][SELFTEST] PASS: World Lyrics text rotation and packaged Pet texture.");
         System.out.println("[VisionMod][SELFTEST] PASS: 54 module toggles and their settings persistence.");
     }
 
