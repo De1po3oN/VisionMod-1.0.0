@@ -1,3 +1,14 @@
+# 2.0.0 Visuals Rework (2026-11-14, DEV TESTED BUILD)
+
+- New original filled animated local pet, not former wireframe: eyes, ears, paws, moving wings/tail, original soft texture and six persisted colors.
+- True third-person World Lyrics 3D billboard; first-person HUD and off-screen fallback. User-owned `|` separated lines, ~3.5 sec automatic cycling, visible original sample on first activation. No media-player integration.
+- Continuous translucent Trail ribbons (max 25 samples), double expanding filled Jump Circles, filled translucent 36-sector China Hat, improved Target ESP foot halo.
+- Solid JSON Custom Models (max 32 boxes), full-block tinted Block Overlay, gradient World Color, improved animated Hit FX and Blood Hit vignette.
+- Common VisionGeometry for bounded quads/cubes/lines; fully independently authored effects and 32x32 PNG; no proprietary resources copied from the reference.
+- Build #171 SUCCESS, startup #66 SUCCESS (54 persisted toggles + lyric text cycle + PNG validation). Not yet tested inside a world. Remaining acceptance across 35 modules, true Motion Blur, and real FPS measurements are open.
+
+---
+
 # VisionMod 2.0.0 — новая архитектура GUI + критичный фикс JEI (2026-11-14)
 
 - Вместо устаревшего главного экрана, который раньше только перекрашивался, Right Shift теперь открывает новый самостоятельный `VisionDashboardScreen` (7 категорий, поисковая строка, сетка модулей, детализация по ПКМ, MMB сохранённых ID биндов). Дополнительные настройки Air Hearts/Snowflakes и доступ к старым расширенным редакторам через Advanced.
