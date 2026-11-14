@@ -26,15 +26,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Small original JSON-driven client model attached to the local player's body.
+ * Small original filled JSON-driven client model attached to the local player's body.
  * No executable scripts, downloads, external model format or hidden cosmetics service.
- * Limited to 32 geometric boxes to preserve frame rate on crowded servers.
+ * Limited to 32 solid colored geometric boxes to preserve FPS; no network effects.
  */
 public final class VisionCustomModels {
     private static final Path FILE = FabricLoader.getInstance().getConfigDir()
         .resolve("visionmod/custom-model.json");
     private static final int MAX_BOXES = 32;
-    private record Box(VoxelShape geometry, int color) { }
+    private record Box(AABB geometry, int color) { }
     private static List<Box> boxes = List.of();
     public static boolean enabled;
 
@@ -57,10 +57,13 @@ public final class VisionCustomModels {
             pose.translate(player.x - camera.x, player.y - camera.y + 1.08,
                 player.z - camera.z);
             pose.mulPose(Axis.YP.rotationDegrees(-mc.player.getYRot()));
-            VertexConsumer lines = context.consumers().getBuffer(RenderTypes.lines());
+            VertexConsumer fill = context.consumers().getBuffer(
+                RenderTypes.entityTranslucent(VisionGeometry.WHITE_TEXTURE));
             for (Box b : boxes) {
-                ShapeRenderer.renderShape(pose, lines, b.geometry(), 0, 0, 0,
-                    b.color(), 1.35f);
+                AABB a=b.geometry();
+                VisionGeometry.cube(fill,pose,
+                    (float)a.minX,(float)a.minY,(float)a.minZ,
+                    (float)a.maxX,(float)a.maxY,(float)a.maxZ,b.color());
             }
             pose.popPose();
         });
@@ -107,7 +110,7 @@ public final class VisionCustomModels {
                         if (hex.matches("[A-Fa-f0-9]{6}"))
                             color = 0xFF000000 | Integer.parseInt(hex,16);
                     }
-                    parsed.add(new Box(Shapes.create(new AABB(x,y,z,x+w,y+h,z+d)),color));
+                    parsed.add(new Box(new AABB(x,y,z,x+w,y+h,z+d),color));
                 }
             }
             boxes = List.copyOf(parsed);
