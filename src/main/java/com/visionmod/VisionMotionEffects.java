@@ -7,6 +7,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.resources.Identifier;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.phys.EntityHitResult;
@@ -58,8 +59,8 @@ public final class VisionMotionEffects {
     }
     private static boolean holdingSpear(Minecraft mc) {
         return mc.player != null &&
-            (mc.player.getMainHandItem().getDescriptionId().contains("spear") ||
-             mc.player.getOffhandItem().getDescriptionId().contains("spear"));
+            (BuiltInRegistries.ITEM.getKey(mc.player.getMainHandItem().getItem()).getPath().endsWith("_spear") ||
+             BuiltInRegistries.ITEM.getKey(mc.player.getOffhandItem().getItem()).getPath().endsWith("_spear"));
     }
     private static void tick(Minecraft mc) {
         if (mc.player == null || mc.level == null || !VisionModClient.enabled) {
