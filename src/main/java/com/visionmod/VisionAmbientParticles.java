@@ -224,6 +224,24 @@ public final class VisionAmbientParticles {
         ACTIVE[count++] = p;
     }
 
+    /**
+     * Called only by the optional CI startup test, before a world is loaded.
+     * Covers both sprite kinds, the memory cap, and immediate type cleanup.
+     */
+    static void selfTestPool() {
+        if (count != 0) throw new IllegalStateException("Ambient pool not empty at startup");
+        for (int i = 0; i < CAPACITY + 20; i++)
+            spawn(i % 2 == 0 ? HEART_KIND : SNOW_KIND, 0, 1, 0);
+        if (count != CAPACITY) throw new IllegalStateException("Ambient cap exceeded");
+        clearType(HEART_KIND);
+        if (count != CAPACITY / 2) throw new IllegalStateException("Heart cleanup failed");
+        for (int i = 0; i < count; i++)
+            if (ACTIVE[i].type != SNOW_KIND)
+                throw new IllegalStateException("Sprite kinds got mixed");
+        clear();
+        if (count != 0) throw new IllegalStateException("Ambient cleanup failed");
+    }
+
     /** Pure resource/limit checks used by the CI-only client startup test. */
     public static int capacity() { return CAPACITY; }
     public static String heartResource() { return "/assets/visionmod/textures/particle/soft_heart.png"; }
