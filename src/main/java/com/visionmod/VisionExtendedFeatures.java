@@ -212,12 +212,19 @@ public final class VisionExtendedFeatures {
         int w = g.guiWidth(), h = g.guiHeight();
 
         if (FLAGS[2]) {
-            int tint = switch(worldColor) {
-                case 1 -> 0x14FFC884;
-                case 2 -> 0x1B5C91FF;
-                default -> 0x138C5DBB;
+            // Soft two-stop atmospheric treatment instead of a uniform flat wash.
+            // Kept intentionally low opacity and free of GPU post-processing.
+            int top = switch(worldColor) {
+                case 1 -> 0x25FFC48A; // sunset
+                case 2 -> 0x226F9AFF; // cold moonlight
+                default -> 0x238F70DA; // violet dusk
             };
-            g.fill(0, 0, w, h, tint);
+            int bottom = switch(worldColor) {
+                case 1 -> 0x22F28D73;
+                case 2 -> 0x1E4577D0;
+                default -> 0x1B364E9B;
+            };
+            g.fillGradient(0,0,w,h,top,bottom);
         }
         if (FLAGS[5]) {
             String label = friendsNearby.isEmpty() ? "Social Radar: no friends in range" : "Friends: " + friendsNearby;
