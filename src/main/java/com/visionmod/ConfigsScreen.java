@@ -77,7 +77,7 @@ public final class ConfigsScreen extends Screen {
         }).bounds(x + 13, y + 158, 310, 26).build());
 
         addRenderableWidget(Button.builder(Component.literal("BACK TO VISUALS"),
-            b -> minecraft.setScreen(new VisionScreen()))
+            b -> minecraft.setScreen(new VisionDashboardScreen()))
             .bounds(x + 13, y + 204, 310, 20).build());
         refresh();
     }
@@ -111,6 +111,6 @@ public final class ConfigsScreen extends Screen {
             VisionMenuTheme.inside(mouseX, mouseY, x, y, w, h));
     }
 
-    @Override public void onClose() { minecraft.setScreen(new VisionScreen()); }
+    @Override public void onClose() { minecraft.setScreen(new VisionDashboardScreen()); }
     @Override public boolean isPauseScreen() { return false; }
 }
