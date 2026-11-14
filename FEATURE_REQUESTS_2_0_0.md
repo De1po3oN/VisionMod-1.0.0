@@ -22,7 +22,7 @@ Its `fabric.mod.json` declares `license: All-Rights-Reserved`. No source, byteco
 | item scroller | Fast Scroller | inherited; not yet equivalent to reference |
 | optimizer | VisionPerformance and VisionRenderBoost | inherited; FPS gains not benchmarked |
 | swing animation | Small Sword / Compact Hand exists, **not** full custom swing animation | partial prior feature |
-| target esp | Block Target Outline exists, **not** full entity target ESP | different prior feature |
+| target esp | Optional world-space bounding outline around targeted living entity | 2.0 world render prototype (no through-wall visibility) |
 | animations | Main menu transition animation exists | inherited, not reference UI |
 | interface | Configurable theme/sidebar GUI | inherited; original design |
 | shulker viewer | Shulker Summary, tooltip and grid | inherited; runtime QA needed |
@@ -31,18 +31,18 @@ Its `fabric.mod.json` declares `license: All-Rights-Reserved`. No source, byteco
 ## Not implemented / not claimed done
 
 - Block Overlay: configurable world-space block fill and outline (separate from Target Outline).
-- China Hat: optional proper 3D head-attached cosmetic rendering, compatible with Free Look; no online cosmetics system unless requested.
+- China Hat: optional third-person-only low-poly hat made from world-space line dots; prototype now implemented. Still needs player-head rotation, shader checks and visual polish.
 - Clear Render: individual controls for fog, weather, overlays and unwanted visual clutter beyond existing filters.
 - Custom Models: configurable local models/resource-pack support without external downloads.
 - Hit Color: color customization for hit effects and entity outlines.
 - Item Physics: client-only dropped-item rotations/physics; prevent conflicts with other item renderers.
-- Jump Circles: world-space rings at landing points with bounded GPU budget.
+- Jump Circles: world-space ring of bounded outline dots on landing; prototype now implemented. Test shape, collision and visibility.
 - Kill Effect: actual player-related kill event effects, not an arbitrary nearby-death flash.
 - Motion Blur: opt-in effect with frame-time limits and shader compatibility; heavy GPU cost requires FPS benchmarking.
 - Spear Lunge / Spear Pierce: define exact game semantics and verify 1.21.11 item availability; do not fake server-authoritative combat.
 - Full Swing Animation: player hand animation options and mixin compatibility testing.
 - Entity Target ESP: configurable 3D targeting effect (distinct from HUD).
-- Trails: world-space motion trails using bounded history.
+- Trails: bounded history of up to 13 dot outlines behind local player; prototype now implemented. Not yet a continuous textured trail.
 - World Customizer: safe client-only visual settings with profiles and shader coexistence.
 - World Lyrics: world-space anchored text, locally supplied content (no copyrighted song lyrics bundled).
 - Additional GUI animations/layout parity; no exact copying of licensed assets.
@@ -54,7 +54,7 @@ Its `fabric.mod.json` declares `license: All-Rights-Reserved`. No source, byteco
 
 ## Next iterations, in safe buildable groups
 
-1. Re-test 2.0.0 compilation and in-game HUD functionality; fix errors before merging more features.
+1. Re-test 2.0.0 compilation and in-game HUD/world effects; fix errors before merging more features.
 2. Visual world-rendering layer: Block Overlay, Entity ESP, Jump Circles, Trails, China Hat, World Lyrics (test mixins/shaders).
 3. Combat and animations: Hit Color, true Hit/Kill effects, Swing Animation, Spear effects, Item Physics.
 4. Interface/HUD UX: draggable layout, expanded effects/animations, Pet, Shulker viewer, richer customization, custom sounds, social.
