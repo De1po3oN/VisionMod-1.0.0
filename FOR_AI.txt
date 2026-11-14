@@ -1,4 +1,6 @@
 *** АКТУАЛЬНОЕ ОБНОВЛЕНИЕ 1.1.0 ОТ 2026-11-14 — ЧИТАТЬ ПЕРВЫМ ***
+ПРОВЕРЕННЫЙ АРТЕФАКТ 1.1.0: Actions #41 (run id 43575324724, commit 6d282ef1) — success, Build / Verify JEI / Upload JAR successful. Artifact id 14105314176, name VisionMod-1.1.0, contains visionmod-1.1.0.jar. JAR вручную распакован: metadata id=visionmod, version=1.1.0; nested META-INF/jars/u6dRKJwZ-1MYoCSWP.jar содержит мод jei версии 27.54.0.113. Реальный Minecraft runtime не тестировали; это не обещание, что Free Look и Air Hearts именно так, как хочет пользователь. Новый QA_CHECKLIST_RU.md содержит раздел проверки 1.1.0. Последующие коммиты документации могут запускать новые workflow; сравнить свежий HEAD.
+
 Пользователь приложил fading-beta-2.0.0-fabric.jar как визуальный РЕФЕРЕНС. Это all-rights-reserved сторонний мод; его JAR не запускали, чужой код/текстуры/шрифты не копировали. По файлам архива подтверждены AmbientParticleController и UI assets, но внешний вид рабочего GUI в игре ещё не исследован, а эффект Heart из этого мода визуально не подтверждён.
 
 Актуальная версия теперь 1.1.0 (build.gradle), при том же репозитории De1po3oN/VisionMod-1.0.0 (репозиторий не переименовывать без команды). Minecraft 1.21.11 / Fabric / Java 21.
