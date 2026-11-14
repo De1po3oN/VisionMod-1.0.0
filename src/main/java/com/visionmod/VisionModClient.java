@@ -28,6 +28,7 @@ public final class VisionModClient implements ClientModInitializer {
         VisionHotkeys.init();
         OreHighlight.init();
         VisionExtras.init();
+        VisionCombatTracker.init();
         VisionFeaturePack.init();
         VisionWorldEffects.init();
         VisionExtendedFeatures.init();
