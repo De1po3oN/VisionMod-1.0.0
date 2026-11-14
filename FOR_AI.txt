@@ -1,3 +1,35 @@
+*** АКТУАЛЬНЕЙШЕЕ СОСТОЯНИЕ — 2026-11-14 / VISION MOD 2.0.0 ***
+Это главный источник контекста следующего чата. Текущая цель пользователя: ПОЛНОЕ и качественное выполнение ВСЕХ 35 пунктов, не части. В прошлом ответе ИИ ошибочно назвал их 34, правильно 35. Самовольное удаление/закрытие задач ЗАПРЕЩЕНО.
+ПОЛНЫЙ ОБЯЗАТЕЛЬНЫЙ СПИСОК и поэлементные статусы: FEATURE_REQUESTS_2_0_0.md (переписан под все 35; прочитать первым вместе с этим файлом).
+
+САМЫЙ НОВЫЙ ПРОВЕРЕННЫЙ КОД НА МОМЕНТ ЗАПИСИ:
+- Репозиторий https://github.com/De1po3oN/VisionMod-1.0.0, ветка main; GitHub имя старое, version в build.gradle/fabric metadata/CI = 2.0.0. Не переименовывать без просьбы.
+- Последний проверенный кодовый SHA: 19c713cd76a974e87a25974d276a35c998c6a065.
+- GitHub Actions #80: https://github.com/De1po3oN/VisionMod-1.0.0/actions/runs/43579928856, SUCCESS, JAR artifact id 14106949606.
+- Архив Actions скачан и распакован вручную. visionmod-2.0.0.jar = 4 456 883 bytes; SHA256 39be26e0ce529c69b79219336e1fcd23a6c8acaa7f44a180ee22917bf1d191cc. fabric.mod.json id=visionmod version=2.0.0; проверены классы VisionCustomModels/VisionTools2/VisionMotionEffects/VisionExtendedFeatures/VisionWorldEffects и два новых Mixins. Вложенный JEI 27.54.0.113 присутствует.
+- УЖЕ БЫЛИ компиляционные ошибки #67-73: ItemStack.getDescriptionId не существует в MC 1.21.11 (исправлено на BuiltInRegistries.ITEM.getKey), CameraRenderState находится в net.minecraft.client.renderer.state (исправлен import+method desc). Начиная с #74 сборки прошли.
+- НОВЫЕ ИЗМЕНЕНИЯ ПОСЛЕ #80 — только файлы документации, пока никто не менял код. Всегда сверяй HEAD и свежие Actions.
+- НЕТ доказанного запуска модификации в клиенте Minecraft после #80. НЕТ измерений FPS, теста рендера, эмиссии частиц, совместимости с шейдерами и другими модами. CI не проверяет runtime Mixin injection, падения при входе в мир или визуальную корректность.
+
+ЧТО ДОБАВЛЕНО ПОСЛЕ СБОРКИ #57:
+VisionExtendedFeatures.java: Block Overlay (inner wire), Kill Effect (DEFEATED overlay, не серверная атрибуция), World Color (цветовая экранная подложка), World Lyrics (пользовательский текст на HUD), Local Pet (орбитальная каркасная фигурка), Social Radar (список друзей через config, до 48 блоков), Custom Sound (ванильный звук при hurtTime цели), Clear Weather FX (обычные дождевые/снежные частицы, не влияет на явно включённые снежинки Vision).
+VisionMotionEffects.java: Swing Animation/Item Physics (опциональные Mixins), Spear Lunge/Pierce локальные облачка/CRIT частицы без вмешательства в сервер, Camera Streaks (НЕ настоящий Motion Blur). 
+VisionCustomModels.java: собственный JSON с 32-бокс лимитом; создаёт sample config/visionmod/custom-model.json; локальный 3D wireframe, не оригинальные модели Fading.
+VisionTools2.java: Fast Use (обычный useItem не чаще 7 тиков при удержании ПКМ в пустом пространстве, серверные cooldown сохранены), Custom Models toggle, Hit Color (RMB циклические оттенки).
+VisionModClient и visionmod.mixins.json обновлены; VisionScreen EXTRAS теперь 8 страниц. Settings in config/visionmod/{features-2,world-effects-2,extended-2,motion-2,tools-2}.properties. Новые элементы по умолчанию отключены.
+Преимущественно добавлены КАНДИДАТЫ и ЧАСТИЧНЫЕ реализации, а не полные эквиваленты. В частности НЕТ настоящего Motion Blur, полноценных Custom Sounds, World Lyrics в 3D, Item Physics collisions, плавных Trails, качественной China Hat, полного GUI как в референсе. Подробности в FEATURE_REQUESTS_2_0_0.md.
+
+ПОЛИТИКА:
+- Пользователь требует именно ВСЕ 35, не «сделай на выбор», и прежде всего высокое качество, проверку Minecraft 1.21.11/Fabric, максимально сильный FPS Boost.
+- Старый бинарник fading-beta-2.0.0-fabric.jar был предоставлен как визуальный референс. fabric.mod.json содержит All-Rights-Reserved. Не копировать его чужой исходный или декомпилированный код, шрифты, звуки, ресурсы или объекты дословно; создаём независимые реализации.
+- Не объявлять класс или кнопку доказательством функции. Сначала тест в игре и сравнение с видео/описанием пользователя.
+- В приоритете: исправить runtime в новом JAR, затем полное поведение каждого из 35 модулей, потом benchmark. Реальные серверные cooldown/механики spear не обходить.
+- Когда пользователь присылает "=" — без повторных вопросов открыть этот файл, FEATURE_REQUESTS_2_0_0.md, текущие Actions/исходники, работать с оставшимися задачами и обновить оба файла с точным статусом.
+- Не забывать предыдущие настройки Right Shift/End/Left Alt, JEI и удалённую сетевую косметику. Локальные China Hat/Pet/Custom Models добавлены только как новый запрос.
+
+
+---
+
 *** СБОРКА VISION MOD 2.0.0 ПОДТВЕРЖДЕНА (ДОБАВЛЕНО 2026-11-14) ***
 GitHub Actions #57, run https://github.com/De1po3oN/VisionMod-1.0.0/actions/runs/43578320155, HEAD сборки 6fb80a0a42a08846bf2b11778beb655085143c1b, status SUCCESS, artifacts id 14107252915 («VisionMod-2.0.0»).
 Фактически скачан ZIP и вручную проверен visionmod-2.0.0.jar (4 431 836 байт), SHA256=3754c594c3c6c6be73bc03a5dcc95928188e8e568733057cfbb266fcb408f5b6; fabric.mod.json version=2.0.0; классы VisionFeaturePack.class и VisionWorldEffects.class присутствуют; вложенный JEI mod id=jei version 27.54.0.113. Это ПОДТВЕРЖДАЕТ CI И СОДЕРЖИМОЕ JAR, НО НЕ ИГРОВУЮ РАБОТОСПОСОБНОСТЬ.
