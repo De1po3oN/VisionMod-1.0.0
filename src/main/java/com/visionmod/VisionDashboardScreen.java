@@ -51,6 +51,14 @@ public final class VisionDashboardScreen extends Screen {
     private int category;
     private int page;
     private Module details;
+    private int modal = 0; // 0: cards; 1: ore settings; 2: advanced tools
+    private static final String[] ORE_NAMES = {
+        "DIAMOND", "DEBRIS", "IRON", "GOLD", "REDSTONE",
+        "EMERALD", "LAPIS", "COPPER", "COAL", "QUARTZ"
+    };
+    private static final String[] ADVANCED_TOOLS = {
+        "ORE COLORS", "PARTICLES", "CROSSHAIR", "PERFORMANCE", "CONFIGS"
+    };
     private int captureBind = -1;
     private EditBox search;
     private List<Module> cachedModules = List.of();
@@ -146,7 +154,7 @@ public final class VisionDashboardScreen extends Screen {
                 }
                 VisionPerformance.custom();
             },
-            i==1 ? ()->openLegacy(VisionScreen.Page.ORES)
+            i==1 ? VisionDashboardScreen::openOres
                 : i==5 ? ()->net.minecraft.client.Minecraft.getInstance().setScreen(new ParticleSettingsScreen())
                 : null));
     }
@@ -229,8 +237,9 @@ public final class VisionDashboardScreen extends Screen {
             id==2 ? VisionTools2::cycleHitColor : null));
     }
 
-    private static void openLegacy(VisionScreen.Page page) {
-        net.minecraft.client.Minecraft.getInstance().setScreen(new VisionScreen(page));
+    private static void openOres() {
+        var screen = net.minecraft.client.Minecraft.getInstance().screen;
+        if (screen instanceof VisionDashboardScreen dashboard) dashboard.modal = 1;
     }
 
     /** Keep all original hotkey IDs, never renumber older player configs. */
@@ -408,6 +417,7 @@ public final class VisionDashboardScreen extends Screen {
         g.drawCenteredString(font,"ADVANCED",advX+42,top+h-26,WHITE);
 
         if(details!=null)renderDetails(g,mx,my);
+        if(modal!=0) renderModal(g,mx,my);
         if(captureBind>=0) {
             int ox=left+w/2-147,oy=top+h/2-44;
             round(g,ox-3,oy-3,300,87,9,0xFF655383);
@@ -416,6 +426,42 @@ public final class VisionDashboardScreen extends Screen {
             g.drawCenteredString(font,"ESC clears / Mouse buttons also work",ox+147,oy+40,MUTED);
         }
         super.render(g,mx,my,delta);
+    }
+
+    private void renderModal(GuiGraphics g,int mx,int my) {
+        int x=contentX-5,y=top+100,ww=contentW+10,hh=h-158;
+        round(g,x-3,y-3,ww+6,hh+6,10,0xFF655383);
+        round(g,x,y,ww,hh,8,0xFF17192B);
+        g.drawString(font,modal==1?"ORES / SELECT & EDIT":"ADVANCED TOOLS",x+13,y+13,accent());
+        g.drawString(font,"[x]",x+ww-25,y+13,MUTED);
+        int gridGap=10, cw=(ww-36-gridGap)/2;
+        if(modal==1) {
+            for(int i=0;i<ORE_NAMES.length;i++) {
+                int bx=x+13+(i%2)*(cw+gridGap), by=y+34+(i/2)*30;
+                round(g,bx,by,cw,25,5,OreSelection.enabled(i)?0xFF39344F:0xFF29283C);
+                textFit(g,ORE_NAMES[i],bx+8,by+8,cw-38,WHITE);
+                g.drawString(font,OreSelection.enabled(i)?"ON":"OFF",bx+cw-24,by+8,
+                    OreSelection.enabled(i)?GREEN:MUTED);
+            }
+            if(hh>204)g.drawString(font,"LMB toggle  /  RMB color editor",x+13,y+hh-12,MUTED);
+        } else {
+            for(int i=0;i<ADVANCED_TOOLS.length;i++) {
+                int bx=x+13+(i%2)*(cw+gridGap),by=y+38+(i/2)*41;
+                round(g,bx,by,cw,33,6,inside(mx,my,bx,by,cw,33)?HOVER:0xFF2C2941);
+                textFit(g,ADVANCED_TOOLS[i],bx+10,by+12,cw-19,WHITE);
+            }
+        }
+    }
+
+    private void openAdvancedTool(int index) {
+        switch(index) {
+            case 0 -> {modal=1;return;}
+            case 1 -> minecraft.setScreen(new ParticleSettingsScreen());
+            case 2 -> minecraft.setScreen(new VisionCrosshairEditorScreen());
+            case 3 -> minecraft.setScreen(new PerformanceScreen());
+            case 4 -> minecraft.setScreen(new ConfigsScreen());
+            default -> {}
+        }
     }
 
     private void renderDetails(GuiGraphics g,int mx,int my) {
@@ -467,6 +513,30 @@ public final class VisionDashboardScreen extends Screen {
             captureBind=-1;
             return true;
         }
+        // Modal has priority: no clicks leak into categories or the search.
+        if(modal!=0) {
+            int x=contentX-5,y=top+100,ww=contentW+10;
+            if(button==GLFW.GLFW_MOUSE_BUTTON_LEFT &&
+                inside(mx,my,x+ww-34,y+3,33,25)) {modal=0;return true;}
+            int gridGap=10,cw=(ww-36-gridGap)/2;
+            if(modal==1) {
+                for(int i=0;i<ORE_NAMES.length;i++) {
+                    int bx=x+13+(i%2)*(cw+gridGap),by=y+34+(i/2)*30;
+                    if(inside(mx,my,bx,by,cw,25)) {
+                        if(button==GLFW.GLFW_MOUSE_BUTTON_LEFT) OreSelection.toggle(i);
+                        if(button==GLFW.GLFW_MOUSE_BUTTON_RIGHT)
+                            minecraft.setScreen(new OreColorPickerScreen(i));
+                        return true;
+                    }
+                }
+            } else if(button==GLFW.GLFW_MOUSE_BUTTON_LEFT) {
+                for(int i=0;i<ADVANCED_TOOLS.length;i++) {
+                    int bx=x+13+(i%2)*(cw+gridGap),by=y+38+(i/2)*41;
+                    if(inside(mx,my,bx,by,cw,33)){openAdvancedTool(i);return true;}
+                }
+            }
+            return true;
+        }
         // Let native EditBox claim search input first.
         if(inside(mx,my,search.getX(),search.getY(),search.getWidth(),search.getHeight()))
             return super.mouseClicked(e,doubled);
@@ -490,7 +560,7 @@ public final class VisionDashboardScreen extends Screen {
         }
         if(button==GLFW.GLFW_MOUSE_BUTTON_LEFT &&
             inside(mx,my,left+w-101,top+h-34,85,23)) {
-            openLegacy(VisionScreen.Page.VISUALS);return true;
+            modal = 2;return true;
         }
         int tabTop=top+76,tabStep=Math.max(23,Math.min(37,(h-138)/TABS.length));
         if(button==GLFW.GLFW_MOUSE_BUTTON_LEFT) {
@@ -538,6 +608,7 @@ public final class VisionDashboardScreen extends Screen {
             captureBind=-1;
             return true;
         }
+        if(modal!=0 && e.key()==GLFW.GLFW_KEY_ESCAPE){modal=0;return true;}
         if(details!=null && e.key()==GLFW.GLFW_KEY_ESCAPE){details=null;return true;}
         return super.keyPressed(e);
     }
