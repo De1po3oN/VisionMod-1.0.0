@@ -46,8 +46,8 @@ public final class VisionExtendedFeatures {
     private static final boolean[] FLAGS = new boolean[NAMES.length];
     private static final Path FILE = FabricLoader.getInstance().getConfigDir()
         .resolve("visionmod/extended-2.properties");
-    private static final VoxelShape OVERLAY_INNER = Shapes.create(new AABB(
-        .17, .17, .17, .83, .83, .83));
+    private static final VoxelShape BLOCK_OUTLINE = Shapes.create(new AABB(
+        .006, .006, .006, .994, .994, .994));
 
     private static int ticks;
     private static int notificationTicks;
@@ -136,9 +136,15 @@ public final class VisionExtendedFeatures {
                 BlockState state = mc.level.getBlockState(hit.getBlockPos());
                 if (!state.isAir()) {
                     var bp = hit.getBlockPos();
-                    ShapeRenderer.renderShape(context.matrices(), lines, OVERLAY_INNER,
-                        bp.getX() - camera.x, bp.getY() - camera.y, bp.getZ() - camera.z,
-                        0xFFB5A0FF, 1.5F);
+                    double x=bp.getX()-camera.x,y=bp.getY()-camera.y,z=bp.getZ()-camera.z;
+                    ShapeRenderer.renderShape(context.matrices(), lines, BLOCK_OUTLINE,
+                        x,y,z,VisionGeometry.withAlpha(VisionMenuTheme.CYAN,210),1.65F);
+                    VertexConsumer fill=context.consumers().getBuffer(
+                        RenderTypes.entityTranslucent(VisionGeometry.WHITE_TEXTURE));
+                    VisionGeometry.cube(fill,context.matrices(),
+                        (float)(x+.007),(float)(y+.007),(float)(z+.007),
+                        (float)(x+.993),(float)(y+.993),(float)(z+.993),
+                        VisionGeometry.withAlpha(VisionMenuTheme.PURPLE,28));
                 }
             }
 
