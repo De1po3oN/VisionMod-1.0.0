@@ -55,6 +55,12 @@ public final class VisionWorldLyrics {
      * Real billboard text in the 3D scene with depth testing in third person,
      * while the HUD retains a visibility fallback when the anchor is offscreen.
      */
+    /** Pure text-cycle entry point also used by the CI-only smoke assertions. */
+    public static String previewLine(String text,long ticks) {
+        updateLines(text==null?"":text);
+        return lines[(int)(Math.floorDiv(ticks,70L)%lines.length)];
+    }
+
     private static void renderInWorld(WorldRenderContext ctx) {
         Minecraft mc=Minecraft.getInstance();
         if(!VisionModClient.enabled || !VisionExtendedFeatures.enabled(3) ||
