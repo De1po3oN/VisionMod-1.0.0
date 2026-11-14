@@ -51,6 +51,7 @@ public final class VisionDashboardScreen extends Screen {
     private int category;
     private int page;
     private Module details;
+    private int captureBind = -1;
     private EditBox search;
     private long pageAt = System.nanoTime();
     private final long openedAt = System.nanoTime();
@@ -229,6 +230,40 @@ public final class VisionDashboardScreen extends Screen {
         net.minecraft.client.Minecraft.getInstance().setScreen(new VisionScreen(page));
     }
 
+    /** Keep all original hotkey IDs, never renumber older player configs. */
+    private static int bindingId(Module m) {
+        return switch(m.title) {
+            case "FullBright" -> VisionHotkeys.visual(0);
+            case "Ore Highlight" -> VisionHotkeys.visual(1);
+            case "Clear Water" -> VisionHotkeys.visual(2);
+            case "Clear Lava" -> VisionHotkeys.visual(3);
+            case "Player Hearts" -> VisionHotkeys.visual(4);
+            case "Particles" -> VisionHotkeys.visual(5);
+            case "Free Look" -> VisionHotkeys.visual(6);
+            case "CPS Counter" -> VisionHotkeys.extra(0);
+            case "Armor HUD" -> VisionHotkeys.extra(1);
+            case "Food + Sat" -> VisionHotkeys.extra(2);
+            case "Crosshair Editor" -> VisionHotkeys.extra(3);
+            case "Zoom" -> VisionHotkeys.extra(4);
+            case "Fast Scroller" -> VisionHotkeys.extra(5);
+            case "Block Outline" -> VisionHotkeys.extra(6);
+            case "Snowflakes" -> VisionHotkeys.extra(7);
+            case "Air Hearts" -> VisionHotkeys.extra(8);
+            case "Shulker Summary" -> VisionHotkeys.extra(9);
+            case "Arrow Hit Sound" -> VisionHotkeys.extra(10);
+            case "Small Sword" -> VisionHotkeys.extra(11);
+            case "Small Shield" -> VisionHotkeys.extra(12);
+            case "Small Totem" -> VisionHotkeys.extra(13);
+            case "Low Fire" -> VisionHotkeys.extra(14);
+            case "Shulker Tooltip" -> VisionHotkeys.extra(15);
+            case "Real FPS Boost" -> VisionHotkeys.boostToggle();
+            case "Adaptive Budgets" -> VisionHotkeys.performanceToggle(0);
+            case "HUD Throttle" -> VisionHotkeys.performanceToggle(1);
+            case "Ambient Throttle" -> VisionHotkeys.performanceToggle(2);
+            default -> -1;
+        };
+    }
+
     @Override
     protected void init() {
         w = Math.max(300,Math.min(628,width - 16));
@@ -340,7 +375,11 @@ public final class VisionDashboardScreen extends Screen {
             g.fill(cx+slide+1,cy+9,cx+slide+4,cy+cardH-9,enabled?accent():0xFF52516B);
             textFit(g,m.title,cx+slide+13,cy+11,cardW-64,WHITE);
             textFit(g,m.info,cx+slide+13,cy+30,cardW-23,MUTED);
-            g.fill(cx+slide+13,cy+49,cx+slide+cardW-13,cy+50,0xFF3C3954);
+            g.fill(cx+slide+13,cy+45,cx+slide+cardW-13,cy+46,0xFF3C3954);
+            int binding=bindingId(m);
+            if(binding>=0)textFit(g,VisionHotkeys.label(binding),cx+slide+13,cy+51,
+                cardW-25,0xFF8988A6);
+            else g.drawString(font,"LMB toggle  /  RMB details",cx+slide+13,cy+51,0xFF8988A6);
             round(g,cx+slide+cardW-40,cy+10,28,15,7,enabled?0xFF544679:0xFF44445B);
             round(g,cx+slide+cardW-(enabled?27:37),cy+13,9,9,4,enabled?accent():0xFFBBB7CD);
         }
@@ -360,6 +399,13 @@ public final class VisionDashboardScreen extends Screen {
         g.drawCenteredString(font,"ADVANCED",advX+42,top+h-26,WHITE);
 
         if(details!=null)renderDetails(g,mx,my);
+        if(captureBind>=0) {
+            int ox=left+w/2-147,oy=top+h/2-44;
+            round(g,ox-3,oy-3,300,87,9,0xFF655383);
+            round(g,ox,oy,294,81,8,0xFF19182D);
+            g.drawCenteredString(font,"PRESS A KEY TO BIND",ox+147,oy+18,WHITE);
+            g.drawCenteredString(font,"ESC clears / Mouse buttons also work",ox+147,oy+40,MUTED);
+        }
         super.render(g,mx,my,delta);
     }
 
@@ -393,6 +439,11 @@ public final class VisionDashboardScreen extends Screen {
     @Override public boolean mouseClicked(MouseButtonEvent e,boolean doubled) {
         double mx=e.x(),my=e.y();
         int button=e.button();
+        if(captureBind>=0) {
+            VisionHotkeys.assign(captureBind,-button-1);
+            captureBind=-1;
+            return true;
+        }
         // Let native EditBox claim search input first.
         if(inside(mx,my,search.getX(),search.getY(),search.getWidth(),search.getHeight()))
             return super.mouseClicked(e,doubled);
@@ -444,6 +495,9 @@ public final class VisionDashboardScreen extends Screen {
             if(button==GLFW.GLFW_MOUSE_BUTTON_LEFT) {
                 m.toggle.run();return true;
             }
+            if(button==GLFW.GLFW_MOUSE_BUTTON_MIDDLE && bindingId(m)>=0) {
+                captureBind=bindingId(m);return true;
+            }
             if(button==GLFW.GLFW_MOUSE_BUTTON_RIGHT) {
                 details=m;return true;
             }
@@ -452,6 +506,11 @@ public final class VisionDashboardScreen extends Screen {
     }
 
     @Override public boolean keyPressed(KeyEvent e) {
+        if(captureBind>=0) {
+            VisionHotkeys.assign(captureBind,e.key()==GLFW.GLFW_KEY_ESCAPE?0:e.key());
+            captureBind=-1;
+            return true;
+        }
         if(details!=null && e.key()==GLFW.GLFW_KEY_ESCAPE){details=null;return true;}
         return super.keyPressed(e);
     }
