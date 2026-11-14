@@ -49,6 +49,7 @@ public final class VisionExtendedFeatures {
     private static final VoxelShape PET_EAR_LEFT = Shapes.create(new AABB(-.12, .08, -.09, -.05, .21, -.02));
     private static final VoxelShape PET_EAR_RIGHT = Shapes.create(new AABB(.05, .08, -.09, .12, .21, -.02));
     private static final VoxelShape PET_TAIL = Shapes.create(new AABB(.10, -.07, .07, .22, -.02, .23));
+    private static final VoxelShape[] PET_SHAPES = {PET_BODY, PET_EAR_LEFT, PET_EAR_RIGHT, PET_TAIL};
     private static final VoxelShape OVERLAY_INNER = Shapes.create(new AABB(
         .17, .17, .17, .83, .83, .83));
 
@@ -112,7 +113,7 @@ public final class VisionExtendedFeatures {
                     Math.cos(t * .35) * .85, 1.25 + Math.sin(t) * .15,
                     Math.sin(t * .35) * .85);
                 double x = p.x - camera.x, y = p.y - camera.y, z = p.z - camera.z;
-                for (VoxelShape shape : new VoxelShape[]{PET_BODY, PET_EAR_LEFT, PET_EAR_RIGHT, PET_TAIL}) {
+                for (VoxelShape shape : PET_SHAPES) {
                     ShapeRenderer.renderShape(context.matrices(), lines, shape, x, y, z, petColor, 1.5F);
                 }
             }
