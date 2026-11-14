@@ -81,8 +81,8 @@ public final class VisionMotionEffects {
         if (enabled(2) && ++tickCounter >= 4) {
             tickCounter = 0;
             Vec3 velocity = mc.player.getDeltaMovement();
-            if (velocity.horizontalDistanceSqr() > 0.12 && mc.player.onGround()) {
-                Vec3 behind = mc.player.position().subtract(mc.player.getLookAngle().scale(.55));
+            if (velocity.horizontalDistanceSqr() > 0.0075 && mc.player.onGround()) {
+                Vec3 behind = mc.player.position().subtract(velocity.normalize().scale(.55));
                 mc.level.addAlwaysVisibleParticle(ParticleTypes.CLOUD,
                     behind.x, behind.y + .14, behind.z,
                     -velocity.x * .12, .015, -velocity.z * .12);
