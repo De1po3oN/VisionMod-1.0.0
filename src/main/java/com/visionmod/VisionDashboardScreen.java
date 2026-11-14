@@ -61,6 +61,7 @@ public final class VisionDashboardScreen extends Screen {
     };
     private int captureBind = -1;
     private EditBox search;
+    private EditBox customText;
     private List<Module> cachedModules = List.of();
     private String cachedQuery = null;
     private int cachedCategory = -1;
@@ -293,6 +294,12 @@ public final class VisionDashboardScreen extends Screen {
         search.setMaxLength(48);
         search.setHint(Component.literal("Find a module..."));
         addRenderableWidget(search);
+        customText = new EditBox(font, contentX + 12, top + 230,
+            Math.max(90, contentW - 24), 20, Component.literal("Custom text / friends"));
+        customText.setMaxLength(120);
+        customText.visible = false;
+        customText.active = false;
+        addRenderableWidget(customText);
         page = 0;
     }
 
@@ -464,6 +471,35 @@ public final class VisionDashboardScreen extends Screen {
         }
     }
 
+    private void openDetails(Module module) {
+        details = module;
+        boolean text = module.title.equals("World Lyrics");
+        boolean friends = module.title.equals("Social Radar");
+        customText.visible = text || friends;
+        customText.active = text || friends;
+        if (customText.visible) {
+            customText.setResponder(v -> { });
+            customText.setValue(text ? VisionExtendedFeatures.customText()
+                : VisionExtendedFeatures.friendNames());
+            customText.setResponder(value -> {
+                if (details != null && details.title.equals("World Lyrics"))
+                    VisionExtendedFeatures.setCustomText(value);
+                else if (details != null && details.title.equals("Social Radar"))
+                    VisionExtendedFeatures.setFriendNames(value);
+            });
+            customText.setFocused(false);
+        }
+    }
+
+    private void closeDetails() {
+        details = null;
+        if (customText != null) {
+            customText.visible = false;
+            customText.active = false;
+            customText.setFocused(false);
+        }
+    }
+
     private void renderDetails(GuiGraphics g,int mx,int my) {
         int x=contentX-5,y=top+103,ww=contentW+10,hh=h-168;
         round(g,x-3,y-3,ww+6,hh+6,9,0xFF58506F);
@@ -482,6 +518,9 @@ public final class VisionDashboardScreen extends Screen {
             g.drawString(font,"PALETTE: "+VisionExtendedFeatures.colorLabel(),x+16,y+102,WHITE);
         } else if(details.title.equals("Hit Color")) {
             g.drawString(font,"PALETTE: "+VisionTools2.hitColorName(),x+16,y+102,WHITE);
+        } else if(details.title.equals("World Lyrics") || details.title.equals("Social Radar")) {
+            g.drawString(font,details.title.equals("World Lyrics")?"YOUR TEXT:":"FRIENDS (COMMA SEPARATED):",
+                x+16,y+103,MUTED);
         }
         int actionY=y+hh-37;
         round(g,x+13,actionY,Math.min(115,(ww-45)/2),27,6,0xFF42345F);
@@ -542,8 +581,11 @@ public final class VisionDashboardScreen extends Screen {
             return super.mouseClicked(e,doubled);
         if(details!=null) {
             int x=contentX-5,y=top+103,ww=contentW+10,hh=h-168;
+            if(customText.visible && inside(mx,my,customText.getX(),customText.getY(),
+                customText.getWidth(),customText.getHeight()))
+                return super.mouseClicked(e,doubled);
             if(button==GLFW.GLFW_MOUSE_BUTTON_LEFT) {
-                if(inside(mx,my,x+ww-38,y+6,33,29)){details=null;return true;}
+                if(inside(mx,my,x+ww-38,y+6,33,29)){closeDetails();return true;}
                 if(inside(mx,my,x+13,y+hh-37,Math.min(115,(ww-45)/2),27)){
                     details.toggle.run();return true;
                 }
@@ -596,7 +638,7 @@ public final class VisionDashboardScreen extends Screen {
                 captureBind=bindingId(m);return true;
             }
             if(button==GLFW.GLFW_MOUSE_BUTTON_RIGHT) {
-                details=m;return true;
+                openDetails(m);return true;
             }
         }
         return super.mouseClicked(e,doubled);
@@ -609,7 +651,7 @@ public final class VisionDashboardScreen extends Screen {
             return true;
         }
         if(modal!=0 && e.key()==GLFW.GLFW_KEY_ESCAPE){modal=0;return true;}
-        if(details!=null && e.key()==GLFW.GLFW_KEY_ESCAPE){details=null;return true;}
+        if(details!=null && e.key()==GLFW.GLFW_KEY_ESCAPE){closeDetails();return true;}
         return super.keyPressed(e);
     }
     @Override public boolean isPauseScreen(){return false;}
