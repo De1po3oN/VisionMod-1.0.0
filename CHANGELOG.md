@@ -1,3 +1,13 @@
+# VisionMod 2.0.0 — новая архитектура GUI + критичный фикс JEI (2026-11-14)
+
+- Вместо устаревшего главного экрана, который раньше только перекрашивался, Right Shift теперь открывает новый самостоятельный `VisionDashboardScreen` (7 категорий, поисковая строка, сетка модулей, детализация по ПКМ, MMB сохранённых ID биндов). Дополнительные настройки Air Hearts/Snowflakes и доступ к старым расширенным редакторам через Advanced.
+- Добавлен отдельный виртуальный запуск Minecraft в CI (`client-smoke.yml`) для выявления ошибок, которые компиляция не ловит.
+- Исправлен реальный crash на стадии Fabric Loader: JEI 27.54.0.113 требовал mezz_config >=0.6.3,<1.0.0. Встроен MezzConfig 0.6.11 для Fabric 1.21.11, лицензия MIT включена.
+- Actions #98: Build+Verify JEI+MezzConfig успешны, JAR проверен. Startup smoke #3/#4: клиент загрузил игровые ресурсы без ошибки разрешения модов; звуковое устройство отсутствует в CI.
+- Качество и внешний вид GUI, взаимодействие в мире и полнота всех 35 функций ещё НЕ проверены вручную и не являются полностью готовыми. Fading Light имеет All-Rights-Reserved, чужой код/ассеты не скопированы.
+
+---
+
 # VisionMod 2.0.0 — expanded development code after #57
 
 - Added 8 optional extended HUD/world utilities (Block Overlay, client-only kill notice, screen color, lyrics overlay, local Pet, local Social Radar, hit sound, precipitation particle filter).
