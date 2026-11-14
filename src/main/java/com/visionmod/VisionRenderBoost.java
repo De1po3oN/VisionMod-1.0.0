@@ -46,8 +46,10 @@ public final class VisionRenderBoost {
         load();
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             mc = client;
-            if (!enabled || client.level == null) {
-                if (applied || !enabled && Files.isRegularFile(BACKUP)) restore(client);
+            // End toggles the entire mod: restore vanilla video options instead
+            // of leaving an invisible FPS cap active while Vision Mod is OFF.
+            if (!enabled || !VisionModClient.enabled || client.level == null) {
+                if (applied || (!enabled || !VisionModClient.enabled) && Files.isRegularFile(BACKUP)) restore(client);
                 return;
             }
             if (!applied) { adaptiveCap = chunkCap; lowSamples = highSamples = 0; apply(client); }
