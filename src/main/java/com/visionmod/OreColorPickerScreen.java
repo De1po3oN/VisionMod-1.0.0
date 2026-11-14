@@ -464,7 +464,7 @@ public final class OreColorPickerScreen extends Screen {
                 132, 20
             )) {
                 commitColor();
-                minecraft.setScreen(new VisionScreen(true));
+                minecraft.setScreen(new VisionDashboardScreen());
                 return true;
             }
         }
@@ -506,7 +506,7 @@ public final class OreColorPickerScreen extends Screen {
     @Override
     public void onClose() {
         commitColor();
-        minecraft.setScreen(new VisionScreen(true));
+        minecraft.setScreen(new VisionDashboardScreen());
     }
 
     @Override
