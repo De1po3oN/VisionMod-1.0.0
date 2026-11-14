@@ -267,7 +267,7 @@ public final class VisionScreen extends Screen {
                 VisionMenuTheme.moduleRow(g, font, bx, by, 149, 41, EXTRAS[i], VisionExtras.enabled(i),
                     VisionHotkeys.label(VisionHotkeys.extra(i)), hit(mx, my, bx, by, 149, 41));
             }
-        } else {
+        } else if (extrasPage == 2) {
             for (int i = 0; i < EXTRA_SETTINGS.length; i++) {
                 int bx = colX(x, i), by = rowY(y, i);
                 VisionMenuTheme.actionRow(g, font, bx, by, 149, 41,
@@ -277,10 +277,18 @@ public final class VisionScreen extends Screen {
             }
             g.drawString(font, "Right-click crosshair module to draw its shape",
                 x + 130, y + 227, VisionMenuTheme.MUTED);
+        } else {
+            for (int i = 0; i < VisionFeaturePack.count(); i++) {
+                int bx = colX(x, i), by = rowY(y, i);
+                VisionMenuTheme.moduleRow(g, font, bx, by, 149, 41,
+                    VisionFeaturePack.NAMES[i], VisionFeaturePack.enabled(i),
+                    "LMB: toggle", hit(mx, my, bx, by, 149, 41));
+            }
         }
-        String subsection = extrasPage == 2 ? "НАСТРОЙКИ" : "МОДУЛИ " + (extrasPage + 1) + "/2";
+        String subsection = extrasPage == 2 ? "НАСТРОЙКИ" :
+            extrasPage == 3 ? "2.0 / HUD & COMBAT" : "МОДУЛИ " + (extrasPage + 1) + "/2";
         g.drawString(font, "EXTRAS / " + subsection, x + 131, y + 59, VisionMenuTheme.PAGE_GOLD);
-        VisionMenuTheme.pageNavigator(g, font, x, y, extrasPage, 3, mx, my);
+        VisionMenuTheme.pageNavigator(g, font, x, y, extrasPage, 4, mx, my);
     }
 
     private void renderPerformance(GuiGraphics g, int mx, int my, int x, int y) {
@@ -467,7 +475,7 @@ public final class VisionScreen extends Screen {
                             return true;
                         }
                     }
-                } else {
+                } else if (extrasPage == 2) {
                     for (int i = 0; i < EXTRA_SETTINGS.length; i++) {
                         int bx = colX(x, i), by = rowY(y, i);
                         if (!hit(mx, my, bx, by, 149, 41)) continue;
@@ -485,9 +493,17 @@ public final class VisionScreen extends Screen {
                             return true;
                         }
                     }
+                } else if (extrasPage == 3) {
+                    for (int i = 0; i < VisionFeaturePack.count(); i++) {
+                        int bx = colX(x, i), by = rowY(y, i);
+                        if (hit(mx, my, bx, by, 149, 41)) {
+                            if (button == GLFW.GLFW_MOUSE_BUTTON_LEFT) VisionFeaturePack.toggle(i);
+                            return true;
+                        }
+                    }
                 }
                 if (button == GLFW.GLFW_MOUSE_BUTTON_LEFT) {
-                    int step = VisionMenuTheme.pageNavigationHit(mx, my, x, y, extrasPage, 3);
+                    int step = VisionMenuTheme.pageNavigationHit(mx, my, x, y, extrasPage, 4);
                     if (step != 0) {
                         extrasPage += step;
                         pageChangedAt = System.nanoTime();
