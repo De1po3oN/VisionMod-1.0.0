@@ -25,7 +25,7 @@ public abstract class VisionItemPhysicsMixin {
             target = "Lcom/mojang/blaze3d/vertex/PoseStack;pushPose()V",
             shift = At.Shift.AFTER,
             ordinal = 0),
-        require = 0)
+        require = 1)
     private void visionmod$itemPhysics(ItemEntityRenderState state, PoseStack pose,
         SubmitNodeCollector collector, CameraRenderState camera, CallbackInfo ci) {
         if (!VisionMotionEffects.enabled(1)) return;
