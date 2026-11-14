@@ -69,6 +69,17 @@ public final class FreeLook {
         wasHeld = held;
     }
 
+    /**
+     * MouseHandler runs during rendered frames, not just at 20 Hz client tick.
+     * Activate the camera before handling the first held mouse movement so
+     * the vanilla player rotation cannot leak through for one frame.
+     */
+    public static void syncFromMouse() {
+        Minecraft mc = Minecraft.getInstance();
+        tick(VisionModClient.enabled &&
+             VisionHotkeys.holding(VisionHotkeys.visual(6), mc));
+    }
+
     /** Called from MouseHandler; do not mutate the player's rotation. */
     public static void rotate(double dx, double dy) {
         if (!active) return;
@@ -102,6 +113,13 @@ public final class FreeLook {
     public static float cameraYaw() { return renderedYaw; }
     public static float cameraPitch() { return renderedPitch; }
     public static boolean isOrbitCamera() { return locked; }
+
+    public static void setEnabled(boolean value) {
+        if (enabled == value) return;
+        enabled = value;
+        if (!enabled) stop(true);
+        VisionExtras.save();
+    }
 
     private static void stop(boolean restorePerspective) {
         if (restorePerspective && locked && previousCameraType != null) {
