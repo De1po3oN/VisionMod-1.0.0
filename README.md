@@ -2,6 +2,13 @@
 
 Minecraft Java 1.21.11 / Fabric Loader >=0.19.3 / Java 21.
 
+## What's new in 1.1.0 (source/CI candidate; runtime not yet tested)
+- Free Look: smoothed, independent third-person camera orbit; camera perspective cleanup and configurable smoothing. Hold Left Alt, release to keep the chosen view, F5 to reset.
+- Atmospheric Air Hearts / Snowflakes: configurable density (1–3) and placement (near player in world space or distributed in the viewing direction). Effects remain explicitly enabled in MAX FPS.
+- GUI refresh: original graphite/lavender design, refined module switches and navigation; no copied reference-mod files or assets.
+- Extras page 3 contains Heart FX mode, Ambient density and Smooth Free Look settings. These three settings are mouse-controlled and have no new hotkey IDs.
+- This is **not** an in-game verified build. Test camera and visual behavior before calling it fixed.
+
 ## Core features
 - Reworked Vision Mod UI (Right Shift), adjustable module hotkeys (MMB), ore highlighting/color editor and Free Look.
 - Crosshair editor, CPS/HUD, Zoom, HUD and block highlighting, particle filters.
