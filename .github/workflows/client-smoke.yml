@@ -1,0 +1,68 @@
+name: Vision Mod client startup smoke test
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/client-smoke.yml'
+      - 'src/**'
+      - 'build.gradle'
+      - 'gradle.properties'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  smoke-client:
+    runs-on: ubuntu-latest
+    timeout-minutes: 9
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '9.7.1'
+      - name: Start Minecraft in virtual display
+        shell: bash
+        env:
+          LIBGL_ALWAYS_SOFTWARE: "1"
+          MESA_GL_VERSION_OVERRIDE: "3.3"
+        run: |
+          set +e
+          command -v xvfb-run
+          xvfb-run -a -s '-screen 0 1280x720x24' timeout --signal=TERM 100s \
+            gradle runClient --no-daemon --console=plain > smoke-client.log 2>&1
+          status=$?
+          set -e
+          echo "Client process status: $status" | tee smoke-status.txt
+          tail -n 100 smoke-client.log
+          if grep -Eiq 'MixinApplyError|InvalidInjectionException|MixinTransformerError|NoClassDefFoundError|Crash report saved|The game crashed' smoke-client.log; then
+            echo "Found a fatal client / mixin exception"
+            exit 1
+          fi
+          if [ "$status" -eq 0 ]; then
+            echo "Client process exited normally, inspect game logs for launch proof"
+            exit 0
+          fi
+          if [ "$status" -eq 124 ]; then
+            echo "Client ran until time limit; not proof that game rendering worked"
+            exit 0
+          fi
+          echo "Unexpected client exit status: $status"
+          exit 1
+      - name: Upload diagnostic logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: VisionMod-Client-Smoke-Logs
+          path: |
+            smoke-client.log
+            smoke-status.txt
+            run/logs/latest.log
+            run/crash-reports/**
+          if-no-files-found: warn
+          retention-days: 7
