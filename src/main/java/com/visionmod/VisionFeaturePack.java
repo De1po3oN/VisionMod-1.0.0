@@ -204,18 +204,36 @@ public final class VisionFeaturePack {
             }
         }
         if (hitPulse > 0 && (ENABLED[6] || ENABLED[7])) {
-            int x = w / 2, y = h / 2, r = 5 + (8 - hitPulse);
-            if (ENABLED[6]) {
-                int color = (VisionTools2.hitColor() & 0x00FFFFFF) | 0xD0000000;
-                g.fill(x - r, y - r, x + r, y - r + 1, color);
-                g.fill(x - r, y + r - 1, x + r, y + r, color);
-                g.fill(x - r, y - r, x - r + 1, y + r, color);
-                g.fill(x + r - 1, y - r, x + r, y + r, color);
+            float phase=(8-hitPulse)/8f;
+            int x=w/2,y=h/2;
+            int radius=9+(int)(15*phase);
+            int alpha=Math.min(235,(int)(205*(1-phase)+28));
+            if(ENABLED[6]) {
+                int color=VisionGeometry.withAlpha(VisionTools2.hitColor(),alpha);
+                int hlen=5+(int)(4*phase);
+                // Animated outward-moving corner brackets, never a fat static square.
+                for(int signX=-1;signX<=1;signX+=2)
+                    for(int signY=-1;signY<=1;signY+=2) {
+                        int px=x+signX*radius,py=y+signY*radius;
+                        g.fill(Math.min(px,px-signX*hlen),py,
+                            Math.max(px,px-signX*hlen)+1,py+2,color);
+                        g.fill(px,Math.min(py,py-signY*hlen),
+                            px+2,Math.max(py,py-signY*hlen)+1,color);
+                    }
+                g.fill(x-1,y-1,x+2,y+2,VisionGeometry.withAlpha(0xFFFFFFFF,alpha/2));
             }
-            if (ENABLED[7]) {
-                int alpha = 12 + hitPulse * 7;
-                g.fill(0, 0, w, 3, (alpha << 24) | 0x00C3283F);
-                g.fill(0, h - 3, w, h, (alpha << 24) | 0x00C3283F);
+            if(ENABLED[7]) {
+                // Bounded 7-step transparent red edge vignette.
+                // No shader, framebuffer copy, or persistent GPU resources.
+                for(int layer=0;layer<7;layer++) {
+                    int opacity=Math.max(0,(int)((7-layer)*3.3*hitPulse/8f));
+                    int tint=VisionGeometry.withAlpha(0xFFE73561,opacity);
+                    int edge=2+layer*4;
+                    g.fill(0,layer*4,w,edge,tint);
+                    g.fill(0,h-edge,w,h-layer*4,tint);
+                    g.fill(layer*4,0,edge,h,tint);
+                    g.fill(w-edge,0,w-layer*4,h,tint);
+                }
             }
         }
     }
