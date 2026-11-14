@@ -23,7 +23,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 public abstract class ParticleEngineMixin {
 
     @Inject(
-        method = "addParticle(Lnet/minecraft/core/particles/ParticleOptions;DDDDDD)Lnet/minecraft/client/particle/Particle;",
+        method = "createParticle(Lnet/minecraft/core/particles/ParticleOptions;DDDDDD)Lnet/minecraft/client/particle/Particle;",
         at = @At("HEAD"),
         cancellable = true,
         require = 1
@@ -78,7 +78,7 @@ public abstract class ParticleEngineMixin {
     // Дополнительно перехватываем частицы,
     // напрямую добавляемые в менеджер.
     @Inject(
-        method = "addParticle(Lnet/minecraft/client/particle/Particle;)V",
+        method = "add(Lnet/minecraft/client/particle/Particle;)V",
         at = @At("HEAD"),
         cancellable = true,
         require = 1
