@@ -16,7 +16,7 @@ public abstract class SprintParticleMixin {
         method = "spawnSprintParticle",
         at = @At("HEAD"),
         cancellable = true,
-        require = 0
+        require = 1
     )
     private void visionmod$hideSprintParticle(
             CallbackInfo ci
