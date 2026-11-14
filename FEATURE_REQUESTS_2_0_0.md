@@ -1,67 +1,90 @@
-# Vision Mod 2.0.0 — feature migration tracker (2026-11-14)
+# VisionMod 2.0.0 — ОБЯЗАТЕЛЬНЫЙ СПИСОК И СТАТУС 35 МОДУЛЕЙ
+Последняя проверка: 2026-11-14. Репозиторий: https://github.com/De1po3oN/VisionMod-1.0.0
 
-Reference inspected without running it: user-supplied `fading-beta-2.0.0-fabric.jar`.
-Its `fabric.mod.json` declares `license: All-Rights-Reserved`. No source, bytecode, textures, UI assets, fonts or sounds from that JAR are copied into Vision Mod. Recreate behavior with original code and test in the game.
+## Главные требования пользователя
+**ВСЕ 35 пунктов ниже обязательны.** Пользователь прямо запретил останавливаться на случайной части списка; хочет качество не хуже референса и GUI с похожей логикой/атмосферой, но не точную копию.
+Приоритет — точное клиентское поведение и сильный FPS Boost. Для каждого модуля нужны: правильная реализация, настройка GUI, сохранение, лимиты нагрузки, CI, тест в игре.
+Проверенный ранее JAR Fading Light 2.0.0 предоставлен пользователем как референс; лицензия в нём All-Rights-Reserved. Не копировать сторонний bytecode, исходники, шрифты, аудио или ресурсы. Собственные реализации разрешены; открытые библиотеки использовать только при проверенной лицензии.
 
-**IMPORTANT:** Version 2.0.0 in metadata is a development baseline, NOT evidence that all items are finished or tested. Do not install the untrusted reference JAR just to analyze it.
+**Статус:** версия 2.0.0 пока является DEVELOPMENT / UNFINISHED. Green CI == Java compiled + JEI packed, NOT game QA, NOT feature parity.
 
-## Implemented or previously present (scope specified)
+Обозначения:
+- `КАНДИДАТ`: исходный код функции есть, CI собрался, в Minecraft ещё не проверено или функционально не всё как в оригинале.
+- `ЧАСТИЧНО`: только определённый поднабор требуемого эффекта.
+- `В ПЛАНЕ`: реализация не соответствует назначению; не выдавать кнопку за функцию.
+- `УНАСЛЕДОВАНО`: код был раньше, реальный QA не подтверждён.
 
-| Requested | Current Vision Mod implementation | State |
-| --- | --- | --- |
-| armorcolorful | Optional colored **armor durability HUD**, not dyed 3D armor | 2.0 client HUD prototype |
-| arrows name | Nearest arrow **name/distance HUD**, not floating 3D labels | 2.0 client HUD prototype |
-| aspect ratio | Optional 2.39:1 cinematic letterbox bars | 2.0 client HUD prototype |
-| hit range | Range displayed when aiming at a living entity | 2.0 client HUD prototype |
-| bloodhit | Subtle red screen-edge flash when aimed entity enters hurt animation | 2.0 client HUD prototype, not a genuine damage-source detector |
-| hit effect | Crosshair ring on aimed entity's hurt animation | 2.0 client HUD prototype |
-| health indicator | Target name, client-observed HP/max HP and bar | 2.0 client HUD prototype |
-| tnt indicator | Nearest TNT distance warning; no fuse timer yet | 2.0 client HUD prototype |
-| particles | Snowflakes, Air Hearts and category-based particle suppression already exist | inherited from 1.1.0; runtime QA needed |
-| smooth camera | Independent Free Look, smoothing option | inherited from 1.1.0; runtime QA needed |
-| item scroller | Fast Scroller | inherited; not yet equivalent to reference |
-| optimizer | VisionPerformance and VisionRenderBoost | inherited; FPS gains not benchmarked |
-| swing animation | Small Sword / Compact Hand exists, **not** full custom swing animation | partial prior feature |
-| target esp | Optional world-space bounding outline around targeted living entity | 2.0 world render prototype (no through-wall visibility) |
-| animations | Main menu transition animation exists | inherited, not reference UI |
-| interface | Configurable theme/sidebar GUI | inherited; original design |
-| shulker viewer | Shulker Summary, tooltip and grid | inherited; runtime QA needed |
-| customsound | Arrow Hit Sound option exists | inherited; custom sound suite pending |
+## Визуальные / боевые функции
 
-## Not implemented / not claimed done
+| № | Пользователь | Реализация VisionMod | Статус |
+|---|---|---|---|
+| 1 | armorcolorful | Цветной индикатор прочности брони в HUD, не перекраска самой брони | ЧАСТИЧНО |
+| 2 | arrows name | Имя/дистанция ближайшей стрелы на HUD, не текст над стрелой в 3D | ЧАСТИЧНО |
+| 3 | aspect ratio | Чёрные letterbox-полосы 2.39:1, пока без пресетов и drag-resize | КАНДИДАТ |
+| 4 | block overlay | Дополнительная внутренняя рамка блока под прицелом | ЧАСТИЧНО |
+| 5 | bloodhit | Красная вспышка по краям экрана при hurtTime цели | КАНДИДАТ |
+| 6 | china hat | Каркасная коническая шляпа в третьем лице | ЧАСТИЧНО |
+| 7 | clear render | Фильтр обычных погодных частиц; полный Clear Render ещё не реализован | ЧАСТИЧНО |
+| 8 | custom models | Ограниченный JSON loader до 32 AABB-боксов; локальная модель за спиной игрока; не поддерживает чужие 3D-форматы | ЧАСТИЧНО |
+| 9 | hit effect | Кольцо у прицела при обнаружении анимации урона наведённой цели | КАНДИДАТ |
+| 10 | hit color | Переключаемый цвет Hit Pulse / Target ESP из 5 оттенков | КАНДИДАТ |
+| 11 | hit range | Расстояние до сущности под прицелом | КАНДИДАТ |
+| 12 | item physics | Mixin меняет наклон и медленное вращение выброшенных предметов; не настоящая симуляция физики | ЧАСТИЧНО |
+| 13 | jump circles | Лимитированный круг из точек при приземлении | ЧАСТИЧНО |
+| 14 | kill effect | Надпись DEFEATED, если наведённая цель погибает; не доказательство нанесения убийства игроком | ЧАСТИЧНО |
+| 15 | motion blur | Настоящего temporal framebuffer motion blur НЕТ. Camera Streaks — другой эффект | В ПЛАНЕ |
+| 16 | particles | Настройка снега/сердец, фильтры частиц; визуальный стиль не подтверждён пользователем | УНАСЛЕДОВАНО |
+| 17 | smooth camera | Free Look с независимой сглаженной камерой, F5/Alt; ещё требует игровых тестов | УНАСЛЕДОВАНО |
+| 18 | spear lunge | Клиентское облачко за движущимся игроком с копьём; не влияет на реальный Lunge | ЧАСТИЧНО |
+| 19 | spear pierce | Крит-частицы около цели при hurtTime и копье; не меняет Pierce механику | ЧАСТИЧНО |
+| 20 | swing animation | Небольшая 3D модификация first-person swing через отдельный mixin, выключена по умолчанию | КАНДИДАТ |
+| 21 | target esp | Контур вокруг прицеливаемой живой сущности; не анимированный ESP как в референсе | ЧАСТИЧНО |
+| 22 | trails | До 13 world-space точек пути игрока; не лента/плавный след | ЧАСТИЧНО |
+| 23 | world customizer | Настраиваемая полупрозрачная цветовая тонировка экрана (warm/cool/dusk), не полноценная перенастройка мира | ЧАСТИЧНО |
+| 24 | world lyrics | Только пользовательский текст в HUD из local config; не настоящий текст в 3D-мире | ЧАСТИЧНО |
 
-- Block Overlay: configurable world-space block fill and outline (separate from Target Outline).
-- China Hat: optional third-person-only low-poly hat made from world-space line dots; prototype now implemented. Still needs player-head rotation, shader checks and visual polish.
-- Clear Render: individual controls for fog, weather, overlays and unwanted visual clutter beyond existing filters.
-- Custom Models: configurable local models/resource-pack support without external downloads.
-- Hit Color: color customization for hit effects and entity outlines.
-- Item Physics: client-only dropped-item rotations/physics; prevent conflicts with other item renderers.
-- Jump Circles: world-space ring of bounded outline dots on landing; prototype now implemented. Test shape, collision and visibility.
-- Kill Effect: actual player-related kill event effects, not an arbitrary nearby-death flash.
-- Motion Blur: opt-in effect with frame-time limits and shader compatibility; heavy GPU cost requires FPS benchmarking.
-- Spear Lunge / Spear Pierce: define exact game semantics and verify 1.21.11 item availability; do not fake server-authoritative combat.
-- Full Swing Animation: player hand animation options and mixin compatibility testing.
-- Entity Target ESP: configurable 3D targeting effect (distinct from HUD).
-- Trails: bounded history of up to 13 dot outlines behind local player; prototype now implemented. Not yet a continuous textured trail.
-- World Customizer: safe client-only visual settings with profiles and shader coexistence.
-- World Lyrics: world-space anchored text, locally supplied content (no copyrighted song lyrics bundled).
-- Additional GUI animations/layout parity; no exact copying of licensed assets.
-- Pet: local visual companion, bounded animations, no remote texture tracking.
-- Fast Use: clarify desired permitted interaction; do not assume client-only changes bypass server cooldown.
-- Social: optional local UI first, never transmit personal data without opt-in.
-- Wider CustomSound feature set (event/volume/sound presets).
-- Full TNT fuse countdown and world-space arrows name overlay.
+## Интерфейс
 
-## Next iterations, in safe buildable groups
+| № | Пользователь | Реализация | Статус |
+|---|---|---|---|
+| 25 | animations | Плавное открытие/закрытие меню + смена страниц, другие анимации GUI ограничены | УНАСЛЕДОВАНО |
+| 26 | health indicator | Target Health HUD с полоской и цифрами | КАНДИДАТ |
+| 27 | interface | Тёмная лавандовая тема, боковые вкладки, переключатели; дизайн самостоятельный, не скопированный Fading | УНАСЛЕДОВАНО |
+| 28 | pet | Локальная маленькая плавающая каркасная фигурка; не полноценный animated pet | ЧАСТИЧНО |
+| 29 | shulker viewer | Ранее имелись Shulker Summary, tooltip, grid; полноценный viewer не проверен | УНАСЛЕДОВАНО |
+| 30 | tnt indicator | Предупреждение о расстоянии до ближайшего TNT; без таймера взрыва | ЧАСТИЧНО |
 
-1. Re-test 2.0.0 compilation and in-game HUD/world effects; fix errors before merging more features.
-2. Visual world-rendering layer: Block Overlay, Entity ESP, Jump Circles, Trails, China Hat, World Lyrics (test mixins/shaders).
-3. Combat and animations: Hit Color, true Hit/Kill effects, Swing Animation, Spear effects, Item Physics.
-4. Interface/HUD UX: draggable layout, expanded effects/animations, Pet, Shulker viewer, richer customization, custom sounds, social.
-5. Performance and safety: cap particle/object counts, profile render costs, compare average FPS and 1% low in same scene, preserve server TPS and client settings.
+## Утилиты и звук
 
-## Verify after each code group
+| № | Пользователь | Реализация | Статус |
+|---|---|---|---|
+| 31 | fast use | Обычный useItem при удержании ПКМ не чаще 1 раза за 7 тиков, только когда не наведён на объект; не обходит серверные cooldown | ЧАСТИЧНО |
+| 32 | item scroller | Ранее реализован Fast Scroller; отличие от референса требует проверки | УНАСЛЕДОВАНО |
+| 33 | optimizer | Existing VisionPerformance + VisionRenderBoost, сканирование руд/табличек оптимизировано | УНАСЛЕДОВАНО; НЕТ FPS ЗАМЕРОВ |
+| 34 | social | Локальное отображение друзей в радиусе 48 блоков по списку имён; нет серверного online-сервиса | ЧАСТИЧНО |
+| 35 | customsound | Ванильный звук попадания и старый Arrow Hit Sound; пользовательские .ogg и пресеты не поддержаны | ЧАСТИЧНО |
 
-- GitHub Actions compile, nested JEI checks and jar upload.
-- Real in-game Minecraft 1.21.11 / Fabric client launch, toggles, UI mouse interactions, shaders, multiplayer, Sodium.
-- Record tests/bugs in FOR_AI.txt and QA_CHECKLIST_RU.md. A green build alone is not a full test.
+## Где находятся новые классы
+
+- `VisionFeaturePack.java` — HUD & combat (8 опций)
+- `VisionWorldEffects.java` — Target ESP / Trails / Jump Circles / China Hat (4)
+- `VisionExtendedFeatures.java` — Block Overlay, Kill FX, world tint, text, pet, social, custom sound, weather FX (8)
+- `VisionMotionEffects.java` + mixins `VisionItemPhysicsMixin`, `VisionSwingAnimationMixin` — item/swing/spear/camera streaks (5)
+- `VisionCustomModels.java` — JSON geometry loader; creates a sample `config/visionmod/custom-model.json`
+- `VisionTools2.java` — Fast Use, Custom Models toggle, Hit Color (3)
+- `VisionScreen.java` — EXTRAS разделён на 8 страниц, 2.0 группы + настройки. Старые hotkey ID намеренно не перенумерованы.
+- Все новые переключатели выключены по умолчанию. Настройки в `config/visionmod/*-2.properties`.
+
+## Проверка компиляции
+
+GitHub Actions #80 (commit `19c713cd76a974e87a25974d276a35c998c6a065`) SUCCESS. JAR `visionmod-2.0.0.jar`, version=2.0.0, классы новых подсистем есть, nested JEI 27.54.0.113 присутствует. Это источник кода 2.0.0 после добавления motion/tool/model modules. РАНТАЙМ В MINECRAFT 1.21.11 НЕ ПРОВЕРЕН. Выключенные по умолчанию feature flags не доказывают работу активных mixins; при необходимости надо отладить в тестовом клиенте.
+Все 35 модулей НЕ считаются завершёнными. Жирные пробелы: настоящий Motion Blur, полные Item Physics, 3D Arrow Name, качественные Trails/China Hat/Pet, кастомные звуки, точность поведения по референсу, новый GUI, визуальный QA, FPS бенчмарки.
+
+## Порядок доработки
+1. Проверить реальный запуск, UI и mixins из #80; фиксировать любые runtime-crash прежде новых функций.
+2. Довести недоделанные визуальные до качественных реализаций, а не подменять косметические эффекты HUD-строками. Создать полноценный renderer для Item Physics, Motion Blur с контролем GPU, красивые China Hat/Trails/Jump Circles, анимированного Pet, World Lyrics world-space.
+3. Реализовать настройки для каждой функции, особенно семантику Spear Lunge / Pierce и пользовательских моделей / звуков.
+4. Проверить Fading как визуальный референс без копирования защищённых ресурсов; адаптировать UI согласно пожеланиям пользователя.
+5. Сделать игровую QA/шейдеры/JEI/Sodium/меню/Free Look, провести 3×60 сек FPS и 1% low; обновить FOR_AI и этот файл, только потом называть 2.0.0 законченной.
+
+**Правило `=`: продолжать работу на текущем HEAD, сверить Actions и ошибки, не спрашивать снова весь список, не объявлять незавершённое готовым.**
