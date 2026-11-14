@@ -36,6 +36,10 @@ public final class VisionExtras {
     public static boolean targetOutline = false;
     public static boolean snow = false;
     public static boolean hearts = false;
+    /** 0 = drifting around the player, 1 = soft halo in the view direction. */
+    public static int ambientStyle = 0;
+    /** 1 = subtle, 2 = balanced, 3 = vivid. Small bounded spawn budget. */
+    public static int ambientDensity = 2;
     public static boolean shulkerHud = false;
     public static boolean shulkerTooltip = false;
     public static boolean arrowHitSound = false;
@@ -223,27 +227,57 @@ public final class VisionExtras {
         });
         ClientTickEvents.END_CLIENT_TICK.register(mc -> {
             if (mc.level == null || mc.player == null) { zoomHeld = false; tick = 0; return; }
-            if (!VisionModClient.enabled || mc.screen != null || (!snow && !hearts)) return;
-            // Keep explicitly enabled FX visible even if the user hides ordinary particles.
-            // Throttle instead of disabling on busy spawn; use a view-facing spawn region.
-            if (++tick < VisionPerformance.ambientInterval()) return;
+            if (!VisionModClient.enabled || mc.screen != null || (!snow && !hearts)) {
+                tick = 0;
+                return;
+            }
+            // Camera/world-space ambience. Density never bypasses the performance budget.
+            int interval = Math.max(2, VisionPerformance.ambientInterval() * 2 / ambientDensity);
+            if (++tick < interval) return;
             tick = 0;
-            // Spawn in front of the actual camera, including third-person Free Look.
-            // Ordinary ClientLevel.addParticle can be silently skipped in MINIMAL mode.
+
             var camera = mc.gameRenderer.getMainCamera();
             Vec3 eye = camera.isInitialized() ? camera.position() : mc.player.getEyePosition();
             Vec3 facing = camera.isInitialized()
                 ? Vec3.directionFromRotation(camera.xRot(), camera.yRot())
                 : mc.player.getLookAngle();
-            double x = eye.x + facing.x * 2.6 + (RANDOM.nextDouble() - .5) * 2.4;
-            double y = eye.y + facing.y * 2.6 + (RANDOM.nextDouble() - .5) * 1.5;
-            double z = eye.z + facing.z * 2.6 + (RANDOM.nextDouble() - .5) * 2.4;
+            Vec3 right = new Vec3(-facing.z, 0, facing.x);
+            right = right.lengthSqr() < 0.001 ? new Vec3(1, 0, 0) : right.normalize();
+            Vec3 up = right.cross(facing).normalize();
+            Vec3 origin = ambientStyle == 0
+                ? mc.player.position().add(0, 1.1, 0)
+                : eye.add(facing.scale(2.3));
+            int count = ambientDensity >= 3 ? 2 : 1;
             spawningOwnAmbient = true;
             try {
-                // Important particles bypass MINIMAL settings but remain locally throttled.
-                // The ambient-spawning flag bypasses Vision's own particle filter.
-                if (snow) mc.level.addAlwaysVisibleParticle(ParticleTypes.SNOWFLAKE, x, y, z, 0, -.005, 0);
-                if (hearts) mc.level.addAlwaysVisibleParticle(ParticleTypes.HEART, x + .35, y, z, 0, .02, 0);
+                for (int i = 0; i < count; i++) {
+                    Vec3 point;
+                    if (ambientStyle == 0) {
+                        // Stable world particles drift beside the player, not glued to the screen.
+                        double angle = RANDOM.nextDouble() * Math.PI * 2;
+                        double distance = 1.1 + RANDOM.nextDouble() * 3.1;
+                        point = origin.add(Math.cos(angle) * distance,
+                            -0.75 + RANDOM.nextDouble() * 2.7,
+                            Math.sin(angle) * distance);
+                    } else {
+                        // An optional, spacious view-facing constellation.
+                        double angle = RANDOM.nextDouble() * Math.PI * 2;
+                        double radius = 0.55 + RANDOM.nextDouble() * 1.6;
+                        point = origin.add(right.scale(Math.cos(angle) * radius))
+                            .add(up.scale(Math.sin(angle) * radius))
+                            .add(facing.scale((RANDOM.nextDouble() - 0.5) * 1.2));
+                    }
+                    double driftX = (RANDOM.nextDouble() - 0.5) * 0.008;
+                    double driftZ = (RANDOM.nextDouble() - 0.5) * 0.008;
+                    // Explicitly enabled FX stay visible with MAX FPS / MINIMAL particles.
+                    if (hearts) mc.level.addAlwaysVisibleParticle(ParticleTypes.HEART,
+                        point.x, point.y, point.z, driftX, 0.015, driftZ);
+                    if (snow && (i == 0 || ambientDensity >= 3)) {
+                        Vec3 snowPoint = point.add(0.25, 0.5, -0.2);
+                        mc.level.addAlwaysVisibleParticle(ParticleTypes.SNOWFLAKE,
+                            snowPoint.x, snowPoint.y, snowPoint.z, driftX, -0.008, driftZ);
+                    }
+                }
             } finally {
                 spawningOwnAmbient = false;
             }
@@ -338,6 +372,19 @@ public final class VisionExtras {
         for (int i = 0; i < choices.length; i++) if (choices[i] == current) return choices[(i+1)%choices.length];
         return choices[0];
     }
+    public static void cycleAmbientStyle() {
+        ambientStyle = 1 - ambientStyle;
+        save();
+    }
+    public static void cycleAmbientDensity() {
+        ambientDensity = ambientDensity % 3 + 1;
+        save();
+    }
+    public static String ambientStyleLabel() { return ambientStyle == 0 ? "WORLD" : "CAMERA"; }
+    public static String ambientDensityLabel() {
+        return switch (ambientDensity) { case 1 -> "LOW"; case 3 -> "HIGH"; default -> "MEDIUM"; };
+    }
+
     public static void cycleZoom() {
         zoomFactor = zoomFactor == .35f ? .5f : zoomFactor == .5f ? .2f : .35f;
         save();
@@ -353,12 +400,15 @@ public final class VisionExtras {
             zoom = value(p, "zoom", zoom); fastScroll = value(p, "fastScroll", fastScroll);
             targetOutline = value(p, "targetOutline", targetOutline); snow = value(p, "snow", snow);
             hearts = value(p, "hearts", hearts); shulkerHud = value(p, "shulkerHud", shulkerHud);
+            ambientStyle = Math.max(0, Math.min(1, Integer.parseInt(p.getProperty("ambientStyle", "0"))));
+            ambientDensity = Math.max(1, Math.min(3, Integer.parseInt(p.getProperty("ambientDensity", "2"))));
             shulkerTooltip = value(p, "shulkerTooltip", shulkerTooltip);
             arrowHitSound = value(p, "arrowHitSound", arrowHitSound);
             smallSword = value(p, "smallSword", smallSword);
             smallShield = value(p, "smallShield", smallShield);
             smallTotem = value(p, "smallTotem", smallTotem);
             lowFire = value(p, "lowFire", lowFire);
+            FreeLook.smooth = value(p, "freeLookSmooth", FreeLook.smooth);
             String savedPattern = p.getProperty("crosshairPixels");
             if (validPixelString(savedPattern)) applyPixels(savedPattern);
             crosshairSize = Math.max(1, Math.min(4,
@@ -388,6 +438,9 @@ public final class VisionExtras {
         p.setProperty("zoom", Boolean.toString(zoom)); p.setProperty("fastScroll", Boolean.toString(fastScroll));
         p.setProperty("targetOutline", Boolean.toString(targetOutline)); p.setProperty("snow", Boolean.toString(snow));
         p.setProperty("hearts", Boolean.toString(hearts)); p.setProperty("shulkerHud", Boolean.toString(shulkerHud));
+        p.setProperty("ambientStyle", Integer.toString(ambientStyle));
+        p.setProperty("ambientDensity", Integer.toString(ambientDensity));
+        p.setProperty("freeLookSmooth", Boolean.toString(FreeLook.smooth));
         p.setProperty("shulkerTooltip", Boolean.toString(shulkerTooltip));
         p.setProperty("arrowHitSound", Boolean.toString(arrowHitSound));
         p.setProperty("smallSword", Boolean.toString(smallSword));
