@@ -13,6 +13,8 @@
     "SprintParticleMixin",
     "FreeLookMouseMixin",
     "FreeLookCameraMixin",
+    "VisionItemPhysicsMixin",
+    "VisionSwingAnimationMixin",
     "ZoomFovMixin",
     "MouseExtrasMixin",
     "ArrowHitSoundMixin",
