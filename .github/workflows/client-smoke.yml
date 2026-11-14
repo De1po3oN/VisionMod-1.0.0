@@ -30,6 +30,7 @@ jobs:
         shell: bash
         env:
           LIBGL_ALWAYS_SOFTWARE: "1"
+          VISIONMOD_SELFTEST: "1"
           MESA_GL_VERSION_OVERRIDE: "3.3"
         run: |
           set +e
@@ -40,8 +41,12 @@ jobs:
           set -e
           echo "Client process status: $status" | tee smoke-status.txt
           tail -n 100 smoke-client.log
-          if grep -Eiq 'MixinApplyError|InvalidInjectionException|MixinTransformerError|NoClassDefFoundError|Crash report saved|The game crashed' smoke-client.log; then
+          if grep -Eiq 'MixinApplyError|InvalidInjectionException|MixinTransformerError|NoClassDefFoundError|Crash report saved|The game crashed|SELFTEST.*failed|SELFTEST.*exception' smoke-client.log; then
             echo "Found a fatal client / mixin exception"
+            exit 1
+          fi
+          if ! grep -q '\[VisionMod\]\[SELFTEST\] PASS: 28 module toggles' smoke-client.log; then
+            echo "Feature toggle and persistence self-tests did not complete successfully"
             exit 1
           fi
           if [ "$status" -eq 0 ]; then
