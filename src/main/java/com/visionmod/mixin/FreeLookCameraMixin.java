@@ -29,7 +29,8 @@ public abstract class FreeLookCameraMixin {
     private void visionmod$orbit(Args args, Level area, Entity entity,
                                   boolean thirdPerson, boolean reverse, float partialTick) {
         if (!FreeLook.isOrbitCamera() || !thirdPerson || reverse) return;
-        args.set(0, FreeLook.yaw);
-        args.set(1, FreeLook.pitch);
+        FreeLook.stepCamera();
+        args.set(0, FreeLook.cameraYaw());
+        args.set(1, FreeLook.cameraPitch());
     }
 }
