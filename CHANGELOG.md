@@ -1,3 +1,14 @@
+# 2.0.0 — Soft Air Hearts / Snowflakes (2026-11-14)
+
+- Replaced vanilla `ParticleTypes.HEART` and vanilla snowflake ambient spawning with an original shared world-space billboard sprite renderer.
+- Created two original translucent RGBA heart/snowflake textures; soft snowfall-like downward drift, rotation, sway, fade and frame interpolation.
+- Retained WORLD/CAMERA, LOW/MEDIUM/HIGH config and explicit MAX FPS visibility. Cap pooled sprites at 96, clear on world switch/toggle/global End; no external network effects.
+- Caught an actually corrupted PNG via headless Minecraft startup (first smoke failed), regenerated both images as standard RGBA8 and retested.
+- Build #186 SUCCESS, Minecraft startup #76 SUCCESS, 54 toggle tests + PNG alpha + pool lifecycle checks. No claim of shader, real-world or FPS testing.
+- Documentation and visual acceptance test: AMBIENT_HEARTS_QA_RU.md.
+
+---
+
 # 2.0.0 Visuals Rework (2026-11-14, DEV TESTED BUILD)
 
 - New original filled animated local pet, not former wireframe: eyes, ears, paws, moving wings/tail, original soft texture and six persisted colors.
