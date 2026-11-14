@@ -2,7 +2,6 @@
 package com.visionmod.mixin;
 
 import com.visionmod.VisionModClient;
-import com.visionmod.VisionExtras;
 import com.visionmod.VisionExtendedFeatures;
 import com.visionmod.VisionParticles;
 
@@ -39,7 +38,7 @@ public abstract class ParticleEngineMixin {
             CallbackInfoReturnable<Particle> cir
     ) {
 
-        if (VisionExtras.isSpawningOwnAmbient() || VisionParticles.isOwnParticle()) return;
+        if (VisionParticles.isOwnParticle()) return;
         // Clear Weather FX affects ordinary rain/snow particles regardless of
         // the global particles filter. Explicitly requested local FX are exempt.
         if (VisionExtendedFeatures.clearWeather() &&
@@ -88,7 +87,7 @@ public abstract class ParticleEngineMixin {
             CallbackInfo ci
     ) {
 
-        if (VisionExtras.isSpawningOwnAmbient() || VisionParticles.isOwnParticle() || !VisionModClient.isParticlesEnabled()) return;
+        if (VisionParticles.isOwnParticle() || !VisionModClient.isParticlesEnabled()) return;
         if (VisionModClient.hideAllParticles ||
             (VisionModClient.hideBlockParticles && particle instanceof TerrainParticle)) {
             ci.cancel();
