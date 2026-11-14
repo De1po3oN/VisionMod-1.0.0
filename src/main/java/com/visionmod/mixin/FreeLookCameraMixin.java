@@ -32,6 +32,7 @@ public abstract class FreeLookCameraMixin {
                                   boolean thirdPerson, boolean reverse, float partialTick) {
         if (!FreeLook.isOrbitCamera() || !thirdPerson || reverse) return;
         FreeLook.stepCamera();
+        FreeLook.cameraHookApplied();
         args.set(0, FreeLook.cameraYaw());
         args.set(1, FreeLook.cameraPitch());
     }
