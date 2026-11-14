@@ -44,10 +44,22 @@ public final class FreeLook {
 
         held &= mc.screen == null;
 
-        // Changing perspective (including F5) explicitly cancels the orbit.
+        // Hold-only camera: release IMMEDIATELY restores the original perspective.
+        // Do not keep the orbit locked until F5; the user explicitly rejected that.
+        // Camera.setup and MouseHandler also poll this before rendering/turning,
+        // so release is observed at frame rate, not just at 20 client ticks.
+        if (!held) {
+            if (locked) stop(true);
+            wasHeld = false;
+            active = false;
+            return;
+        }
+
+        // F5 pressed during a hold: vanilla perspective wins; do not grab it
+        // again until the Alt key has actually been released.
         if (locked && mc.options.getCameraType() != CameraType.THIRD_PERSON_BACK) {
             stop(false);
-            wasHeld = held;
+            wasHeld = true;
             return;
         }
 
@@ -156,5 +168,6 @@ public final class FreeLook {
         wasHeld = false;
         previousCameraType = null;
         lastRenderNanos = 0L;
+        yaw = pitch = renderedYaw = renderedPitch = 0.0f;
     }
 }
