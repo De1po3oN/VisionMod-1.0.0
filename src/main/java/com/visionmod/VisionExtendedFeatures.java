@@ -104,6 +104,7 @@ public final class VisionExtendedFeatures {
 
     public static String customText() { return lyric; }
     public static String friendNames() { return friends; }
+    public static String nearbyFriends() { return friendsNearby.isBlank() ? "No friends nearby" : friendsNearby; }
 
     /** Edit user-owned text directly in the GUI; never ship copied lyrics. */
     public static void setCustomText(String text) {
@@ -225,10 +226,6 @@ public final class VisionExtendedFeatures {
                 default -> 0x1B364E9B;
             };
             g.fillGradient(0,0,w,h,top,bottom);
-        }
-        if (FLAGS[5]) {
-            String label = friendsNearby.isEmpty() ? "Social Radar: no friends in range" : "Friends: " + friendsNearby;
-            g.drawString(mc.font, label, 12, h - 50, 0xFFB6A8FF);
         }
         if (FLAGS[1] && notificationTicks > 0) {
             int a = Math.min(255, notificationTicks * 10);
