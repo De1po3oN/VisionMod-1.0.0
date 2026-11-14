@@ -7,12 +7,12 @@ import net.minecraft.resources.Identifier;
 
 /**
  * Original compact geometrical drawing helpers for optional world FX.
- * Uses an existing Minecraft white texture, no copied third-party assets,
+ * Uses an original low-cost pearlescent texture, no copied third-party assets,
  * external downloads, allocations per quad, or direct OpenGL state changes.
  */
 public final class VisionGeometry {
     public static final Identifier WHITE_TEXTURE =
-        Identifier.fromNamespaceAndPath("minecraft", "textures/block/white_concrete.png");
+        Identifier.fromNamespaceAndPath("visionmod", "textures/entity/pet_surface.png");
     public static final int FULL_BRIGHT = 0xF000F0;
     public static final int NO_OVERLAY = 0;
 
