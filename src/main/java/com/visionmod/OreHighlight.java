@@ -29,6 +29,7 @@ public final class OreHighlight {
     private static BlockPos origin;
     private static Object levelIdentity;
     private static int cursor;
+    private static int cooldownTicks;
     private static int scanRadius = -1;
     private static int verticalRadius = -1;
 
@@ -53,8 +54,17 @@ public final class OreHighlight {
                 scanRadius = radius;
                 verticalRadius = vertical;
                 cursor = 0;
+                cooldownTicks = 0;
                 building.clear();
                 if (switchedLevel) visible = List.of();
+            }
+
+            // Do not rescan unchanged surroundings every frame. After one complete
+            // pass, reuse the cached outlines for 1-2 seconds. Movement cancels
+            // the cooldown, so walking into a new area refreshes promptly.
+            if (cooldownTicks > 0) {
+                cooldownTicks--;
+                return;
             }
 
             int side = radius * 2 + 1;
@@ -89,6 +99,7 @@ public final class OreHighlight {
                 visible = List.copyOf(building);
                 building.clear();
                 cursor = 0;
+                cooldownTicks = VisionPerformance.busy() ? 40 : 20;
             }
         });
 
@@ -121,6 +132,7 @@ public final class OreHighlight {
         levelIdentity = null;
         scanRadius = -1;
         cursor = 0;
+        cooldownTicks = 0;
         building.clear();
         visible = List.of();
     }
