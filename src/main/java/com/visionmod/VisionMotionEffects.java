@@ -36,6 +36,7 @@ public final class VisionMotionEffects {
     private static int streakTicks;
     private static float previousYaw;
     private static int effectsCooldown;
+    private static int lastPierceHitSequence;
 
     private VisionMotionEffects() {}
     public static int count() { return NAMES.length; }
@@ -65,6 +66,7 @@ public final class VisionMotionEffects {
     private static void tick(Minecraft mc) {
         if (mc.player == null || mc.level == null || !VisionModClient.enabled) {
             tickCounter = 0; effectsCooldown = 0; streakTicks = 0; hurtTargetId = -1;
+            lastPierceHitSequence = VisionCombatTracker.hitSequence();
             if (mc.player != null) previousYaw = mc.player.getYRot();
             return;
         }
@@ -76,7 +78,12 @@ public final class VisionMotionEffects {
         }
         previousYaw = mc.player.getYRot();
 
-        if (!holdingSpear(mc) || (!enabled(2) && !enabled(3))) return;
+        // Never replay an old hit after changing equipment or enabling the FX.
+        int currentHitSequence = VisionCombatTracker.hitSequence();
+        if (!holdingSpear(mc) || (!enabled(2) && !enabled(3))) {
+            lastPierceHitSequence = currentHitSequence;
+            return;
+        }
 
         if (enabled(2) && ++tickCounter >= 4) {
             tickCounter = 0;
@@ -88,18 +95,18 @@ public final class VisionMotionEffects {
                     -velocity.x * .12, .015, -velocity.z * .12);
             }
         }
-        if (enabled(3) && mc.hitResult instanceof EntityHitResult hit &&
-            hit.getEntity() instanceof LivingEntity target && target != mc.player) {
-            if (target.hurtTime > 0 && effectsCooldown == 0 &&
-                (target.getId() != hurtTargetId || target.hurtTime >= 8)) {
-                hurtTargetId = target.getId();
-                effectsCooldown = 9;
-                Vec3 p = target.getBoundingBox().getCenter();
-                for (int i = 0; i < 3; i++) {
-                    double a = i * Math.PI * 2 / 3;
-                    mc.level.addAlwaysVisibleParticle(ParticleTypes.CRIT,
-                        p.x + Math.cos(a) * .28, p.y + .10, p.z + Math.sin(a) * .28,
-                        Math.cos(a) * .07, .04, Math.sin(a) * .07);
+        if (currentHitSequence != lastPierceHitSequence) {
+            lastPierceHitSequence = currentHitSequence;
+            if (enabled(3) && effectsCooldown == 0) {
+                Vec3 p = VisionCombatTracker.hitPosition();
+                if (p != null && p.distanceToSqr(mc.player.position()) < 64.0) {
+                    effectsCooldown = 8;
+                    for (int i = 0; i < 4; i++) {
+                        double a = i * Math.PI * .5;
+                        mc.level.addAlwaysVisibleParticle(ParticleTypes.CRIT,
+                            p.x + Math.cos(a) * .3, p.y + .1, p.z + Math.sin(a) * .3,
+                            Math.cos(a) * .08, .04, Math.sin(a) * .08);
+                    }
                 }
             }
         }
