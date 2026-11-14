@@ -74,7 +74,7 @@ public final class VisionDashboardScreen extends Screen {
         visual(m,"Player Hearts","Show health above other players",4);
         visual(m,"Particles","Manage block, portal and sprint particles",5);
         m.add(new Module(VISUAL,"Free Look","Hold Left Alt to orbit; F5 resets view",
-            ()->FreeLook.enabled,()->FreeLook.enabled=!FreeLook.enabled,
+            ()->FreeLook.enabled,()->FreeLook.setEnabled(!FreeLook.enabled),
             ()->{FreeLook.smooth=!FreeLook.smooth;VisionExtras.save();}));
         extras(m,HUD,"CPS Counter","Mouse clicks per second",0);
         extras(m,HUD,"Armor HUD","Current armor equipment",1);
