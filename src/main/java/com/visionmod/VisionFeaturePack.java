@@ -181,7 +181,7 @@ public final class VisionFeaturePack {
         if (hitPulse > 0 && (ENABLED[6] || ENABLED[7])) {
             int x = w / 2, y = h / 2, r = 5 + (8 - hitPulse);
             if (ENABLED[6]) {
-                int color = 0xD0A993FF;
+                int color = (VisionTools2.hitColor() & 0x00FFFFFF) | 0xD0000000;
                 g.fill(x - r, y - r, x + r, y - r + 1, color);
                 g.fill(x - r, y + r - 1, x + r, y + r, color);
                 g.fill(x - r, y - r, x - r + 1, y + r, color);
