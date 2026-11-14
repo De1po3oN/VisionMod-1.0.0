@@ -47,7 +47,7 @@ public final class VisionModClient implements ClientModInitializer {
                 enabled=!enabled;
                 if(client.player!=null)client.player.displayClientMessage(Component.literal(enabled?"Vision Mod: ON":"Vision Mod: OFF"),true);
             }
-            while(openMenu.consumeClick())if(client.screen==null)client.setScreen(new VisionScreen());
+            while(openMenu.consumeClick())if(client.screen==null)client.setScreen(new VisionDashboardScreen());
         });
     }
 }
