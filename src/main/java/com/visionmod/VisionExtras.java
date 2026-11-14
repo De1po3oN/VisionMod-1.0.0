@@ -409,6 +409,7 @@ public final class VisionExtras {
             smallTotem = value(p, "smallTotem", smallTotem);
             lowFire = value(p, "lowFire", lowFire);
             FreeLook.smooth = value(p, "freeLookSmooth", FreeLook.smooth);
+            FreeLook.enabled = value(p, "freeLookEnabled", FreeLook.enabled);
             String savedPattern = p.getProperty("crosshairPixels");
             if (validPixelString(savedPattern)) applyPixels(savedPattern);
             crosshairSize = Math.max(1, Math.min(4,
@@ -441,6 +442,7 @@ public final class VisionExtras {
         p.setProperty("ambientStyle", Integer.toString(ambientStyle));
         p.setProperty("ambientDensity", Integer.toString(ambientDensity));
         p.setProperty("freeLookSmooth", Boolean.toString(FreeLook.smooth));
+        p.setProperty("freeLookEnabled", Boolean.toString(FreeLook.enabled));
         p.setProperty("shulkerTooltip", Boolean.toString(shulkerTooltip));
         p.setProperty("arrowHitSound", Boolean.toString(arrowHitSound));
         p.setProperty("smallSword", Boolean.toString(smallSword));
