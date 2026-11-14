@@ -30,6 +30,9 @@ public abstract class FreeLookCameraMixin {
     )
     private void visionmod$orbit(Args args, Level area, Entity entity,
                                   boolean thirdPerson, boolean reverse, float partialTick) {
+        // Camera setup runs every rendered frame. The mouse-release state
+        // must be synchronized even when the player does not move the mouse.
+        FreeLook.syncFromMouse();
         if (!FreeLook.isOrbitCamera() || !thirdPerson || reverse) return;
         FreeLook.stepCamera();
         FreeLook.cameraHookApplied();
