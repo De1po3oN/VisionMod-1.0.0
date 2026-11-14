@@ -27,6 +27,11 @@ public final class FreeLook {
     private static boolean wasHeld;
     private static boolean warnedAboutExternal;
     private static CameraType previousCameraType;
+    // Log the first real input and camera use of the hook, not a claim
+    // that a successful Gradle build means the user's feature is working.
+    private static boolean cameraHookObserved;
+    private static boolean mouseHookObserved;
+    private static int startsLogged;
 
     private FreeLook() { }
 
@@ -55,6 +60,10 @@ public final class FreeLook {
             lastRenderNanos = 0L;
             locked = true;
             mc.options.setCameraType(CameraType.THIRD_PERSON_BACK);
+            if (startsLogged++ < 3) {
+                System.out.println("[VisionMod][FreeLook] Activated. Original perspective="
+                    + previousCameraType + ", target=THIRD_PERSON_BACK");
+            }
 
             if (!warnedAboutExternal && (FabricLoader.getInstance().isModLoaded("freelook")
                     || FabricLoader.getInstance().isModLoaded("perspectivereborn"))) {
@@ -90,8 +99,15 @@ public final class FreeLook {
         // Large deltas can occur when the game regains mouse focus.
         dx = Mth.clamp(dx, -250.0, 250.0);
         dy = Mth.clamp(dy, -250.0, 250.0);
+        // Match vanilla's independent horizontal/vertical inversion options.
+        if (mc.options.invertMouseX().get()) dx = -dx;
+        if (mc.options.invertMouseY().get()) dy = -dy;
         yaw = Mth.wrapDegrees(yaw + (float)(dx * multiplier));
         pitch = Mth.clamp(pitch + (float)(dy * multiplier), -89.9f, 89.9f);
+        if (!mouseHookObserved) {
+            mouseHookObserved = true;
+            System.out.println("[VisionMod][FreeLook] Mouse movement intercepted; player orientation preserved");
+        }
     }
 
     /** Once per rendered Camera.setup; a time-based easing that is frame-rate independent. */
@@ -108,6 +124,13 @@ public final class FreeLook {
             renderedPitch += (pitch - renderedPitch) * blend;
         }
         lastRenderNanos = now;
+    }
+
+    public static void cameraHookApplied() {
+        if (!cameraHookObserved) {
+            cameraHookObserved = true;
+            System.out.println("[VisionMod][FreeLook] Camera.setup rotation hook reached in third person");
+        }
     }
 
     public static float cameraYaw() { return renderedYaw; }
