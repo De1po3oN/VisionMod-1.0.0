@@ -58,7 +58,13 @@ public final class VisionExtendedFeatures {
     private static String friends = "";
     private static String friendsNearby = "";
     private static int worldColor = 0;
-    private static int petColor = 0xFFA89CFF;
+    private static int petColor = 0xFFE6CAFC;
+    private static final int[] PET_PALETTE={
+        0xFFE6CAFC,0xFFFFB9CF,0xFFB3F5E4,0xFFFFD18E,0xFFAACFFF,0xFFFFFFFF
+    };
+    private static final String[] PET_COLORS={
+        "LAVENDER","PINK","MINT","HONEY","SKY","PEARL"
+    };
 
     private VisionExtendedFeatures() {}
 
@@ -80,6 +86,20 @@ public final class VisionExtendedFeatures {
     }
     public static String colorLabel() {
         return switch (worldColor) { case 1 -> "WARM"; case 2 -> "COOL"; default -> "DUSK"; };
+    }
+    public static int petColor() { return petColor; }
+    public static String petColorLabel() {
+        for(int i=0;i<PET_PALETTE.length;i++)
+            if(PET_PALETTE[i]==petColor)return PET_COLORS[i];
+        return "CUSTOM";
+    }
+    public static void cyclePetColor() {
+        int next=0;
+        for(int i=0;i<PET_PALETTE.length;i++) {
+            if(PET_PALETTE[i]==petColor){next=(i+1)%PET_PALETTE.length;break;}
+        }
+        petColor=PET_PALETTE[next];
+        save();
     }
 
     public static String customText() { return lyric; }
