@@ -205,7 +205,7 @@ public final class VisionDashboardScreen extends Screen {
                 case 2 -> "Dusk / warm / cool screen coloring";
                 case 3 -> "Floating lyrics • RMB to edit • | separates lines";
                 case 4 -> "Animated solid pet with colors and wings";
-                case 5 -> "Nearby player names from local friends list";
+                case 5 -> "Shows nearby friends in module details, not in chat";
                 case 6 -> "Client hit-feedback sound";
                 default -> "Filter ordinary weather particles";
             },
@@ -525,6 +525,10 @@ public final class VisionDashboardScreen extends Screen {
         } else if(details.title.equals("World Lyrics") || details.title.equals("Social Radar")) {
             g.drawString(font,details.title.equals("World Lyrics")?"LYRIC LINES: separate each with |":"FRIENDS (COMMA SEPARATED):",
                 x+16,y+103,MUTED);
+            if(details.title.equals("Social Radar")) {
+                textFit(g,"NEARBY: "+VisionExtendedFeatures.nearbyFriends(),
+                    x+16,y+117,ww-32,WHITE);
+            }
         }
         int actionY=y+hh-37;
         round(g,x+13,actionY,Math.min(115,(ww-45)/2),27,6,0xFF42345F);
