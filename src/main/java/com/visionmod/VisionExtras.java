@@ -228,17 +228,22 @@ public final class VisionExtras {
             // Throttle instead of disabling on busy spawn; use a view-facing spawn region.
             if (++tick < VisionPerformance.ambientInterval()) return;
             tick = 0;
-            Vec3 facing = mc.player.getLookAngle();
-            double x = mc.player.getX() + facing.x * 2.8 + (RANDOM.nextDouble() - .5) * 2.5;
-            double y = mc.player.getEyeY() + facing.y * 2.8 + (RANDOM.nextDouble() - .5) * 1.6;
-            double z = mc.player.getZ() + facing.z * 2.8 + (RANDOM.nextDouble() - .5) * 2.5;
+            // Spawn in front of the actual camera, including third-person Free Look.
+            // Ordinary ClientLevel.addParticle can be silently skipped in MINIMAL mode.
+            var camera = mc.gameRenderer.getMainCamera();
+            Vec3 eye = camera.isInitialized() ? camera.position() : mc.player.getEyePosition();
+            Vec3 facing = camera.isInitialized()
+                ? Vec3.directionFromRotation(camera.xRot(), camera.yRot())
+                : mc.player.getLookAngle();
+            double x = eye.x + facing.x * 2.6 + (RANDOM.nextDouble() - .5) * 2.4;
+            double y = eye.y + facing.y * 2.6 + (RANDOM.nextDouble() - .5) * 1.5;
+            double z = eye.z + facing.z * 2.6 + (RANDOM.nextDouble() - .5) * 2.4;
             spawningOwnAmbient = true;
             try {
-                // Emit particles through ClientLevel (Minecraft 1.21.11 API).
-                // On the client this remains local; the ambient-spawning flag
-                // lets our particle filter preserve explicitly enabled FX.
-                if (snow) mc.level.addParticle(ParticleTypes.SNOWFLAKE, x, y, z, 0, -.005, 0);
-                if (hearts) mc.level.addParticle(ParticleTypes.HEART, x + .35, y, z, 0, .02, 0);
+                // Important particles bypass MINIMAL settings but remain locally throttled.
+                // The ambient-spawning flag bypasses Vision's own particle filter.
+                if (snow) mc.level.addAlwaysVisibleParticle(ParticleTypes.SNOWFLAKE, x, y, z, 0, -.005, 0);
+                if (hearts) mc.level.addAlwaysVisibleParticle(ParticleTypes.HEART, x + .35, y, z, 0, .02, 0);
             } finally {
                 spawningOwnAmbient = false;
             }
