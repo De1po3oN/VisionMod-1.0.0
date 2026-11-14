@@ -1,3 +1,31 @@
+*** АКТУАЛЬНО ДЛЯ СЛЕДУЮЩЕГО ЧАТА: VISION MOD 2.0.0 ***
+Дата: 2026-11-14.
+Репозиторий НЕ переименовывали: https://github.com/De1po3oN/VisionMod-1.0.0
+Ветка: main. Версия В КОДЕ И CI = 2.0.0. Раньше была 1.1.0; все записи про 1.1.0 ниже — история, НЕ текущее состояние.
+Пользователь прислал большой список модулей Fading Light 2.0.0 и попросил сделать аналог для Vision Mod, с качественным GUI, минимальными поломками и максимально сильной оптимизацией FPS. Список всех модулей и точный статус см. ОБЯЗАТЕЛЬНО `FEATURE_REQUESTS_2_0_0.md`. Не утверждать, что весь список реализован. Большая часть сложных 3D/боевых функций ещё в планах.
+Прикреплённый сторонний `fading-beta-2.0.0-fabric.jar` проверен статически: Minecraft 1.21.11/Fabric; в fabric.mod.json license All-Rights-Reserved. ЧУЖОЙ КОД, ТЕКСТУРЫ, ШРИФТЫ И ЗВУКИ НЕ ПЕРЕНОСИТЬ; в Vision Mod написаны независимые реализации и используется только список функций как ТЗ. Не запускать неизвестный JAR для анализа.
+
+УЖЕ ВНЕСЕНО В SOURCE И В GUI:
+1) VisionFeaturePack.java: 8 опциональных HUD-модулей: Aspect Bars, Armor Colorful (цветной HUD прочности, не 3D крашеная броня), Target Health, Hit Range, TNT Indicator (только дистанция), Arrow Names (имя и дистанция ближайшей стрелы на HUD, не над стрелой), Hit Pulse, Blood Hit (экранная подсветка, если прицеливаемая сущность получила урон). Все OFF по умолчанию; сохранение в config/visionmod/features-2.properties. Поиск TNT/стрел каждые 10 тиков, не каждый кадр.
+2) VisionWorldEffects.java: 4 опциональных эффекта в мире: Target ESP (контур hitResult живой сущности), Trails (до 13 контурных точек), Jump Circles (точечное кольцо при приземлении), China Hat (каркас над игроком от первого лица скрыт). Все OFF по умолчанию; сохранение в config/visionmod/world-effects-2.properties; используют WorldRenderEvents.BEFORE_DEBUG_RENDER и тот же RenderTypes.lines, что прежний TargetOutline.
+3) VisionScreen.java: EXTRAS расширен до 5 страниц; новая страница 2.0 HUD & COMBAT и страница 2.0 WORLD FX. Существующие бинды/настройки Extras не перенумерованы.
+4) VisionModClient.java: инициализация новых модулей. build.gradle/version, VisionMenuTheme.VERSION, Fabric metadata description, GitHub Actions workflow обновлены до 2.0.0. Услуги косметики не возвращались; локальный China Hat — самостоятельный эффект.
+
+ПРОВЕРКИ GITHUB:
+- Actions #50 для SHA 2a409bdc — SUCCESS, компиляция/проверка включённого JEI и JAR. Это версия 2.0.0 ДО добавления World FX.
+- Actions #54 для SHA 60f25182 — SUCCESS, включает новые World FX и GUI. Это компиляция, не запуск в Minecraft.
+- При чтении файла всегда открывать свежую историю Actions и текущий HEAD (после коммитов документации могут быть новые run). Последний СОВПАДАЮЩИЙ с HEAD билд надо проверять отдельно.
+- Часть промежуточных Actions #47-49 падали из-за рассинхронизации имени JAR и версии в workflow. После исправления #50 и #54 успешны.
+- РЕАЛЬНЫЙ клиент Minecraft, шейдеры, free look в игре, FPS, визуальная корректность новых эффектов НЕ проверены. НЕ заявлять обратное.
+
+ПРИОРИТЕТЫ:
+- Следующий шаг: проверить клиент / собрать QA по 2.0.0, визуально доработать эффекты и GUI по отзывам пользователя. Затем продолжить остальные пункты из FEATURE_REQUESTS_2_0_0.md: Block Overlay, Clear Render, Item Physics, Motion Blur, настоящие 3D Arrow Labels, Custom Models, Spear Lunge/Pierce, Swing, World Lyrics, World Customizer, Fast Use, Social, Pet, расширенный CustomSound, Kill Effect и т.д.
+- FPS на первом месте. Не создавать тяжёлые рендеры на каждый кадр без лимитов, отключать дорогие эффекты в MAX FPS по выбору пользователя, при этом не скрывать явно включённые эффекты молча. Реальный прирост подтверждать 3×60 сек в одних условиях.
+- При команде пользователя "=" продолжать на текущем HEAD, сначала читать последние логи и известные ошибки, потом править реальные классы/миксины, собирать, обновлять FOR_AI.txt. Не давать фрагменты за готовый проект.
+
+
+---
+
 *** АКТУАЛЬНОЕ ОБНОВЛЕНИЕ 1.1.0 ОТ 2026-11-14 — ЧИТАТЬ ПЕРВЫМ ***
 ПРОВЕРЕННЫЙ АРТЕФАКТ 1.1.0: Actions #41 (run id 43575324724, commit 6d282ef1) — success, Build / Verify JEI / Upload JAR successful. Artifact id 14105314176, name VisionMod-1.1.0, contains visionmod-1.1.0.jar. JAR вручную распакован: metadata id=visionmod, version=1.1.0; nested META-INF/jars/u6dRKJwZ-1MYoCSWP.jar содержит мод jei версии 27.54.0.113. Реальный Minecraft runtime не тестировали; это не обещание, что Free Look и Air Hearts именно так, как хочет пользователь. Новый QA_CHECKLIST_RU.md содержит раздел проверки 1.1.0. Последующие коммиты документации могут запускать новые workflow; сравнить свежий HEAD.
 
