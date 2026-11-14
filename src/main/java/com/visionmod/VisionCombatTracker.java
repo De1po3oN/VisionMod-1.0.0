@@ -6,6 +6,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.phys.Vec3;
 
 /**
  * Lightweight client-side observation of *our own* entity attack.
@@ -21,6 +22,7 @@ public final class VisionCombatTracker {
     private static int ticksLeft;
     private static boolean sawHurt;
     private static int hitSequence;
+    private static Vec3 lastHitPos;
     private static int deathSequence;
     private static String deathName = "";
 
@@ -50,6 +52,7 @@ public final class VisionCombatTracker {
         // The real entity hurt animation is the signal, not "still aiming at it".
         if (target.hurtTime > 0 && !sawHurt) {
             sawHurt = true;
+            lastHitPos = target.getBoundingBox().getCenter();
             hitSequence++;
         }
         if (target.isDeadOrDying()) {
@@ -69,6 +72,7 @@ public final class VisionCombatTracker {
     }
 
     public static int hitSequence() { return hitSequence; }
+    public static Vec3 hitPosition() { return lastHitPos; }
     public static int deathSequence() { return deathSequence; }
     public static String deathName() { return deathName; }
 }
