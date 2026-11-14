@@ -56,8 +56,8 @@ public final class VisionExtendedFeatures {
 
     private static int ticks;
     private static int notificationTicks;
-    private static int previousVictimId = -1;
-    private static boolean wasHurting;
+    private static int lastPlayedHitSequence;
+    private static int lastShownDeathSequence;
     private static String lastTarget = "";
     private static String lyric = "";
     private static String friends = "";
@@ -125,33 +125,33 @@ public final class VisionExtendedFeatures {
         if (mc.player == null || mc.level == null) {
             ticks = 0;
             notificationTicks = 0;
-            previousVictimId = -1;
+            lastPlayedHitSequence = VisionCombatTracker.hitSequence();
+            lastShownDeathSequence = VisionCombatTracker.deathSequence();
             lastTarget = "";
             friendsNearby = "";
-            wasHurting = false;
             return;
         }
-        if (!VisionModClient.enabled) return;
+        if (!VisionModClient.enabled) {
+            lastPlayedHitSequence = VisionCombatTracker.hitSequence();
+            lastShownDeathSequence = VisionCombatTracker.deathSequence();
+            return;
+        }
         if (notificationTicks > 0) notificationTicks--;
 
-        // Hurt-time feedback, not a forged kill confirmation. Client never
-        // claims server-authoritative attribution.
-        if (mc.hitResult instanceof EntityHitResult hit && hit.getEntity() instanceof LivingEntity target
-            && target != mc.player) {
-            boolean hurting = target.hurtTime > 0;
-            int entityId = target.getId();
-            if (FLAGS[6] && hurting && (previousVictimId != entityId || !wasHurting)) {
+        int hitEvent = VisionCombatTracker.hitSequence();
+        if (hitEvent != lastPlayedHitSequence) {
+            lastPlayedHitSequence = hitEvent;
+            if (FLAGS[6]) {
                 mc.player.playSound(SoundEvents.EXPERIENCE_ORB_PICKUP, .30F, 1.35F);
             }
-            if (FLAGS[1] && !target.isAlive() && previousVictimId == entityId) {
-                notificationTicks = 24;
-                lastTarget = target.getName().getString();
+        }
+        int deathEvent = VisionCombatTracker.deathSequence();
+        if (deathEvent != lastShownDeathSequence) {
+            lastShownDeathSequence = deathEvent;
+            if (FLAGS[1]) {
+                notificationTicks = 28;
+                lastTarget = VisionCombatTracker.deathName();
             }
-            previousVictimId = entityId;
-            wasHurting = hurting;
-        } else {
-            previousVictimId = -1;
-            wasHurting = false;
         }
 
         if (++ticks >= 20) {
@@ -233,7 +233,9 @@ public final class VisionExtendedFeatures {
         }
         if (FLAGS[1] && notificationTicks > 0) {
             int a = Math.min(255, notificationTicks * 10);
-            String title = "DEFEATED: " + lastTarget;
+            // Local client can observe death after attacking, but cannot
+            // prove server-side kill attribution (teammates may finish it).
+            String title = "TARGET DOWN: " + lastTarget;
             int x = (w - mc.font.width(title)) / 2;
             g.drawString(mc.font, title, x, h / 2 - 38, (a << 24) | 0x00E7B5FF);
         }
