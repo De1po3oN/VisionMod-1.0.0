@@ -1,3 +1,15 @@
+# VisionMod 2.0.0 — expanded development code after #57
+
+- Added 8 optional extended HUD/world utilities (Block Overlay, client-only kill notice, screen color, lyrics overlay, local Pet, local Social Radar, hit sound, precipitation particle filter).
+- Added 5 optional motion settings (custom swing transform, dropped-item pose transform, visual spear lunge/pierce particles and camera streaks) and protected mixins.
+- Added configurable original JSON third-person box-model support with bounded geometry (32 boxes), Fast Use with 7-tick throttle and selectable Hit Color.
+- Extended Extras to 8 pages, left click toggles, right click changes world filter/hit color. Existing hotkey IDs preserved.
+- Fixed two MC 1.21.11 compile errors in intermediate builds; Actions #80 compiled, verified JEI nested and uploaded 2.0.0 artifact.
+- Important differences: Camera Streaks != temporal Motion Blur; lyrics render in HUD, not 3D; some world effects are bounded dotted/line prototypes. Never claim full feature parity or tested FPS gain. Remaining work tracked in FEATURE_REQUESTS_2_0_0.md.
+
+
+---
+
 # Vision Mod 2.0.0 — development build (2026-11-14)
 
 - Start version 2.0.0 and switch GitHub Actions JAR/version verification to 2.0.0.
