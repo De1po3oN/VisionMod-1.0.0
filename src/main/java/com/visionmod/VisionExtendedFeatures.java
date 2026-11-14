@@ -6,6 +6,7 @@ import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderEvents;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.CameraType;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.ShapeRenderer;
 import net.minecraft.client.renderer.rendertype.RenderTypes;
@@ -189,12 +190,42 @@ public final class VisionExtendedFeatures {
             g.fill(0, 0, w, h, tint);
         }
         if (FLAGS[3] && !lyric.isBlank()) {
-            String current = lyric;
-            while (current.length() > 0 && mc.font.width(current) > w - 36)
-                current = current.substring(0, current.length() - 1);
-            int x = (w - mc.font.width(current)) / 2;
-            g.fill(x - 10, h - 79, x + mc.font.width(current) + 10, h - 57, 0xA0141326);
-            g.drawString(mc.font, current, x, h - 72, 0xFFE6DFFF);
+            // Project lyrics from a world anchor, not a fixed HUD coordinate.
+            // In third person the anchor is over the local player; in first
+            // person it floats in view-space three blocks ahead of the camera.
+            var camera = mc.gameRenderer.getMainCamera();
+            if (camera.isInitialized()) {
+                Vec3 forward = Vec3.directionFromRotation(camera.xRot(), camera.yRot());
+                Vec3 right = forward.cross(new Vec3(0, 1, 0));
+                if (right.lengthSqr() > .00001) {
+                    right = right.normalize();
+                    Vec3 up = right.cross(forward).normalize();
+                    Vec3 anchor = mc.options.getCameraType() == CameraType.FIRST_PERSON
+                        ? camera.position().add(forward.scale(3.0))
+                            .add(up.scale(-.35 + Math.sin(mc.level.getGameTime() * .08) * .04))
+                        : mc.player.position().add(0,
+                            mc.player.getBbHeight() + .68 + Math.sin(mc.level.getGameTime() * .08) * .06,
+                            0);
+                    Vec3 relative = anchor.subtract(camera.position());
+                    double depth = relative.dot(forward);
+                    if (depth > .25) {
+                        double pixels = h / (2.0 * Math.tan(Math.toRadians(
+                            mc.options.fov().get() * 0.5)));
+                        int sx = (int)Math.round(w * .5 + relative.dot(right) * pixels / depth);
+                        int sy = (int)Math.round(h * .5 - relative.dot(up) * pixels / depth);
+                        String current = lyric;
+                        while (current.length() > 0 && mc.font.width(current) > Math.min(320,w-24))
+                            current = current.substring(0,current.length()-1);
+                        int labelWidth = mc.font.width(current);
+                        if (sx > labelWidth / 2 + 8 && sx < w - labelWidth / 2 - 8 &&
+                            sy > 16 && sy < h - 16) {
+                            g.fill(sx - labelWidth/2 - 7, sy - 6,
+                                sx + labelWidth/2 + 7, sy + 14, 0xA5141326);
+                            g.drawCenteredString(mc.font, current, sx, sy, 0xFFE6DFFF);
+                        }
+                    }
+                }
+            }
         }
         if (FLAGS[5]) {
             String label = friendsNearby.isEmpty() ? "Social Radar: no friends in range" : "Friends: " + friendsNearby;
