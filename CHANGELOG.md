@@ -2,7 +2,7 @@
 
 - Removed cosmetics feature at source level, including external Worker and texture files.
 - Bundled the unmodified MIT-licensed JEI Fabric mod via Loom nested JAR dependency, not just a download button.
-- Fixed Snowflakes and Air Hearts spawning by calling ClientLevel.addParticle locally and allowing only these locally-generated particles through Vision Mod particle filters.
+- Fixed Snowflakes and Air Hearts spawning by calling ClientLevel.addAlwaysVisibleParticle locally and allowing only these locally-generated particles through Vision Mod particle filters.
 - Kept explicit effects visible on crowded spawn; reduce frequency rather than silently disabling.
 - MAX FPS preset now enables actual vanilla render-distance / entity-distance changes, shadows and biome blending, reversible after disabling.
 - Added conservative adaptive chunk cap (10-second sampling, delayed downshift and gradual recovery) and user FPS target 40/50/60/75.
@@ -16,3 +16,16 @@
 - Keep the sign model and text rendered every frame; no blinking or disappearing text between refreshes.
 - In FPS Boost / busy-spawn mode, skip extra glowing text outline passes beyond 12 blocks, keeping the text and sign body visible. Vanilla server packets are not delayed or intercepted.
 - This only reduces some client CPU/GPU rendering work, not server tick load; measure FPS at a sign-heavy spawn to confirm impact.
+
+## Free Look / visual FX / real FPS optimizations (1.0.0)
+
+- Camera-orbit override now intercepts the vanilla rotation arguments before third-person offset and collision. Mouse interception matches MouseHandler.turnPlayer(double).
+- Preserve the chosen Free Look view angle after key release, reset via F5, and show a warning when a separate FreeLook mod is also installed. Runtime verification remains necessary.
+- Spawn Snowflakes and Air Hearts as always-visible, rate-limited client particles in front of the active camera, even with Minecraft particles set to MINIMAL.
+- MAX FPS no longer silently disables explicitly chosen Snowflakes and Air Hearts.
+- Throttle repeated static-area ore scanning with a short cooldown to reduce CPU polling; movement forces immediate rescan.
+- Add reversible AO, improved-transparency, cutout-leaves and weather-radius caps to REAL FPS BOOST; adapt entity render distance further on slow/busy frames.
+- The global End master toggle restores prior video options while Vision Mod is disabled.
+- Reuse player-health label components and buffers rather than allocate new formatted text and arrays every rendered frame.
+- Guard FullBright's expression replacement against incompatible non-Double values.
+- GitHub Actions compiles the sources and checks embedded JEI, but does NOT prove visual correctness or measured FPS gains.
