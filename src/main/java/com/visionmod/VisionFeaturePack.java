@@ -46,8 +46,7 @@ public final class VisionFeaturePack {
     private static int nearestTnt = -1;
     private static int nearestArrow = -1;
     private static int hitPulse;
-    private static int lastHurtId = -1;
-    private static boolean lastHurt;
+    private static int lastHitSequence;
 
     private VisionFeaturePack() { }
 
@@ -70,27 +69,20 @@ public final class VisionFeaturePack {
             ticks = 0;
             nearestTnt = -1;
             nearestArrow = -1;
-            lastHurtId = -1;
-            lastHurt = false;
+            lastHitSequence = VisionCombatTracker.hitSequence();
             hitPulse = 0;
             return;
         }
         if (!VisionModClient.enabled) return;
         if (hitPulse > 0) hitPulse--;
-        if (ENABLED[6] || ENABLED[7]) {
-            if (mc.hitResult instanceof EntityHitResult result &&
-                result.getEntity() instanceof LivingEntity target) {
-                boolean hurt = target.hurtTime > 0;
-                if (hurt && (!lastHurt || lastHurtId != target.getId())) hitPulse = 8;
-                lastHurt = hurt;
-                lastHurtId = target.getId();
-            } else {
-                lastHurtId = -1;
-                lastHurt = false;
-            }
-        } else {
-            hitPulse = 0;
+        // Fire exactly once per client-observed hurt event after our own attack,
+        // even when crosshair has moved away by the time the target reacts.
+        int sequence = VisionCombatTracker.hitSequence();
+        if (sequence != lastHitSequence) {
+            lastHitSequence = sequence;
+            if (ENABLED[6] || ENABLED[7]) hitPulse = 8;
         }
+        if (!ENABLED[6] && !ENABLED[7]) hitPulse = 0;
 
         // Avoid scanning the player-dense world every rendered frame.
         if (++ticks < 10) return;
