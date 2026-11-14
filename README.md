@@ -1,4 +1,4 @@
-# Vision Mod 1.0.0 — Open Beta
+# Vision Mod 1.1.0 — Open Beta
 
 Minecraft Java 1.21.11 / Fabric Loader >=0.19.3 / Java 21.
 
@@ -14,8 +14,15 @@ Minecraft Java 1.21.11 / Fabric Loader >=0.19.3 / Java 21.
 All project cosmetics renderer/menus, bundled textures, cloud service/worker, assets, imports/exports and settings. Previously shared profiles are still accepted, but old cosmetics fields are ignored. Existing local files in the user's config directory are **not** deleted automatically.
 
 ## Build
-`gradle clean build --no-daemon --stacktrace` (Java 21, Gradle 9.2.1). The nested JEI JAR will be downloaded on the build runner from Modrinth Maven. Build result: `build/libs/visionmod-1.0.0.jar`.
+`gradle clean build --no-daemon --stacktrace` (Java 21, Gradle 9.2.1). The nested JEI JAR will be downloaded on the build runner from Modrinth Maven. Build result: `build/libs/visionmod-1.1.0.jar`.
 
-Status: uncompiled source update. The complete Gradle build and in-game performance test are **not verified**. Exact FPS gains depend on CPU/GPU, entity count, shaders and baseline draw distance.
+Status: 1.1.0 source update. GitHub Actions compilation is checked separately; in-game performance and visual behavior are **not yet verified**. Exact FPS gains depend on CPU/GPU, entity count, shaders and baseline draw distance.
 
 **JEI server caveat**: on Minecraft 1.21.11, certain server-provided/custom recipes may require JEI or recipe synchronization installed server-side to appear in the client.
+
+
+## 1.1.0 GUI and ambient options
+- New graphite/lavender Vision theme with original geometry, muted contrast and clearer module switches. Does not contain Fading Light code or assets.
+- Extras → Settings (page 3) lets users choose Ambient Mode (WORLD/CAMERA), Ambient Density (LOW/MEDIUM/HIGH), Smooth Free Look (ON/OFF). Right-click Air Hearts or Snowflakes to jump to this page; right-click Free Look for quick smooth toggle.
+- Free Look controls the independent third-person camera on Left Alt; release keeps the orbit; F5 cancels. Smooth interpolation can be disabled.
+- AIR HEARTS and Snowflakes are still vanilla particle types, but emit across a world-space area or an optional camera-space halo. No custom heart texture was copied. Visual correctness requires a client test.
