@@ -24,7 +24,9 @@ public abstract class FreeLookCameraMixin {
             target = "Lnet/minecraft/client/Camera;setRotation(FF)V",
             ordinal = 0
         ),
-        require = 0
+        // This hook is essential. A missing injection must fail CI's real
+        // Minecraft startup rather than silently ship a broken Free Look.
+        require = 1
     )
     private void visionmod$orbit(Args args, Level area, Entity entity,
                                   boolean thirdPerson, boolean reverse, float partialTick) {
