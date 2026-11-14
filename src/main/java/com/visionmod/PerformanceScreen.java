@@ -66,7 +66,7 @@ public final class PerformanceScreen extends Screen {
             VisionModClient.hideAllParticles = !VisionModClient.hideAllParticles; changed();
         });
         add(x + 12, y + 204, 312, "BACK TO VISUALS",
-            b -> minecraft.setScreen(new VisionScreen()));
+            b -> minecraft.setScreen(new VisionDashboardScreen()));
         refresh();
     }
 
@@ -114,6 +114,6 @@ public final class PerformanceScreen extends Screen {
             VisionMenuTheme.inside(mouseX, mouseY, x, y, button.getWidth(), button.getHeight()));
     }
 
-    @Override public void onClose() { minecraft.setScreen(new VisionScreen()); }
+    @Override public void onClose() { minecraft.setScreen(new VisionDashboardScreen()); }
     @Override public boolean isPauseScreen() { return false; }
 }
