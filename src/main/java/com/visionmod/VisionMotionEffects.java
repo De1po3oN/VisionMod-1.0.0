@@ -90,7 +90,7 @@ public final class VisionMotionEffects {
             Vec3 velocity = mc.player.getDeltaMovement();
             if (velocity.horizontalDistanceSqr() > 0.0075 && mc.player.onGround()) {
                 Vec3 behind = mc.player.position().subtract(velocity.normalize().scale(.55));
-                mc.level.addAlwaysVisibleParticle(ParticleTypes.CLOUD,
+                VisionParticles.spawn(mc.level, ParticleTypes.CLOUD,
                     behind.x, behind.y + .14, behind.z,
                     -velocity.x * .12, .015, -velocity.z * .12);
             }
@@ -103,7 +103,7 @@ public final class VisionMotionEffects {
                     effectsCooldown = 8;
                     for (int i = 0; i < 4; i++) {
                         double a = i * Math.PI * .5;
-                        mc.level.addAlwaysVisibleParticle(ParticleTypes.CRIT,
+                        VisionParticles.spawn(mc.level, ParticleTypes.CRIT,
                             p.x + Math.cos(a) * .3, p.y + .1, p.z + Math.sin(a) * .3,
                             Math.cos(a) * .08, .04, Math.sin(a) * .08);
                     }
