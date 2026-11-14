@@ -82,7 +82,7 @@ public final class VisionDashboardScreen extends Screen {
         visual(m,"Clear Lava","Clear lava visibility",3);
         visual(m,"Player Hearts","Show health above other players",4);
         visual(m,"Particles","Manage block, portal and sprint particles",5);
-        m.add(new Module(VISUAL,"Free Look","Hold Left Alt to orbit; F5 resets view",
+        m.add(new Module(VISUAL,"Free Look","Hold Left Alt; release instantly restores view",
             ()->FreeLook.enabled,()->FreeLook.setEnabled(!FreeLook.enabled),
             ()->{FreeLook.smooth=!FreeLook.smooth;VisionExtras.save();}));
         extras(m,HUD,"CPS Counter","Mouse clicks per second",0);
