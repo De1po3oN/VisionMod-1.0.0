@@ -67,7 +67,7 @@ public final class ParticleSettingsScreen extends Screen {
         }
         if (button == GLFW.GLFW_MOUSE_BUTTON_LEFT &&
             VisionMenuTheme.inside(click.x(), click.y(), x + 73, y + 245, 304, 24)) {
-            minecraft.setScreen(new VisionScreen(VisionScreen.Page.VISUALS));
+            minecraft.setScreen(new VisionDashboardScreen());
             return true;
         }
         return super.mouseClicked(click, doubled);
@@ -84,7 +84,7 @@ public final class ParticleSettingsScreen extends Screen {
     }
 
     @Override public void onClose() {
-        minecraft.setScreen(new VisionScreen(VisionScreen.Page.VISUALS));
+        minecraft.setScreen(new VisionDashboardScreen());
     }
 
     @Override public boolean isPauseScreen() { return false; }
