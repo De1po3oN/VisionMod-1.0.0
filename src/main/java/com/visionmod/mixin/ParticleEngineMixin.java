@@ -3,6 +3,7 @@ package com.visionmod.mixin;
 
 import com.visionmod.VisionModClient;
 import com.visionmod.VisionExtras;
+import com.visionmod.VisionExtendedFeatures;
 
 import net.minecraft.client.particle.Particle;
 import net.minecraft.client.particle.ParticleEngine;
@@ -37,9 +38,16 @@ public abstract class ParticleEngineMixin {
             CallbackInfoReturnable<Particle> cir
     ) {
 
-        if (VisionExtras.isSpawningOwnAmbient() || !VisionModClient.isParticlesEnabled()) {
+        if (VisionExtras.isSpawningOwnAmbient()) return;
+        // Clear Weather FX affects ordinary rain/snow particles regardless of
+        // the global particles filter. Explicitly requested local FX are exempt.
+        if (VisionExtendedFeatures.clearWeather() &&
+                (options.getType() == ParticleTypes.RAIN ||
+                 options.getType() == ParticleTypes.SNOWFLAKE)) {
+            cir.setReturnValue(null);
             return;
         }
+        if (!VisionModClient.isParticlesEnabled()) return;
 
         if (VisionModClient.hideAllParticles) {
             cir.setReturnValue(null);
