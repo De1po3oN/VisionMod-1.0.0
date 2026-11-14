@@ -65,9 +65,9 @@ public final class VisionCrosshairEditorScreen extends Screen {
         }
         if(inside(mx,my,x+142,y+224,135,23)){VisionExtras.cycleCrosshairColor();return true;}
         if(inside(mx,my,x+282,y+224,144,23)){VisionExtras.resetPixels();return true;}
-        if(inside(mx,my,x+142,y+251,284,17)){minecraft.setScreen(new VisionScreen(VisionScreen.Page.EXTRAS));return true;}
+        if(inside(mx,my,x+142,y+251,284,17)){minecraft.setScreen(new VisionDashboardScreen());return true;}
         return super.mouseClicked(click,doubled);
     }
-    @Override public void onClose(){minecraft.setScreen(new VisionScreen(VisionScreen.Page.EXTRAS));}
+    @Override public void onClose(){minecraft.setScreen(new VisionDashboardScreen());}
     @Override public boolean isPauseScreen(){return false;}
 }
