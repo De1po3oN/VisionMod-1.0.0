@@ -2,6 +2,7 @@ package com.visionmod;
 
 import net.minecraft.client.CameraType;
 import net.minecraft.client.Minecraft;
+import net.minecraft.network.chat.Component;
 import net.fabricmc.loader.api.FabricLoader;
 
 /**
@@ -50,10 +51,14 @@ public final class FreeLook {
             locked = true;
             mc.options.setCameraType(CameraType.THIRD_PERSON_BACK);
 
-            if (!warnedAboutExternal && FabricLoader.getInstance().isModLoaded("freelook")) {
+            if (!warnedAboutExternal &&
+                (FabricLoader.getInstance().isModLoaded("freelook") ||
+                 FabricLoader.getInstance().isModLoaded("perspectivereborn"))) {
                 warnedAboutExternal = true;
-                System.err.println("[VisionMod] Another FreeLook mod is installed. "
-                    + "Disable its camera/keybind when testing Vision Mod's orbit camera.");
+                String message = "[Vision Mod] Another FreeLook mod is installed. "
+                    + "Unbind its camera key while testing Vision Mod's Left Alt orbit.";
+                System.err.println(message);
+                mc.player.displayClientMessage(Component.literal(message), false);
             }
         }
 
