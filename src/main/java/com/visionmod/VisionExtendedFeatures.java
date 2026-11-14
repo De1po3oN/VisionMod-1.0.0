@@ -83,6 +83,21 @@ public final class VisionExtendedFeatures {
         return switch (worldColor) { case 1 -> "WARM"; case 2 -> "COOL"; default -> "DUSK"; };
     }
 
+    public static String customText() { return lyric; }
+    public static String friendNames() { return friends; }
+
+    /** Edit user-owned text directly in the GUI; never ship copied lyrics. */
+    public static void setCustomText(String text) {
+        lyric = text == null ? "" : text.replaceAll("[\\r\\n\\p{Cntrl}]", " ").trim();
+        if (lyric.length() > 120) lyric = lyric.substring(0, 120);
+        save();
+    }
+    public static void setFriendNames(String text) {
+        friends = text == null ? "" : text.replaceAll("[\\r\\n\\p{Cntrl}]", " ").trim();
+        if (friends.length() > 120) friends = friends.substring(0, 120);
+        save();
+    }
+
     public static void init() {
         load();
         ClientTickEvents.END_CLIENT_TICK.register(VisionExtendedFeatures::tick);
