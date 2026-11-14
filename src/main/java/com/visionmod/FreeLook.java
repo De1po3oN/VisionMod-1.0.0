@@ -10,7 +10,8 @@ import net.minecraft.util.Mth;
  * Independent, client-only orbit camera for the third-person view.
  *
  * Left Alt changes only the camera orientation, never the player/entity yaw.
- * Releasing Alt retains the chosen orbit. F5 resets it back to vanilla.
+ * Releasing Alt immediately restores the previous perspective and clears orbit.
+ * F5 remains a vanilla perspective key.
  * All angles are in degrees; optional interpolation only affects the view.
  */
 public final class FreeLook {
