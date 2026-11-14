@@ -26,7 +26,7 @@ public abstract class ParticleEngineMixin {
         method = "addParticle(Lnet/minecraft/core/particles/ParticleOptions;DDDDDD)Lnet/minecraft/client/particle/Particle;",
         at = @At("HEAD"),
         cancellable = true,
-        require = 0
+        require = 1
     )
     private void visionmod$filterParticles(
             ParticleOptions options,
@@ -81,7 +81,7 @@ public abstract class ParticleEngineMixin {
         method = "addParticle(Lnet/minecraft/client/particle/Particle;)V",
         at = @At("HEAD"),
         cancellable = true,
-        require = 0
+        require = 1
     )
     private void visionmod$filterDirectParticles(
             Particle particle,
