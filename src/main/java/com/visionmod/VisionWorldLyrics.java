@@ -74,7 +74,7 @@ public final class VisionWorldLyrics {
         pose.scale(-.025f,-.025f,.025f);
         float x=-mc.font.width(current)*.5f;
         mc.font.drawInBatch(current,x,0,0xFFF8F3FF,true,
-            pose.last().pose(),ctx.consumers(),Font.DisplayMode.NORMAL,
+            pose.last().pose(),ctx.consumers(),Font.DisplayMode.SEE_THROUGH,
             0x550F1328,VisionGeometry.FULL_BRIGHT);
         pose.popPose();
     }
