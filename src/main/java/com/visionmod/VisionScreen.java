@@ -297,11 +297,12 @@ public final class VisionScreen extends Screen {
             for (int i = 0; i < VisionExtendedFeatures.count(); i++) {
                 int bx = colX(x, i), by = rowY(y, i);
                 VisionMenuTheme.moduleRow(g, font, bx, by, 149, 41,
-                    VisionExtendedFeatures.NAMES[i], VisionExtendedFeatures.enabled(i),
-                    "LMB: toggle", hit(mx, my, bx, by, 149, 41));
+                    i == 2 ? VisionExtendedFeatures.NAMES[i] + ": " + VisionExtendedFeatures.colorLabel()
+                        : VisionExtendedFeatures.NAMES[i], VisionExtendedFeatures.enabled(i),
+                    i == 2 ? "LMB: toggle / RMB: color" : "LMB: toggle",
+                    hit(mx, my, bx, by, 149, 41));
             }
-            g.drawString(font, "Set ownLyric / friends in config/visionmod/extended-2.properties",
-                x + 130, y + 254, VisionMenuTheme.MUTED);
+            // Longer configuration hints are documented in README and FOR_AI.
         }
         String subsection = extrasPage == 2 ? "НАСТРОЙКИ" :
             extrasPage == 3 ? "2.0 / HUD & COMBAT" :
@@ -533,13 +534,9 @@ public final class VisionScreen extends Screen {
                     for (int i = 0; i < VisionExtendedFeatures.count(); i++) {
                         int bx = colX(x, i), by = rowY(y, i);
                         if (hit(mx, my, bx, by, 149, 41)) {
-                            if (button == GLFW.GLFW_MOUSE_BUTTON_LEFT) {
-                                if (i == 2 && VisionExtendedFeatures.enabled(i)) {
-                                    VisionExtendedFeatures.cycleWorldColor();
-                                } else {
-                                    VisionExtendedFeatures.toggle(i);
-                                }
-                            }
+                            if (button == GLFW.GLFW_MOUSE_BUTTON_LEFT) VisionExtendedFeatures.toggle(i);
+                            if (button == GLFW.GLFW_MOUSE_BUTTON_RIGHT && i == 2)
+                                VisionExtendedFeatures.cycleWorldColor();
                             return true;
                         }
                     }
