@@ -42,7 +42,9 @@ public final class VisionPetRenderer {
             VertexConsumer solid = ctx.consumers().getBuffer(
                 RenderTypes.entityTranslucent(VisionGeometry.WHITE_TEXTURE));
 
-            final int fur=0xFFE6CAFC, shadow=0xFFA88BDB, face=0xFFF8E7FF;
+            final int fur=VisionExtendedFeatures.petColor();
+            final int shadow=VisionGeometry.blendRgb(fur,0xFF655187,.36f);
+            final int face=VisionGeometry.blendRgb(fur,0xFFFFFFFF,.68f);
             final int eye=0xFF21263D, shine=0xFFFFFFFF, blush=0xFFFFA7C3;
             final int belly=0xFFFEF4FF, foot=0xFFBCA0E5;
             // Body, head, cheeks; no outlines or disconnected AABB dots.
@@ -82,7 +84,7 @@ public final class VisionPetRenderer {
                 VisionGeometry.line(lines,pose,
                     .32*Math.cos(a),-.34,.32*Math.sin(a),
                     .32*Math.cos(b),-.34,.32*Math.sin(b),
-                    0xA7B59AFF,1.45f);
+                    VisionGeometry.withAlpha(fur,170),1.45f);
             }
             pose.popPose();
         });
