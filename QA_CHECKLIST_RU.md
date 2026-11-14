@@ -1,3 +1,17 @@
+# ДОПОЛНИТЕЛЬНАЯ QA ДЛЯ 2.0.0 ПОСЛЕ ACTIONS #80
+
+1. Гарантировать, что `visionmod-2.0.0.jar` соответствует Actions #80 / код SHA 19c713cd. Отчёт исходной сборки успешный, визуальный клиент ещё НЕ тестировался.
+2. Right Shift → EXTRAS: в общей сложности 8 страниц; проверить визуал, навигацию, хитбоксы, переключатели, сохранение и End.
+3. EXTRA FX: Block Overlay только при наведении на блок; Kill Effect с оговоркой о client-side detect; World Color LMB toggle/RMB cycle; custom ownLyric/friends в `config/visionmod/extended-2.properties`; Pet в 3-м лице и F5; hit sound только на hurtTime; Clear Weather не удаляет Vision Snowflakes.
+4. MOTION FX: FIRST inspect `latest.log` на ошибки Mixin для VisionItemPhysicsMixin и VisionSwingAnimationMixin. Item Physics корректно крутит выброшенные предметы, только когда включён; Swing Animation меняет вид руки без изменения урона; Spear Lunge/Pierce работают с vanilla 1.21.11 копьями, серверные механики не меняют.
+5. TOOLS: Fast Use не шлёт действие на каждый кадр, не работает в открытом GUI, уважает серверные cooldown; Custom Models создаёт локальный JSON и отображает валидную третьелицевую геометрию без утечки render state; неверный JSON не вызывает crash; Hit Color настраивает и Hit Pulse, и Target ESP.
+6. Тестировать все в MAX FPS/баланс/Visual, с и без Sodium, Iris и шейдеров. Мерить CPU/GPU, средний FPS, 1% lows в одинаковых условиях (3×60 сек).
+7. Motion Blur НЕ СУЩЕСТВУЕТ в текущем JAR (Camera Streaks — не эквивалент). CustomSound не загружает .ogg, World Lyrics не world-space. Все 35 пунктов смотреть в FEATURE_REQUESTS_2_0_0.md.
+8. Результаты разделять PASS / FAIL / NOT TESTED; исходный исходник может компилироваться и падать при запуске — без настоящего запуска нельзя ставить PASS.
+
+
+---
+
 # QA для VisionMod 2.0.0 (разработка, 2026-11-14)
 
 Проверяйте Minecraft 1.21.11, Java 21, Fabric Loader 0.19.3. Одна только зелёная сборка Actions не подтверждает игровой результат.
