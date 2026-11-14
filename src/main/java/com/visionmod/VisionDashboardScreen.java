@@ -203,15 +203,16 @@ public final class VisionDashboardScreen extends Screen {
                 case 0 -> "Highlight selected blocks";
                 case 1 -> "Client-observed defeat notification";
                 case 2 -> "Dusk / warm / cool screen coloring";
-                case 3 -> "Display your own floating text";
-                case 4 -> "Little local companion beside player";
+                case 3 -> "Floating lyrics • RMB to edit • | separates lines";
+                case 4 -> "Animated solid pet with colors and wings";
                 case 5 -> "Nearby player names from local friends list";
                 case 6 -> "Client hit-feedback sound";
                 default -> "Filter ordinary weather particles";
             },
             ()->VisionExtendedFeatures.enabled(id),
             ()->VisionExtendedFeatures.toggle(id),
-            id==2 ? VisionExtendedFeatures::cycleWorldColor : null));
+            id==2 ? VisionExtendedFeatures::cycleWorldColor :
+                id==4 ? VisionExtendedFeatures::cyclePetColor : null));
     }
 
     private static void motion(List<Module> m,int category,int id) {
@@ -518,8 +519,11 @@ public final class VisionDashboardScreen extends Screen {
             g.drawString(font,"PALETTE: "+VisionExtendedFeatures.colorLabel(),x+16,y+102,WHITE);
         } else if(details.title.equals("Hit Color")) {
             g.drawString(font,"PALETTE: "+VisionTools2.hitColorName(),x+16,y+102,WHITE);
+        } else if(details.title.equals("Local Pet")) {
+            g.drawString(font,"PET COLOR: "+VisionExtendedFeatures.petColorLabel(),x+16,y+102,WHITE);
+            g.drawString(font,"OPTIONS: next color",x+16,y+116,MUTED);
         } else if(details.title.equals("World Lyrics") || details.title.equals("Social Radar")) {
-            g.drawString(font,details.title.equals("World Lyrics")?"YOUR TEXT:":"FRIENDS (COMMA SEPARATED):",
+            g.drawString(font,details.title.equals("World Lyrics")?"LYRIC LINES: separate each with |":"FRIENDS (COMMA SEPARATED):",
                 x+16,y+103,MUTED);
         }
         int actionY=y+hh-37;
