@@ -30,6 +30,10 @@ public final class VisionRenderBoost {
     private static CloudStatus savedClouds;
     private static boolean savedEntityShadows;
     private static int savedBiomeBlend;
+    private static boolean savedAmbientOcclusion;
+    private static boolean savedImprovedTransparency;
+    private static boolean savedCutoutLeaves;
+    private static int savedWeatherRadius;
     private static int appliedChunks = -1;
     private static int adaptiveCap = 6;
     private static int ticker;
@@ -98,6 +102,10 @@ public final class VisionRenderBoost {
                 savedClouds = client.options.cloudStatus().get();
                 savedEntityShadows = client.options.entityShadows().get();
                 savedBiomeBlend = client.options.biomeBlendRadius().get();
+                savedAmbientOcclusion = client.options.ambientOcclusion().get();
+                savedImprovedTransparency = client.options.improvedTransparency().get();
+                savedCutoutLeaves = client.options.cutoutLeaves().get();
+                savedWeatherRadius = client.options.weatherRadius().get();
                 if (!backup()) { enabled = false; save(); return; }
             } else readBackup(client);
             applied = true;
@@ -107,7 +115,8 @@ public final class VisionRenderBoost {
         if (client.options.renderDistance().get() != targetChunks)
             client.options.renderDistance().set(targetChunks);
         appliedChunks = targetChunks;
-        double entityScale = Math.min(savedEntityScale, .5D);
+        // Higher player/entity counts benefit from a more aggressive distance cap.
+        double entityScale = Math.min(savedEntityScale, VisionPerformance.busy() ? .35D : .50D);
         if (client.options.entityDistanceScaling().get() != entityScale)
             client.options.entityDistanceScaling().set(entityScale);
         if (client.options.particles().get() != ParticleStatus.MINIMAL)
@@ -118,6 +127,15 @@ public final class VisionRenderBoost {
             client.options.entityShadows().set(false);
         if (client.options.biomeBlendRadius().get() != 0)
             client.options.biomeBlendRadius().set(0);
+        if (client.options.ambientOcclusion().get())
+            client.options.ambientOcclusion().set(false);
+        if (client.options.improvedTransparency().get())
+            client.options.improvedTransparency().set(false);
+        if (client.options.cutoutLeaves().get())
+            client.options.cutoutLeaves().set(false);
+        int weatherCap = Math.min(savedWeatherRadius, 4);
+        if (client.options.weatherRadius().get() != weatherCap)
+            client.options.weatherRadius().set(weatherCap);
     }
     private static void restore(Minecraft client) {
         try {
@@ -128,6 +146,10 @@ public final class VisionRenderBoost {
             client.options.cloudStatus().set(savedClouds);
             client.options.entityShadows().set(savedEntityShadows);
             client.options.biomeBlendRadius().set(savedBiomeBlend);
+            client.options.ambientOcclusion().set(savedAmbientOcclusion);
+            client.options.improvedTransparency().set(savedImprovedTransparency);
+            client.options.cutoutLeaves().set(savedCutoutLeaves);
+            client.options.weatherRadius().set(savedWeatherRadius);
             Files.deleteIfExists(BACKUP);
         } catch (Exception e) {
             System.err.println("[VisionMod] Video settings restore failed; backup retained: " + e);
@@ -148,6 +170,10 @@ public final class VisionRenderBoost {
             p.setProperty("clouds",savedClouds.name());
             p.setProperty("entityShadows",Boolean.toString(savedEntityShadows));
             p.setProperty("biomeBlendRadius",Integer.toString(savedBiomeBlend));
+            p.setProperty("ambientOcclusion",Boolean.toString(savedAmbientOcclusion));
+            p.setProperty("improvedTransparency",Boolean.toString(savedImprovedTransparency));
+            p.setProperty("cutoutLeaves",Boolean.toString(savedCutoutLeaves));
+            p.setProperty("weatherRadius",Integer.toString(savedWeatherRadius));
             try(OutputStream out=Files.newOutputStream(BACKUP)){p.store(out,"Minecraft video options before Vision boost");}
             return true;
         }catch(Exception e){System.err.println("[VisionMod] Video backup failed: "+e);return false;}
@@ -159,6 +185,10 @@ public final class VisionRenderBoost {
         savedClouds = client.options.cloudStatus().get();
         savedEntityShadows = client.options.entityShadows().get();
         savedBiomeBlend = client.options.biomeBlendRadius().get();
+        savedAmbientOcclusion = client.options.ambientOcclusion().get();
+        savedImprovedTransparency = client.options.improvedTransparency().get();
+        savedCutoutLeaves = client.options.cutoutLeaves().get();
+        savedWeatherRadius = client.options.weatherRadius().get();
         if(!Files.isRegularFile(BACKUP))return;
         try(InputStream in=Files.newInputStream(BACKUP)){
             Properties p=new Properties();p.load(in);
@@ -168,6 +198,10 @@ public final class VisionRenderBoost {
             savedClouds=CloudStatus.valueOf(p.getProperty("clouds"));
             savedEntityShadows=Boolean.parseBoolean(p.getProperty("entityShadows",Boolean.toString(savedEntityShadows)));
             savedBiomeBlend=Integer.parseInt(p.getProperty("biomeBlendRadius",Integer.toString(savedBiomeBlend)));
+            savedAmbientOcclusion=Boolean.parseBoolean(p.getProperty("ambientOcclusion",Boolean.toString(savedAmbientOcclusion)));
+            savedImprovedTransparency=Boolean.parseBoolean(p.getProperty("improvedTransparency",Boolean.toString(savedImprovedTransparency)));
+            savedCutoutLeaves=Boolean.parseBoolean(p.getProperty("cutoutLeaves",Boolean.toString(savedCutoutLeaves)));
+            savedWeatherRadius=Integer.parseInt(p.getProperty("weatherRadius",Integer.toString(savedWeatherRadius)));
         }catch(Exception e){System.err.println("[VisionMod] Invalid saved video backup: "+e);}
     }
     public static void load() {
