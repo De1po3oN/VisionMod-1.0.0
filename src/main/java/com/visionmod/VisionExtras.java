@@ -5,6 +5,7 @@ import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.VanillaHudElements;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.CameraType;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.core.component.DataComponents;
@@ -232,7 +233,9 @@ public final class VisionExtras {
                 return;
             }
             // Camera/world-space ambience. Density never bypasses the performance budget.
-            int interval = Math.max(2, VisionPerformance.ambientInterval() * 2 / ambientDensity);
+            // Keep a visible but bounded population. High density is capped
+            // at ~20 sprites/sec; this does not scale with player/entity count.
+            int interval = Math.max(3, VisionPerformance.ambientInterval() * 2 / ambientDensity);
             if (++tick < interval) return;
             tick = 0;
 
@@ -244,15 +247,20 @@ public final class VisionExtras {
             Vec3 right = new Vec3(-facing.z, 0, facing.x);
             right = right.lengthSqr() < 0.001 ? new Vec3(1, 0, 0) : right.normalize();
             Vec3 up = right.cross(facing).normalize();
-            Vec3 origin = ambientStyle == 0
+            boolean worldRing = ambientStyle == 0 &&
+                mc.options.getCameraType() != CameraType.FIRST_PERSON;
+            // A full 360-degree ring was almost invisible in first person:
+            // most particles appeared behind the camera. Keep first-person
+            // particles in the visible forward hemisphere but in world space.
+            Vec3 origin = worldRing
                 ? mc.player.position().add(0, 1.1, 0)
-                : eye.add(facing.scale(2.3));
-            int count = ambientDensity >= 3 ? 2 : 1;
+                : eye.add(facing.scale(2.8));
+            int count = ambientDensity;
             spawningOwnAmbient = true;
             try {
                 for (int i = 0; i < count; i++) {
                     Vec3 point;
-                    if (ambientStyle == 0) {
+                    if (worldRing) {
                         // Stable world particles drift beside the player, not glued to the screen.
                         double angle = RANDOM.nextDouble() * Math.PI * 2;
                         double distance = 1.1 + RANDOM.nextDouble() * 3.1;
