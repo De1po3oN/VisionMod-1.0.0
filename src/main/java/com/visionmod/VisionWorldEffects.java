@@ -79,7 +79,7 @@ public final class VisionWorldEffects {
                 AABB box = target.getBoundingBox().inflate(.035);
                 ShapeRenderer.renderShape(context.matrices(), lines,
                     Shapes.create(box), -camera.x, -camera.y, -camera.z,
-                    VisionMenuTheme.PURPLE, 1.7F);
+                    VisionTools2.hitColor(), 1.7F);
             }
 
             if (ENABLED[1]) {
