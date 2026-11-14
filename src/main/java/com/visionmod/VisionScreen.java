@@ -224,7 +224,8 @@ public final class VisionScreen extends Screen {
     }
 
     private static final String[] EXTRA_SETTINGS = {
-        "Zoom factor", "Outline color", "Crosshair color"
+        "Zoom factor", "Outline color", "Crosshair color",
+        "Heart FX mode", "Ambient density", "Smooth Free Look"
     };
     private static final String[] PERFORMANCE_VALUES = {
         "Ore radius", "Checks / tick", "Max outlines", "FPS target", "Busy threshold"
@@ -240,6 +241,9 @@ public final class VisionScreen extends Screen {
             case 0 -> Math.round(VisionExtras.zoomFactor * 100) + "%";
             case 1 -> String.format("#%06X", VisionExtras.outlineColor & 0xFFFFFF);
             case 2 -> String.format("#%06X", VisionExtras.crosshairColor & 0xFFFFFF);
+            case 3 -> VisionExtras.ambientStyleLabel();
+            case 4 -> VisionExtras.ambientDensityLabel();
+            case 5 -> FreeLook.smooth ? "ON" : "OFF";
             default -> "";
         };
     }
@@ -268,7 +272,7 @@ public final class VisionScreen extends Screen {
                 int bx = colX(x, i), by = rowY(y, i);
                 VisionMenuTheme.actionRow(g, font, bx, by, 149, 41,
                     EXTRA_SETTINGS[i] + ": " + extraSettingValue(i),
-                    VisionHotkeys.label(VisionHotkeys.extraSetting(i)),
+                    i < 3 ? VisionHotkeys.label(VisionHotkeys.extraSetting(i)) : "LMB: cycle",
                     hit(mx, my, bx, by, 149, 41));
             }
             g.drawString(font, "Right-click crosshair module to draw its shape",
@@ -428,6 +432,11 @@ public final class VisionScreen extends Screen {
                     if (button == GLFW.GLFW_MOUSE_BUTTON_LEFT) { visualToggle(i); return true; }
                     if (button == GLFW.GLFW_MOUSE_BUTTON_RIGHT && i == 1) { select(Page.ORES); return true; }
                     if (button == GLFW.GLFW_MOUSE_BUTTON_RIGHT && i == 5) { minecraft.setScreen(new ParticleSettingsScreen()); return true; }
+                    if (button == GLFW.GLFW_MOUSE_BUTTON_RIGHT && i == 6) {
+                        FreeLook.smooth = !FreeLook.smooth;
+                        VisionExtras.save();
+                        return true;
+                    }
                 }
             }
             case ORES -> {
@@ -452,13 +461,29 @@ public final class VisionScreen extends Screen {
                         }
                         if (button == GLFW.GLFW_MOUSE_BUTTON_RIGHT && i == 4) { VisionExtras.cycleZoom(); return true; }
                         if (button == GLFW.GLFW_MOUSE_BUTTON_RIGHT && i == 6) { VisionExtras.cycleOutlineColor(); return true; }
+                        if (button == GLFW.GLFW_MOUSE_BUTTON_RIGHT && (i == 7 || i == 8)) {
+                            extrasPage = 2;
+                            pageChangedAt = System.nanoTime();
+                            return true;
+                        }
                     }
                 } else {
                     for (int i = 0; i < EXTRA_SETTINGS.length; i++) {
                         int bx = colX(x, i), by = rowY(y, i);
                         if (!hit(mx, my, bx, by, 149, 41)) continue;
-                        if (button == GLFW.GLFW_MOUSE_BUTTON_MIDDLE) { captureId = VisionHotkeys.extraSetting(i); return true; }
-                        if (button == GLFW.GLFW_MOUSE_BUTTON_LEFT) { VisionHotkeys.cycleExtraSetting(i); return true; }
+                        if (button == GLFW.GLFW_MOUSE_BUTTON_MIDDLE && i < 3) {
+                            captureId = VisionHotkeys.extraSetting(i);
+                            return true;
+                        }
+                        if (button == GLFW.GLFW_MOUSE_BUTTON_LEFT) {
+                            switch (i) {
+                                case 3 -> VisionExtras.cycleAmbientStyle();
+                                case 4 -> VisionExtras.cycleAmbientDensity();
+                                case 5 -> { FreeLook.smooth = !FreeLook.smooth; VisionExtras.save(); }
+                                default -> VisionHotkeys.cycleExtraSetting(i);
+                            }
+                            return true;
+                        }
                     }
                 }
                 if (button == GLFW.GLFW_MOUSE_BUTTON_LEFT) {
