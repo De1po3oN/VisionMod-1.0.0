@@ -12,8 +12,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public abstract class FreeLookMouseMixin {
     @Shadow private double accumulatedDX;
     @Shadow private double accumulatedDY;
-    @Inject(method="turnPlayer",at=@At("HEAD"),cancellable=true)
-    private void visionmod$freeLook(CallbackInfo ci) {
+    @Inject(method="turnPlayer(D)V", at=@At("HEAD"), cancellable=true)
+    private void visionmod$freeLook(double frameTime, CallbackInfo ci) {
         if(!FreeLook.active) return;
         FreeLook.rotate(accumulatedDX,accumulatedDY);
         accumulatedDX=0;
