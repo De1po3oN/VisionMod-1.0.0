@@ -75,7 +75,25 @@ public final class VisionSelfTest {
             throw new IllegalStateException("[VisionMod][SELFTEST] Pet texture QA failed",e);
         }
         System.out.println("[VisionMod][SELFTEST] PASS: World Lyrics text rotation and packaged Pet texture.");
+        VisionAmbientParticles.selfTestPool();
+        verifyAmbientSprite(VisionAmbientParticles.heartResource());
+        verifyAmbientSprite(VisionAmbientParticles.snowResource());
+        System.out.println("[VisionMod][SELFTEST] PASS: Custom Heart/Snow textures, 96-sprite cap, cleanup.");
         System.out.println("[VisionMod][SELFTEST] PASS: 54 module toggles and their settings persistence.");
+    }
+
+    private static void verifyAmbientSprite(String resource) {
+        try (InputStream input = VisionSelfTest.class.getResourceAsStream(resource)) {
+            if (input == null) throw new IllegalStateException("Missing ambient texture: " + resource);
+            java.awt.image.BufferedImage image = javax.imageio.ImageIO.read(input);
+            if (image == null || image.getWidth() != 64 || image.getHeight() != 64)
+                throw new IllegalStateException("Expected 64x64 PNG: " + resource);
+            if ((image.getRGB(0, 0) >>> 24) > 5 ||
+                (image.getRGB(32, 32) >>> 24) < 60)
+                throw new IllegalStateException("Broken sprite transparency: " + resource);
+        } catch (Exception e) {
+            throw new IllegalStateException("[VisionMod][SELFTEST] Ambient sprite QA failed", e);
+        }
     }
 
     private static int verify(String group, String[] names, IntPredicate selected,
