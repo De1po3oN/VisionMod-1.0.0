@@ -284,7 +284,7 @@ public final class VisionScreen extends Screen {
                     VisionFeaturePack.NAMES[i], VisionFeaturePack.enabled(i),
                     "LMB: toggle", hit(mx, my, bx, by, 149, 41));
             }
-        } else {
+        } else if (extrasPage == 4) {
             for (int i = 0; i < VisionWorldEffects.count(); i++) {
                 int bx = colX(x, i), by = rowY(y, i);
                 VisionMenuTheme.moduleRow(g, font, bx, by, 149, 41,
@@ -293,12 +293,22 @@ public final class VisionScreen extends Screen {
             }
             g.drawString(font, "World-space effects (optional, bounded render budget)",
                 x + 131, y + 211, VisionMenuTheme.MUTED);
+        } else {
+            for (int i = 0; i < VisionExtendedFeatures.count(); i++) {
+                int bx = colX(x, i), by = rowY(y, i);
+                VisionMenuTheme.moduleRow(g, font, bx, by, 149, 41,
+                    VisionExtendedFeatures.NAMES[i], VisionExtendedFeatures.enabled(i),
+                    "LMB: toggle", hit(mx, my, bx, by, 149, 41));
+            }
+            g.drawString(font, "Set ownLyric / friends in config/visionmod/extended-2.properties",
+                x + 130, y + 254, VisionMenuTheme.MUTED);
         }
         String subsection = extrasPage == 2 ? "НАСТРОЙКИ" :
             extrasPage == 3 ? "2.0 / HUD & COMBAT" :
-            extrasPage == 4 ? "2.0 / WORLD FX" : "МОДУЛИ " + (extrasPage + 1) + "/2";
+            extrasPage == 4 ? "2.0 / WORLD FX" :
+            extrasPage == 5 ? "2.0 / EXTRA FX" : "МОДУЛИ " + (extrasPage + 1) + "/2";
         g.drawString(font, "EXTRAS / " + subsection, x + 131, y + 59, VisionMenuTheme.PAGE_GOLD);
-        VisionMenuTheme.pageNavigator(g, font, x, y, extrasPage, 5, mx, my);
+        VisionMenuTheme.pageNavigator(g, font, x, y, extrasPage, 6, mx, my);
     }
 
     private void renderPerformance(GuiGraphics g, int mx, int my, int x, int y) {
@@ -519,9 +529,23 @@ public final class VisionScreen extends Screen {
                             return true;
                         }
                     }
+                } else if (extrasPage == 5) {
+                    for (int i = 0; i < VisionExtendedFeatures.count(); i++) {
+                        int bx = colX(x, i), by = rowY(y, i);
+                        if (hit(mx, my, bx, by, 149, 41)) {
+                            if (button == GLFW.GLFW_MOUSE_BUTTON_LEFT) {
+                                if (i == 2 && VisionExtendedFeatures.enabled(i)) {
+                                    VisionExtendedFeatures.cycleWorldColor();
+                                } else {
+                                    VisionExtendedFeatures.toggle(i);
+                                }
+                            }
+                            return true;
+                        }
+                    }
                 }
                 if (button == GLFW.GLFW_MOUSE_BUTTON_LEFT) {
-                    int step = VisionMenuTheme.pageNavigationHit(mx, my, x, y, extrasPage, 5);
+                    int step = VisionMenuTheme.pageNavigationHit(mx, my, x, y, extrasPage, 6);
                     if (step != 0) {
                         extrasPage += step;
                         pageChangedAt = System.nanoTime();
