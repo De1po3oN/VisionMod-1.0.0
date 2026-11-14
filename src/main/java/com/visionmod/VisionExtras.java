@@ -1,13 +1,10 @@
 package com.visionmod;
 
-import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.VanillaHudElements;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.CameraType;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.BlockItem;
@@ -15,7 +12,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.component.ItemContainerContents;
 import net.minecraft.world.level.block.ShulkerBoxBlock;
-import net.minecraft.world.phys.Vec3;
 
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -24,7 +20,6 @@ import java.nio.file.Path;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.Properties;
-import java.util.Random;
 
 /** Independent, low-overhead client enhancements. No server plugin required. */
 public final class VisionExtras {
@@ -37,7 +32,7 @@ public final class VisionExtras {
     public static boolean targetOutline = false;
     public static boolean snow = false;
     public static boolean hearts = false;
-    /** 0 = drifting around the player, 1 = soft halo in the view direction. */
+    /** 0 = world-space ambient drift, 1 = view-facing world-space ambient drift. */
     public static int ambientStyle = 0;
     /** 1 = subtle, 2 = balanced, 3 = vivid. Small bounded spawn budget. */
     public static int ambientDensity = 2;
@@ -64,11 +59,6 @@ public final class VisionExtras {
         EquipmentSlot.HEAD, EquipmentSlot.CHEST, EquipmentSlot.LEGS, EquipmentSlot.FEET
     };
     private static final Deque<Long> CLICKS = new ArrayDeque<>();
-    private static final Random RANDOM = new Random();
-    private static int tick;
-    private static boolean spawningOwnAmbient;
-    public static boolean isSpawningOwnAmbient() { return spawningOwnAmbient; }
-
     private VisionExtras() { }
 
     private static boolean[] defaultPixels(int grid) {
@@ -226,70 +216,7 @@ public final class VisionExtras {
                 }
             }
         });
-        ClientTickEvents.END_CLIENT_TICK.register(mc -> {
-            if (mc.level == null || mc.player == null) { zoomHeld = false; tick = 0; return; }
-            if (!VisionModClient.enabled || mc.screen != null || (!snow && !hearts)) {
-                tick = 0;
-                return;
-            }
-            // Camera/world-space ambience. Density never bypasses the performance budget.
-            // Keep a visible but bounded population. High density is capped
-            // at ~20 sprites/sec; this does not scale with player/entity count.
-            int interval = Math.max(3, VisionPerformance.ambientInterval() * 2 / ambientDensity);
-            if (++tick < interval) return;
-            tick = 0;
 
-            var camera = mc.gameRenderer.getMainCamera();
-            Vec3 eye = camera.isInitialized() ? camera.position() : mc.player.getEyePosition();
-            Vec3 facing = camera.isInitialized()
-                ? Vec3.directionFromRotation(camera.xRot(), camera.yRot())
-                : mc.player.getLookAngle();
-            Vec3 right = new Vec3(-facing.z, 0, facing.x);
-            right = right.lengthSqr() < 0.001 ? new Vec3(1, 0, 0) : right.normalize();
-            Vec3 up = right.cross(facing).normalize();
-            boolean worldRing = ambientStyle == 0 &&
-                mc.options.getCameraType() != CameraType.FIRST_PERSON;
-            // A full 360-degree ring was almost invisible in first person:
-            // most particles appeared behind the camera. Keep first-person
-            // particles in the visible forward hemisphere but in world space.
-            Vec3 origin = worldRing
-                ? mc.player.position().add(0, 1.1, 0)
-                : eye.add(facing.scale(2.8));
-            int count = ambientDensity;
-            spawningOwnAmbient = true;
-            try {
-                for (int i = 0; i < count; i++) {
-                    Vec3 point;
-                    if (worldRing) {
-                        // Stable world particles drift beside the player, not glued to the screen.
-                        double angle = RANDOM.nextDouble() * Math.PI * 2;
-                        double distance = 1.1 + RANDOM.nextDouble() * 3.1;
-                        point = origin.add(Math.cos(angle) * distance,
-                            -0.75 + RANDOM.nextDouble() * 2.7,
-                            Math.sin(angle) * distance);
-                    } else {
-                        // An optional, spacious view-facing constellation.
-                        double angle = RANDOM.nextDouble() * Math.PI * 2;
-                        double radius = 0.55 + RANDOM.nextDouble() * 1.6;
-                        point = origin.add(right.scale(Math.cos(angle) * radius))
-                            .add(up.scale(Math.sin(angle) * radius))
-                            .add(facing.scale((RANDOM.nextDouble() - 0.5) * 1.2));
-                    }
-                    double driftX = (RANDOM.nextDouble() - 0.5) * 0.008;
-                    double driftZ = (RANDOM.nextDouble() - 0.5) * 0.008;
-                    // Explicitly enabled FX stay visible with MAX FPS / MINIMAL particles.
-                    if (hearts) mc.level.addAlwaysVisibleParticle(ParticleTypes.HEART,
-                        point.x, point.y, point.z, driftX, 0.015, driftZ);
-                    if (snow && (i == 0 || ambientDensity >= 3)) {
-                        Vec3 snowPoint = point.add(0.25, 0.5, -0.2);
-                        mc.level.addAlwaysVisibleParticle(ParticleTypes.SNOWFLAKE,
-                            snowPoint.x, snowPoint.y, snowPoint.z, driftX, -0.008, driftZ);
-                    }
-                }
-            } finally {
-                spawningOwnAmbient = false;
-            }
-        });
     }
 
     private static void drawCrosshair(GuiGraphics g) {
@@ -330,8 +257,14 @@ public final class VisionExtras {
             case 4 -> zoom = !zoom;
             case 5 -> fastScroll = !fastScroll;
             case 6 -> targetOutline = !targetOutline;
-            case 7 -> snow = !snow;
-            case 8 -> hearts = !hearts;
+            case 7 -> {
+                snow = !snow;
+                if (!snow) VisionAmbientParticles.clearType(VisionAmbientParticles.SNOW_KIND);
+            }
+            case 8 -> {
+                hearts = !hearts;
+                if (!hearts) VisionAmbientParticles.clearType(VisionAmbientParticles.HEART_KIND);
+            }
             case 9 -> shulkerHud = !shulkerHud;
             case 10 -> arrowHitSound = !arrowHitSound;
             case 11 -> smallSword = !smallSword;
