@@ -1,3 +1,15 @@
+# Vision Mod 2.0.0 — development build (2026-11-14)
+
+- Start version 2.0.0 and switch GitHub Actions JAR/version verification to 2.0.0.
+- HUD / combat panel: Aspect Bars, colored armor durability, targeted health and range, nearest TNT warning, nearest arrow label, hit pulse and red edge flash. These are **original client-side HUD prototypes** and may differ from the third-party reference.
+- World FX panel: target bounding-box outline, short bounded position trails, dotted landing circle, third-person-only dotted cone hat. All off by default with saved settings. No shader/texture copy.
+- Existing Free Look, ambient effects, JEI, optimizer, Shulker Viewer and other 1.1 features remain intact.
+- Performance: limit world entity scanning to once per 10 client ticks, cap local trail history at 13, use shared render event/line pipeline. FPS increase or neutrality has not been measured.
+- Legal: user-supplied reference declares All-Rights-Reserved; only feature behavior/design goals were studied. No code/art/audio/fonts transferred.
+- **Not a complete port** of the requested 2.0 feature list. See FEATURE_REQUESTS_2_0_0.md and FOR_AI.txt. Compilation/QA must be checked against latest GitHub Actions; real client and shader testing remain outstanding.
+
+---
+
 # Vision Mod 1.1.0 — Open Beta candidate (2026-11-14)
 
 - Started 1.1.0 branch of development on main.
