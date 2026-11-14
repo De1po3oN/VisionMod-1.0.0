@@ -1,3 +1,14 @@
+# Vision Mod 1.1.0 — Open Beta candidate (2026-11-14)
+
+- Started 1.1.0 branch of development on main.
+- Free Look refined with independent camera orbit, optional smoothing and perspective cleanup.
+- Ambient Air Hearts / Snowflakes now offer world-space vs camera-oriented layout and a density setting; vanilla-heart texture is still used, and the visual result must be judged in game.
+- Reworked main GUI appearance using original lavender/graphite styling; no copied textures or code from the supplied third-party JAR.
+- Initial build/functional testing: **not yet confirmed** for the 1.1.0 HEAD when this section was authored. Check GitHub Actions and test in Minecraft.
+- Follow-up: user will test the third-party visual reference and describe the exact target behavior. Tune Free Look/FX accordingly; don't assume the current result is the final design.
+
+---
+
 # Vision Mod 1.1.0 — GUI / Free Look / Ambient FX (2026-11-14)
 
 - New original graphite/lavender GUI skin inspired by the general modern visual style of the attached reference, without importing any proprietary textures/code.
