@@ -79,7 +79,58 @@ public final class VisionSelfTest {
         verifyAmbientSprite(VisionAmbientParticles.heartResource());
         verifyAmbientSprite(VisionAmbientParticles.snowResource());
         System.out.println("[VisionMod][SELFTEST] PASS: Custom Heart/Snow textures, 96-sprite cap, cleanup.");
+        testTrailsAndTab();
+        try (InputStream fur=VisionSelfTest.class.getResourceAsStream(
+            "/assets/visionmod/textures/entity/pet_fur.png")) {
+            if(fur==null)throw new IllegalStateException("New pet fur texture missing");
+            var image=javax.imageio.ImageIO.read(fur);
+            if(image==null || image.getWidth()!=64 || image.getHeight()!=64)
+                throw new IllegalStateException("Pet fur must be readable 64x64 PNG");
+        }catch(Exception e){throw new IllegalStateException("Pet texture regression",e);}
+        System.out.println("[VisionMod][SELFTEST] PASS: Trail gradient/HEX/RGB, TAB toggle and Pet texture.");
         System.out.println("[VisionMod][SELFTEST] PASS: 54 module toggles and their settings persistence.");
+    }
+
+    private static void testTrailsAndTab() {
+        if (VisionWorldEffects.parseTrailColor(" #FF80B0 ")!=0xFFFF80B0 ||
+            VisionWorldEffects.parseTrailColor("255,128,176")!=0xFFFF80B0)
+            throw new IllegalStateException("Trail RGB/HEX parser is broken");
+        for(String invalid:new String[]{"256,0,2","#12G456","1,2","#FFFFFFEE"}) {
+            try{
+                VisionWorldEffects.parseTrailColor(invalid);
+                throw new IllegalStateException("Accepted invalid trail color: "+invalid);
+            }catch(IllegalArgumentException expected){}
+        }
+        int oldA=VisionWorldEffects.trailStartColor();
+        int oldB=VisionWorldEffects.trailEndColor();
+        int oldMode=VisionWorldEffects.trailMode();
+        try {
+            VisionWorldEffects.setTrailColor(0,0xFF1357A9);
+            VisionWorldEffects.setTrailColor(1,0xFFB96421);
+            VisionWorldEffects.setTrailMode(1);
+            if(VisionWorldEffects.trailSampleColor(0f,0)!=0xFF1357A9 ||
+                VisionWorldEffects.trailSampleColor(1f,0)!=0xFFB96421)
+                throw new IllegalStateException("Gradient endpoints mismatch");
+            Path config=FabricLoader.getInstance().getConfigDir()
+                .resolve("visionmod/world-effects-2.properties");
+            Properties persisted=new Properties();
+            try(InputStream in=Files.newInputStream(config)){persisted.load(in);}
+            if(!"#1357A9".equals(persisted.getProperty("trail.start")) ||
+                !"#B96421".equals(persisted.getProperty("trail.end")))
+                throw new IllegalStateException("Trail colors were not saved");
+        }catch(Exception e){throw new IllegalStateException("Trail self test failed",e);}
+        finally {
+            VisionWorldEffects.setTrailColor(0,oldA);
+            VisionWorldEffects.setTrailColor(1,oldB);
+            VisionWorldEffects.setTrailMode(oldMode);
+        }
+        boolean initial=VisionTabHeads.enabled;
+        VisionTabHeads.toggle();
+        if(VisionTabHeads.enabled==initial)
+            throw new IllegalStateException("Tab Heads did not toggle");
+        VisionTabHeads.toggle();
+        if(VisionTabHeads.enabled!=initial)
+            throw new IllegalStateException("Tab Heads did not restore");
     }
 
     private static void verifyAmbientSprite(String resource) {
