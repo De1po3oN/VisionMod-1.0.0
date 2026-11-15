@@ -209,7 +209,8 @@ public final class VisionExtendedFeatures {
 
     private static void renderHud(GuiGraphics g) {
         Minecraft mc = Minecraft.getInstance();
-        if (!VisionModClient.enabled || mc.player == null || mc.level == null || mc.screen != null) return;
+        if (!VisionModClient.enabled || mc.player == null || mc.level == null ||
+            !VisionHudLayout.hudVisible(mc)) return;
         int w = g.guiWidth(), h = g.guiHeight();
 
         if (FLAGS[2]) {
@@ -232,8 +233,10 @@ public final class VisionExtendedFeatures {
             // Local client can observe death after attacking, but cannot
             // prove server-side kill attribution (teammates may finish it).
             String title = "TARGET DOWN: " + lastTarget;
-            int x = (w - mc.font.width(title)) / 2;
-            g.drawString(mc.font, title, x, h / 2 - 38, (a << 24) | 0x00E7B5FF);
+            int width=Math.max(160,mc.font.width(title)+8);
+            var box=VisionHudLayout.place(VisionHudLayout.Widget.KILL,
+                (w-width)/2,h/2-38,width,14);
+            g.drawString(mc.font,title,box.x()+4,box.y(),(a << 24) | 0x00E7B5FF);
         }
     }
 
