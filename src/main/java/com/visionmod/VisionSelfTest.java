@@ -87,6 +87,15 @@ public final class VisionSelfTest {
             if(image==null || image.getWidth()!=64 || image.getHeight()!=64)
                 throw new IllegalStateException("Pet fur must be readable 64x64 PNG");
         }catch(Exception e){throw new IllegalStateException("Pet texture regression",e);}
+        var itemState=(VisionItemPhysicsState)(Object)
+            new net.minecraft.client.renderer.entity.state.ItemEntityRenderState();
+        itemState.visionmod$setMotion(true,0.0);
+        if(!itemState.visionmod$isGrounded() || itemState.visionmod$speed()!=0.0)
+            throw new IllegalStateException("Item render ground state broken");
+        itemState.visionmod$setMotion(false,0.24);
+        if(itemState.visionmod$isGrounded() || itemState.visionmod$speed()!=0.24)
+            throw new IllegalStateException("Item render air state broken");
+        System.out.println("[VisionMod][SELFTEST] PASS: Per-item physics Mixin state.");
         System.out.println("[VisionMod][SELFTEST] PASS: Trail gradient/HEX/RGB, TAB toggle and Pet texture.");
         System.out.println("[VisionMod][SELFTEST] PASS: 54 module toggles and their settings persistence.");
     }
