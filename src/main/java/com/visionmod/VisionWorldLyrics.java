@@ -61,17 +61,25 @@ public final class VisionWorldLyrics {
         return lines[(int)(Math.floorDiv(ticks,70L)%lines.length)];
     }
 
+    private static String currentLine(Minecraft mc) {
+        String timed=VisionLyricsSource.current();
+        if(timed!=null)return timed;
+        updateLines(VisionExtendedFeatures.customText());
+        return lines[(int)((mc.level.getGameTime()/70L)%lines.length)];
+    }
+
     private static void renderInWorld(WorldRenderContext ctx) {
         Minecraft mc=Minecraft.getInstance();
         if(!VisionModClient.enabled || !VisionExtendedFeatures.enabled(3) ||
             mc.level==null || mc.player==null ||
             mc.options.getCameraType()==CameraType.FIRST_PERSON ||
+            VisionHudLayout.moved(VisionHudLayout.Widget.LYRICS) ||
+            VisionHudLayout.chatOpen(mc) ||
             ctx.matrices()==null || ctx.consumers()==null)return;
         Vec3 camera=mc.gameRenderer.getMainCamera().position();
         Vec3 anchor=worldAnchor(mc);
         if(anchor.distanceToSqr(camera)>32*32)return;
-        updateLines(VisionExtendedFeatures.customText());
-        String current=lines[(int)((mc.level.getGameTime()/70L)%lines.length)];
+        String current=currentLine(mc);
         if(current.isBlank())return;
         PoseStack pose=ctx.matrices();
         pose.pushPose();
@@ -111,14 +119,15 @@ public final class VisionWorldLyrics {
     private static void render(GuiGraphics g) {
         Minecraft mc=Minecraft.getInstance();
         if(!VisionModClient.enabled || !VisionExtendedFeatures.enabled(3) ||
-            mc.player==null || mc.level==null || mc.screen!=null)return;
-        updateLines(VisionExtendedFeatures.customText());
+            mc.player==null || mc.level==null || !VisionHudLayout.hudVisible(mc))return;
         int w=g.guiWidth(),h=g.guiHeight();
         if(mc.options.getCameraType()!=CameraType.FIRST_PERSON &&
             mc.gameRenderer.getMainCamera().isInitialized() &&
+            !VisionHudLayout.chatOpen(mc) &&
+            !VisionHudLayout.moved(VisionHudLayout.Widget.LYRICS) &&
             anchorVisible(mc,w,h))return;
         int phase=(int)((mc.level.getGameTime()/70L)%lines.length);
-        String current=lines[phase];
+        String current=currentLine(mc);
         int maxTextWidth=Math.max(68,Math.min(280,w-72));
         while(!current.isEmpty() && mc.font.width(current)>maxTextWidth)
             current=current.substring(0,current.length()-1);
@@ -133,6 +142,8 @@ public final class VisionWorldLyrics {
         int sx=Math.max(boxWidth/2+12,w-boxWidth/2-20),sy=43;
         var camera=mc.gameRenderer.getMainCamera();
         if(camera.isInitialized() &&
+            !VisionHudLayout.chatOpen(mc) &&
+            !VisionHudLayout.moved(VisionHudLayout.Widget.LYRICS) &&
             mc.options.getCameraType()!=CameraType.FIRST_PERSON) {
             Vec3 forward=Vec3.directionFromRotation(camera.xRot(),camera.yRot());
             Vec3 right=forward.cross(new Vec3(0,1,0));
@@ -160,7 +171,10 @@ public final class VisionWorldLyrics {
 
         int width=mc.font.width(current);
         int boxW=width+32;
-        int left=sx-boxW/2, top=sy-21;
+        var bounds=VisionHudLayout.place(VisionHudLayout.Widget.LYRICS,
+            sx-boxW/2,sy-21,boxW,29);
+        int left=bounds.x(),top=bounds.y();
+        sx=left+bounds.width()/2;
         int opacity=(int)(180+40*Math.sin(mc.level.getGameTime()*.1));
         // Thin layered glow and a glassy panel, with fixed vertex count.
         g.fill(left-3,top-3,left+boxW+3,top+29,0x29118CE2);
@@ -174,7 +188,7 @@ public final class VisionWorldLyrics {
         g.fill(left+11,top+23,left+boxW-11,top+25,0xFF43445C);
         g.fill(left+11,top+23,left+11+(int)((boxW-22)*progress),top+25,
             VisionMenuTheme.CYAN);
-        if(lines.length>1) {
+        if(!VisionLyricsSource.active() && lines.length>1) {
             String n=(phase+1)+"/"+lines.length;
             g.drawString(mc.font,n,left+boxW-mc.font.width(n)-2,top-11,0xFFAFA7CE);
         }
