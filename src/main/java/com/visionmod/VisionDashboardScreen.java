@@ -530,7 +530,8 @@ public final class VisionDashboardScreen extends Screen {
                 x+16,y+103,MUTED);
             if(details.title.equals("World Lyrics")) {
                 textFit(g,"SOURCE: "+VisionLyricsSource.status(),x+16,y+117,ww-30,WHITE);
-                textFit(g,"Timed file: config/visionmod/lyrics.lrc",x+16,y+131,ww-30,MUTED);
+                textFit(g,"BROWSER: "+VisionBrowserMusicBridge.state(),x+16,y+131,ww-30,MUTED);
+                textFit(g,"PAIR: config/visionmod/browser-bridge.properties",x+16,y+145,ww-30,MUTED);
             }
             if(details.title.equals("Social Radar")) {
                 textFit(g,"NEARBY: "+VisionExtendedFeatures.nearbyFriends(),
