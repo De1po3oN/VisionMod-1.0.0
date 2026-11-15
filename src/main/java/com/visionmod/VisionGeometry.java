@@ -13,6 +13,9 @@ import net.minecraft.resources.Identifier;
 public final class VisionGeometry {
     public static final Identifier WHITE_TEXTURE =
         Identifier.fromNamespaceAndPath("visionmod", "textures/entity/pet_surface.png");
+    /** Separate fur texture so the pet has paw/star patterns without coloring other FX. */
+    public static final Identifier PET_FUR =
+        Identifier.fromNamespaceAndPath("visionmod", "textures/entity/pet_fur.png");
     public static final int FULL_BRIGHT = 0xF000F0;
     public static final int NO_OVERLAY = 0;
 
