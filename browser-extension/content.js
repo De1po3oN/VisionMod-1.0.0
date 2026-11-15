@@ -3,7 +3,8 @@
 (function () {
   "use strict";
   const spotify=location.hostname==="open.spotify.com";
-  const provider=spotify?"Spotify":"SoundCloud";
+  const youtube=location.hostname==="music.youtube.com";
+  const provider=spotify?"Spotify":youtube?"YouTube Music":"SoundCloud";
   const pick=(selectors,root=document)=>{
     for(const selector of selectors){
       const node=root.querySelector(selector);
@@ -25,6 +26,9 @@
       '[data-testid="now-playing-widget"] [data-testid="context-item-info-title"]',
       '[data-testid="context-item-info-title"] a',
       '[data-testid="now-playing-widget"] a[href*="/track/"]'
+    ]):youtube?pick([
+      'ytmusic-player-bar .title',
+      'ytmusic-player-bar [class*="title"]'
     ]):pick([
       '.playbackSoundBadge__titleLink',
       '.playbackSoundBadge__title a',
@@ -34,6 +38,9 @@
       '[data-testid="now-playing-widget"] [data-testid="context-item-info-artist"]',
       '[data-testid="context-item-info-artist"] a',
       '[data-testid="now-playing-widget"] a[href*="/artist/"]'
+    ]):youtube?pick([
+      'ytmusic-player-bar .byline a',
+      'ytmusic-player-bar .byline'
     ]):pick([
       '.playbackSoundBadge__lightLink',
       '.playbackSoundBadge__usernameLink'
@@ -45,16 +52,20 @@
     if(!trackTitle)return null;
     const playButton=spotify?
       document.querySelector('[data-testid="control-button-playpause"]'):
+      youtube?document.querySelector('ytmusic-player-bar #play-pause-button'):
       document.querySelector('.playControl');
     const label=(playButton?.getAttribute("aria-label")||"").toLowerCase();
-    let paused=spotify?/(^play$|^play\s|воспроизвести|spielen)/.test(label):
+    let paused=(spotify||youtube)?/(^play$|^play\s|воспроизвести|spielen)/.test(label):
       !playButton?.classList.contains("playing");
     if(!playButton)paused=false;
     const progress=spotify?pick([
       '[data-testid="playback-position"]',
       '.playback-bar__progress-time',
       '[data-testid="playback-bar"] span:first-child'
-    ]):pick([
+    ]):youtube?pick([
+      'ytmusic-player-bar .time-info',
+      'ytmusic-player-bar .time-info span'
+    ]).split('/')[0].trim():pick([
       '.playbackTimeline__timePassed span',
       '.playbackTimeline__timePassed'
     ]);
