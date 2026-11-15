@@ -96,6 +96,7 @@ public final class VisionHudLayout {
             int xx=switch(id) {
                 case ARMOR_COLOR, LYRICS -> w-160;
                 case TARGET, KILL -> w/2-75;
+                case ARROW -> w/2+65;
                 case TNT -> w/2-62;
                 default -> 8;
             };
@@ -148,7 +149,7 @@ public final class VisionHudLayout {
         Minecraft mc=Minecraft.getInstance();
         if(mc.player==null || mc.level==null)return;
         int screenW=g.guiWidth(),screenH=g.guiHeight();
-        g.drawString(mc.font,"VISION HUD / Drag overlays with LMB | ESC closes chat",
+        g.drawString(mc.font,"VISION HUD / LMB drag | RMB reset position | ESC closes chat",
             Math.max(7,screenW/2-140),5,0xFF9AE7EF);
         for(Widget id:Widget.values()){
             if(!shown(id))continue;
@@ -171,7 +172,8 @@ public final class VisionHudLayout {
     }
 
     private static boolean begin(MouseButtonEvent e) {
-        if (e.button()!=GLFW.GLFW_MOUSE_BUTTON_LEFT)return false;
+        if (e.button()!=GLFW.GLFW_MOUSE_BUTTON_LEFT &&
+            e.button()!=GLFW.GLFW_MOUSE_BUTTON_RIGHT)return false;
         Minecraft mc=Minecraft.getInstance();
         if(mc.player==null || mc.level==null)return false;
         // Pick the topmost overlay in case two widgets overlap.
@@ -182,6 +184,11 @@ public final class VisionHudLayout {
             Bounds b=get(id,mc.getWindow().getGuiScaledWidth(),mc.getWindow().getGuiScaledHeight());
             if(e.y()>=mc.getWindow().getGuiScaledHeight()-34)continue;
             if(b.contains(e.x(),e.y())){
+                if(e.button()==GLFW.GLFW_MOUSE_BUTTON_RIGHT) {
+                    id.moved=false;
+                    save();
+                    return true;
+                }
                 dragging=id;
                 gripX=e.x()-b.x();gripY=e.y()-b.y();
                 initiated=true;
