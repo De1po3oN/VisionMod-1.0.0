@@ -122,6 +122,7 @@ public final class VisionWorldEffects {
     public static void toggle(int id) {
         if (id<0 || id>=ENABLED.length) return;
         ENABLED[id]=!ENABLED[id];
+        renderFaulted=false;
         if (id==1 && !ENABLED[id]) TRAIL.clear();
         if (id==2 && !ENABLED[id]) landingAge=0;
         save();
@@ -342,6 +343,7 @@ public final class VisionWorldEffects {
 
     private static void reset(ClientLevel level) {
         previousWorld=level;
+        renderFaulted=false;
         TRAIL.clear();landingPos=null;
         landingAge=tick=0;grounded=false;
     }
