@@ -145,7 +145,8 @@ public final class VisionBrowserMusicBridge {
             String provider=text(body,"provider",30),title=text(body,"title",140);
             String artist=text(body,"artist",140);
             if(title.isBlank()){respond(exchange,400,"Missing title");return;}
-            if(!provider.equals("Spotify") && !provider.equals("SoundCloud")){
+            if(!provider.equals("Spotify") && !provider.equals("SoundCloud")
+                && !provider.equals("YouTube Music")){
                 respond(exchange,400,"Unsupported source");return;
             }
             long position=Math.min(86_400_000L,Math.max(0,
