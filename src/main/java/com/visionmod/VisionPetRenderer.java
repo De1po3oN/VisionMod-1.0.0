@@ -16,11 +16,14 @@ import net.minecraft.world.phys.Vec3;
  * does not spawn entities, send packets, or modify the player's model.
  */
 public final class VisionPetRenderer {
+    // If a conflicting renderer/shader throws, stop this visual rather than
+    // crashing the Minecraft client on every subsequent frame.
+    private static boolean renderFaulted;
     private VisionPetRenderer() {}
 
     public static void init() {
         WorldRenderEvents.BEFORE_DEBUG_RENDER.register(ctx -> {
-            if (!VisionModClient.enabled || !VisionExtendedFeatures.enabled(4)
+            if (renderFaulted || !VisionModClient.enabled || !VisionExtendedFeatures.enabled(4)
                 || ctx.matrices() == null || ctx.consumers() == null) return;
             Minecraft mc = Minecraft.getInstance();
             if (mc.level == null || mc.player == null) return;
@@ -34,6 +37,7 @@ public final class VisionPetRenderer {
             Vec3 p = mc.player.position().add(sideX, 1.45 + bob, sideZ);
             PoseStack pose = ctx.matrices();
             pose.pushPose();
+            try {
             pose.translate(p.x-cam.x,p.y-cam.y,p.z-cam.z);
             // Always show the face toward the local camera, independent of Free Look.
             pose.mulPose(Axis.YP.rotationDegrees(180f - mc.gameRenderer.getMainCamera().yRot()));
@@ -49,6 +53,9 @@ public final class VisionPetRenderer {
             final int belly=0xFFFEF4FF,foot=0xFFBCA0E5;
             float tail=(float)Math.sin(t*2.8)*.075f;
             float flap=(float)Math.sin(t*5.0)*.08f;
+            // ONE render type for the whole pet. Switching fur→face→lines
+            // used to close the shared ImmediateBufferSource and could throw
+            // IllegalStateException("Not building!") mid-frame on modded renderers.
             VertexConsumer furTexture=ctx.consumers().getBuffer(
                 RenderTypes.entityTranslucent(VisionGeometry.PET_FUR));
             VisionGeometry.cube(furTexture,pose,-.17f,-.24f,-.13f,.17f,.10f,.13f,shadow);
@@ -58,8 +65,7 @@ public final class VisionPetRenderer {
             VisionGeometry.cube(furTexture,pose,.10f+tail,-.16f,.11f,.26f+tail,-.095f,.33f,fur);
             VisionGeometry.cube(furTexture,pose,.235f+tail,-.10f,.295f,.325f+tail,.075f,.39f,face);
 
-            VertexConsumer solid=ctx.consumers().getBuffer(
-                RenderTypes.entityTranslucent(VisionGeometry.WHITE_TEXTURE));
+            VertexConsumer solid=furTexture;
             VisionGeometry.cube(solid,pose,-.15f,.04f,-.198f,.15f,.225f,-.187f,face);
             VisionGeometry.cube(solid,pose,-.105f,-.20f,-.142f,.105f,.015f,-.131f,belly);
             VisionGeometry.cube(solid,pose,-.16f,.30f,-.105f,-.123f,.403f,-.09f,blush);
@@ -76,17 +82,27 @@ public final class VisionPetRenderer {
             VisionGeometry.cube(solid,pose,-.335f-flap,-.025f,.045f,-.175f,.145f,.095f,0xBDAED5FF);
             VisionGeometry.cube(solid,pose,.175f,-.025f,.045f,.335f+flap,.145f,.095f,0xBDAED5FF);
 
-            // Small continuous aura ring under the pet, not a 3D wireframe body.
-            VertexConsumer lines = ctx.consumers().getBuffer(RenderTypes.lines());
-            int count=24;
-            for(int i=0;i<count;i++) {
-                double a=i*Math.PI*2/count,b=(i+1)*Math.PI*2/count;
-                VisionGeometry.line(lines,pose,
-                    .32*Math.cos(a),-.34,.32*Math.sin(a),
-                    .32*Math.cos(b),-.34,.32*Math.sin(b),
-                    VisionGeometry.withAlpha(fur,170),1.45f);
+            // The previous outline aura changed render type and could
+            // invalidate an outstanding pet consumer on Sodium/Iris.
+            // Use a small filled halo with the same texture/buffer instead.
+            final int segments=20;
+            for(int i=0;i<segments;i++){
+                double a=i*2*Math.PI/segments,b=(i+1)*2*Math.PI/segments;
+                float ro=.33f,ri=.305f;
+                VisionGeometry.quad(solid,pose,
+                    (float)(Math.cos(a)*ro),-.335f,(float)(Math.sin(a)*ro),
+                    (float)(Math.cos(a)*ri),-.335f,(float)(Math.sin(a)*ri),
+                    (float)(Math.cos(b)*ri),-.335f,(float)(Math.sin(b)*ri),
+                    (float)(Math.cos(b)*ro),-.335f,(float)(Math.sin(b)*ro),
+                    VisionGeometry.withAlpha(fur,160),0,1,0);
             }
-            pose.popPose();
+            } catch (RuntimeException ex) {
+                renderFaulted=true;
+                System.err.println("[VisionMod][PET] Disabled after render error to prevent repeated client crash: "+ex);
+                ex.printStackTrace();
+            } finally {
+                pose.popPose();
+            }
         });
     }
 }
