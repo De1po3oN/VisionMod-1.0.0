@@ -1,3 +1,15 @@
+# 2.0.0 — Trail RGB, gradient, TAB Heads and item-physics fixes (2026-11-15)
+
+- Custom trail colors: two HEX/RGB inputs, solid/gradient/rainbow modes, six palettes, configurable alpha and width, persisted alongside existing World FX settings. Trail no longer joins teleportation gaps and color interpolation follows the ribbon.
+- Air Hearts/Snowflakes: fix inverted world sprite UV mapping so soft hearts display right-side up.
+- TAB Heads: optional local cached player-skin head portraits while TAB is held; capped list independent of vanilla player list.
+- Pet: add original patterned 64×64 fabric with paw prints, subtle stars; batch fur/face/aura by RenderType to prevent shared buffer errors.
+- Item Physics: use per-entity render state for grounded vs airborne item orientation; client-only look, server-authoritative physics untouched.
+- Critical multiplayer renderer fix: stop interleaving line/fill and multi-texture consumers, addressing the confirmed `Not building!` crash.
+- Build #213 and startup #97 pass, self-tests cover RGB, gradient, config persistence, TAB toggling, PNG and state metadata. Full visual/compatibility/FPS QA still needed.
+
+---
+
 # 2.0.0 — Soft Air Hearts / Snowflakes (2026-11-14)
 
 - Replaced vanilla `ParticleTypes.HEART` and vanilla snowflake ambient spawning with an original shared world-space billboard sprite renderer.
