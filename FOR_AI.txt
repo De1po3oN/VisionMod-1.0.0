@@ -1,3 +1,9 @@
+*** ПОСЛЕДНЕЕ УТОЧНЕНИЕ / 2026-11-15: БРАУЗЕРНОЕ РАСШИРЕНИЕ, КРИТИЧНЫЙ FIX ***
+При распаковке первичного extension artifact Build #257 обнаружена настоящая функциональная ошибка: background.js определял адрес только из sender.tab?.url (без tabs permission может отсутствовать), а regexp не включал music.youtube.com. Это устранили в SHA 60dd38ef552eb94d5b76789a69cf28f0eb5ca871: теперь sender.url || sender.tab?.url, разрешены ровно https://open.spotify.com, soundcloud.com, www.soundcloud.com, music.youtube.com. Проверено ОТДЕЛЬНО локальным Node VM тестом с подменённым chrome runtime и fetch: все 3 сайта разрешены, чужой example.com отклонён, 3 авторизованных POST вызова. Node --check все JS PASS.
+ДЕЙСТВИТЕЛЬНО АКТУАЛЬНЫЙ EXTERNSION ARTIFACT: GitHub Build #262 https://github.com/De1po3oN/VisionMod-1.0.0/actions/runs/43726727370 SUCCESS; artifact id 14167295505, name VisionMod-Browser-Music-Extension, size 7171. В ответе file sandbox:/mnt/data/VisionMod-Browser-Music-Extension-v2.zip (путь только для этого сеанса). Проверен ZIP CRC, regexp and manifest. JAR code после #257 не изменялся, jar из #257 валиден.
+Не выдавать старый #257 extension ZIP из GitHub за верную версию (там была ошибка доверенного URL). Для установки использовать ZIP из Build #262 или непосредственно новую папку browser-extension из main.
+
+---
 *** 2026-11-15 / РАБОТА ПОСЛЕ ЖАЛОБЫ: PET CRASH, CHINA HAT / TRAILS INVISIBLE, BROWSER MUSIC ***
 Пользователь сообщил: после загрузки питомца Minecraft вылетает; China Hat и Trails не работают; музыка играет в ОБЫЧНОМ БРАУЗЕРЕ (Spotify / SoundCloud / etc), а World Lyrics не показывает слова. Приоритет пользователя — прежде всего убрать CRASH питомца. Отдельного нового crash-report от этой попытки НЕ ПОЛУЧЕНО, поэтому точная цепочка вызовов не доказана. Был предыдущий реально подтвержденный crash в VisionWorldEffects (Not building!).
 
