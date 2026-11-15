@@ -4,8 +4,10 @@ const ENDPOINT="http://127.0.0.1:38567/track";
 let lastError="";
 chrome.runtime.onMessage.addListener((message,sender,reply)=>{
   if(message?.type!=="vision-track")return false;
-  const url=sender.tab?.url||"";
-  if(!/^https:\/\/(open\.spotify\.com|(?:www\.)?soundcloud\.com)\//.test(url)){
+  // A content script's sender.url is available even when tabs URL
+  // permission is not granted. Do not require browser-wide tabs access.
+  const url=sender.url||sender.tab?.url||"";
+  if(!/^https:\/\/(open\.spotify\.com|(?:www\.)?soundcloud\.com|music\.youtube\.com)\//.test(url)){
     reply({ok:false,error:"Untrusted tab"});return false;
   }
   (async()=>{
