@@ -1,3 +1,17 @@
+## 15 ноября 2026 — Trail RGB/Gradient и исправления тестера
+
+Добавлен полноценный **редактор трейла**: Right Shift → WORLD FX → Trails → ПКМ → OPTIONS. Два HEX/RGB цвета, режимы SOLID/GRADIENT/RAINBOW, палитры, ширина, прозрачность, мгновенное сохранение. Устранены цветовые скачки и гигантские сегменты после телепортации.
+
+Исправлена ориентация собственных Air Hearts/Snowflakes (верх/низ UV). Добавлен необязательный HUD-модуль **Tab Heads**, показывающий до 12 настоящих аватаров игроков при удержании TAB, не заменяющий ванильный таб-лист. Питомец получил собственную 64×64 текстуру звёзд/лапок. Item Physics учитывает положение предмета на земле и скорость в воздухе без изменения сетевой/серверной физики.
+
+Исправлен опасный краш `Not building!` на смешивании буферов рендера Target ESP/Trails/Air Hearts/Pet: заполненные геометрии и линии отрисовываются отдельно по RenderType. Подробнее — `TRAIL_CUSTOMIZATION_QA_RU.md`.
+
+**Проверено:** Build [#213](https://github.com/De1po3oN/VisionMod-1.0.0/actions/runs/43722520223) SUCCESS, [Client startup smoke #97](https://github.com/De1po3oN/VisionMod-1.0.0/actions/runs/43722520246) SUCCESS на кодовом SHA `7da75fe7`; дополнительно: проверка RGB/HEX/градиента/сохранения настроек, Tab Heads toggle, texture PNG, item render-state accessor, 54 существующих toggle. В реальном игровом мире с Sodium/Iris, большим количеством игроков и нестандартными предметами — **нужна отдельная проверка**.
+
+Финальный JAR кандидат `visionmod-2.0.0.jar` (build #213) имеет SHA256 `ecc69f12ec0e96a6d37fbe8320493f402e6f7c0748fae0f05a178ce9ff0a3cfe`.
+
+---
+
 ## Air Hearts / Snowflakes — собственные мягкие частицы (2026-11-14)
 
 **Изменено:** ранее использовались стандартные `ParticleTypes.HEART` и `ParticleTypes.SNOWFLAKE`. Теперь обе функции используют общую собственную систему `VisionAmbientParticles` и авторские 64×64 RGBA текстуры `soft_heart.png` / `soft_snow.png`. Сердечки нежно-розовые, слегка вращаются, падают и плавно затухают, как снег. Это не ванильные Minecraft hearts.
