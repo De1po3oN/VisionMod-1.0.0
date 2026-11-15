@@ -235,7 +235,9 @@ public final class VisionHudLayout {
         }
         try{
             Files.createDirectories(CONFIG.getParent());
-            try(OutputStream out=Files.newOutputStream(CONFIG))p.store(out,"VisionMod HUD positions; editable while chat is open");
+            try(OutputStream out=Files.newOutputStream(CONFIG)) {
+                p.store(out,"VisionMod HUD positions; editable while chat is open");
+            }
         }catch(Exception ex){System.err.println("[VisionMod] HUD layout save: "+ex);}
     }
     public static void reset() {
