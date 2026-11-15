@@ -111,7 +111,8 @@ public final class VisionFeaturePack {
 
     private static void render(GuiGraphics g) {
         Minecraft mc = Minecraft.getInstance();
-        if (!VisionModClient.enabled || mc.level == null || mc.player == null || mc.screen != null) return;
+        if (!VisionModClient.enabled || mc.level == null || mc.player == null ||
+            !VisionHudLayout.hudVisible(mc)) return;
         int w = g.guiWidth(), h = g.guiHeight();
         if (ENABLED[0]) {
             int bar = Math.max(0, (int)Math.round((h - w / 2.39) / 2.0));
@@ -121,8 +122,11 @@ public final class VisionFeaturePack {
             }
         }
         if (ENABLED[1]) {
-            int x = w - 126, y = 24;
-            g.fill(x - 6, y - 6, w - 5, y + 61, 0xBA151324);
+            var bounds=VisionHudLayout.place(VisionHudLayout.Widget.ARMOR_COLOR,
+                w-132,18,127,68);
+            int x=bounds.x()+6,y=bounds.y()+6;
+            g.fill(bounds.x(),bounds.y(),bounds.x()+bounds.width(),
+                bounds.y()+bounds.height(),0xBA151324);
             g.drawString(mc.font, "ARMOR COLORFUL", x, y, VisionMenuTheme.CYAN);
             int line = 0;
             for (int i = 0; i < ARMOR.length; i++) {
@@ -139,8 +143,11 @@ public final class VisionFeaturePack {
         LivingEntity selected = mc.hitResult instanceof EntityHitResult result &&
             result.getEntity() instanceof LivingEntity living ? living : null;
         if (selected != null && (ENABLED[2] || ENABLED[3])) {
-            int x = w / 2 - 70, y = h / 2 + 35;
-            g.fill(x - 5, y - 5, x + 145, y + 39, 0xB8141426);
+            var bounds=VisionHudLayout.place(VisionHudLayout.Widget.TARGET,
+                w/2-75,h/2+30,150,44);
+            int x=bounds.x()+5,y=bounds.y()+5;
+            g.fill(bounds.x(),bounds.y(),bounds.x()+bounds.width(),
+                bounds.y()+bounds.height(),0xB8141426);
             g.drawString(mc.font, selected.getName(), x, y, VisionMenuTheme.WHITE);
             if (ENABLED[2]) {
                 float hp = Math.max(0, selected.getHealth());
@@ -164,7 +171,10 @@ public final class VisionFeaturePack {
                 if (e instanceof PrimedTnt primed) {
                     label += "  " + Math.max(0, primed.getFuse() / 20.0f) + "s";
                 }
-                g.drawCenteredString(mc.font, label, w / 2, 26,
+                int width=Math.max(110,mc.font.width(label)+12);
+                var bounds=VisionHudLayout.place(VisionHudLayout.Widget.TNT,
+                    w/2-width/2,22,width,13);
+                g.drawCenteredString(mc.font,label,bounds.x()+bounds.width()/2,bounds.y(),
                     e instanceof PrimedTnt primed && primed.getFuse() < 20 ? 0xFFFF5B67 : 0xFFFFA177);
             }
         }
@@ -193,10 +203,13 @@ public final class VisionFeaturePack {
                             int width = mc.font.width(label);
                             if (sx > width / 2 + 5 && sx < w - width / 2 - 5 &&
                                 sy > 20 && sy < h - 25) {
-                                g.fill(sx - width / 2 - 4, sy - 14,
-                                    sx + width / 2 + 4, sy,
+                                var bounds=VisionHudLayout.place(VisionHudLayout.Widget.ARROW,
+                                    sx-width/2-4,sy-14,width+8,14);
+                                g.fill(bounds.x(),bounds.y(),
+                                    bounds.x()+bounds.width(),bounds.y()+bounds.height(),
                                     0xB5171529);
-                                g.drawCenteredString(mc.font, label, sx, sy - 11, 0xFFBFC4FF);
+                                g.drawCenteredString(mc.font,label,
+                                    bounds.x()+bounds.width()/2,bounds.y()+3,0xFFBFC4FF);
                             }
                         }
                     }
