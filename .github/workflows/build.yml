@@ -74,6 +74,19 @@ jobs:
           if-no-files-found: error
           retention-days: 30
 
+      - name: Check Browser Music Extension scripts and manifest
+        run: |
+          node --check browser-extension/background.js
+          node --check browser-extension/content.js
+          node --check browser-extension/options.js
+          python3 - <<'PY'
+          import json
+          manifest=json.load(open("browser-extension/manifest.json", encoding="utf8"))
+          assert manifest["manifest_version"]==3
+          assert "http://127.0.0.1:38567/*" in manifest["host_permissions"]
+          print("Browser extension syntax and manifest PASS")
+          PY
+
       - name: Upload Browser Music Extension
         if: success()
         uses: actions/upload-artifact@v4
