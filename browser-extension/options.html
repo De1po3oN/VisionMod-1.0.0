@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="ru">
+<head><meta charset="UTF-8"><title>VisionMod: браузерная музыка</title>
+<style>
+body{font:14px system-ui,sans-serif;background:#171827;color:#faf7ff;padding:18px;min-width:350px;max-width:500px}
+h2{color:#99dfff;font-size:18px;margin:0 0 10px}
+p,small{color:#c6c2dc;line-height:1.5}
+input{background:#252940;color:white;padding:10px;border:1px solid #8179b7;width:96%;border-radius:6px}
+button{background:#665cc0;color:white;border:0;padding:9px 18px;border-radius:6px;margin-top:10px;cursor:pointer}
+#status{margin-top:12px}
+</style></head><body>
+<h2>VISION / WEB MUSIC</h2>
+<p>Включи World Lyrics в Minecraft. Открой <code>config/visionmod/browser-bridge.properties</code> и скопируй значение <code>token</code> после знака <code>=</code>.</p>
+<label for="token">Локальный ключ сопряжения</label>
+<input id="token" maxlength="32" spellcheck="false" autocomplete="off" placeholder="32 символа (0-9, a-f)">
+<button id="save">Сохранить</button>
+<p id="status"></p>
+<small>Расширение считывает только название, исполнителя и позицию трека в Spotify/SoundCloud. Данные отправляются в локальный Minecraft на 127.0.0.1; запрос слов выполняет мод через LRCLIB. Никаких паролей, cookies или записи звука.</small>
+<script src="options.js"></script>
+</body></html>
