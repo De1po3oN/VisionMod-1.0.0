@@ -19,7 +19,7 @@ chrome.runtime.onMessage.addListener((message,sender,reply)=>{
       reply({ok:false,error:"No playing track detected"});return;
     }
     const valid={
-      provider:t.provider==="Spotify"?"Spotify":"SoundCloud",
+      provider:["Spotify","SoundCloud","YouTube Music"].includes(t.provider)?t.provider:"SoundCloud",
       title:t.title.slice(0,140),artist:String(t.artist||"").slice(0,140),
       positionMs:Math.min(86400000,Math.max(0,Number(t.positionMs)||0)),
       paused:Boolean(t.paused)
