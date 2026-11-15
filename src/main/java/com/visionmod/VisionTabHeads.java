@@ -37,7 +37,9 @@ public final class VisionTabHeads {
             var infos=mc.getConnection().getOnlinePlayers();
             int max=Math.min(12,infos.size());
             if(max==0)return;
-            int x=8,y=26,w=118,h=22+max*16;
+            var pos=VisionHudLayout.place(VisionHudLayout.Widget.TAB,
+                8,26,118,22+max*16);
+            int x=pos.x(),y=pos.y(),w=pos.width(),h=pos.height();
             g.fill(x-2,y-2,x+w+2,y+h+2,0x7D5E5190);
             g.fill(x,y,x+w,y+h,0xC9161A2C);
             g.drawString(mc.font,"TAB HEADS  "+infos.size(),x+7,y+7,0xFF9FDEFA);
