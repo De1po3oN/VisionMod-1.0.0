@@ -93,12 +93,12 @@ public final class VisionAmbientParticles {
                     p.spin * (p.age + partial) + (float)Math.sin(p.phase + p.age*.07f)*3f));
                 int color = (alpha << 24) | (p.color & 0x00ffffff);
                 VertexConsumer output = p.type == HEART_KIND ? hearts : snow;
-                VisionGeometry.quad(output, pose,
-                    -size, -size, 0f,
-                     size, -size, 0f,
-                     size,  size, 0f,
-                    -size,  size, 0f,
-                    color, 0f, 0f, 1f);
+                // PNG images use top-left UV origin while world +Y is UP.
+                // Assign v=0 to the TOP vertices, otherwise hearts are upside-down.
+                VisionGeometry.vertex(output,pose,-size,-size,0f,0f,1f,color,0f,0f,1f);
+                VisionGeometry.vertex(output,pose, size,-size,0f,1f,1f,color,0f,0f,1f);
+                VisionGeometry.vertex(output,pose, size, size,0f,1f,0f,color,0f,0f,1f);
+                VisionGeometry.vertex(output,pose,-size, size,0f,0f,0f,color,0f,0f,1f);
                 pose.popPose();
             }
         });
