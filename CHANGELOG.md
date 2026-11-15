@@ -1,3 +1,12 @@
+# 2.0.0 — Pet crash hardening + visible China Hat/Trails + Web Music Bridge (2026-11-15)
+
+- Pet rendering now uses one entity-translucent buffer and a guaranteed finally-pop; on render exception it suspends itself instead of repeatedly crashing. Imported Custom Models get a 64-KiB JSON limit and render-fault protection.
+- Nondegenerate, double-sided China Hat mesh; Trails lifted above terrain to avoid z-fighting. Existing configurable gradient/rainbow and alpha/width retained.
+- New opt-in browser extension for Spotify, SoundCloud and YouTube Music. Pair via local 128-bit token; metadata only to 127.0.0.1:38567. Timed lyrics obtained asynchronously from LRCLIB when available; title fallback when not.
+- GitHub Build #257 SUCCESS (Java/Fabric plus Node script checks, two distribution artifacts), Minecraft headless startup #122 SUCCESS. Actual world rendering and browser site selectors not yet confirmed live. See PET_TRAILS_BROWSER_LYRICS_QA_RU.md.
+
+---
+
 # VisionMod 2.0.0 — Draggable HUD and local LRC source (2026-11-15)
 
 - Added a shared normalized coordinate store for 11 movable client HUD overlays with Fabric chat-screen mouse input events. Drag with LMB inside chat; RMB resets widget position; world-space overlays and vanilla reticle are not draggable to keep aiming consistent.
