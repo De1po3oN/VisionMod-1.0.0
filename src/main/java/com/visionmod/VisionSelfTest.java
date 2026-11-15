@@ -85,7 +85,7 @@ public final class VisionSelfTest {
             throw new IllegalStateException("Browser music bridge pairing token missing");
         VisionLyricsSource.receiveBrowserTrack("Spotify","Test Artist","Test Song",1600,true);
         VisionLyricsSource.setBrowserLyrics("Test Artist","Test Song",
-            "[00:00.00]TEST FIRST\\n[00:01.50]TEST SECOND");
+            "[00:00.00]TEST FIRST"+System.lineSeparator()+"[00:01.50]TEST SECOND");
         if(!"TEST SECOND".equals(VisionLyricsSource.current()))
             throw new IllegalStateException("Browser lyric timestamp sync failed");
         VisionLyricsSource.clearBrowserTrack();
