@@ -46,7 +46,7 @@ public final class VisionTabHeads {
                 if(index>=max)break;
                 int py=y+19+index*16;
                 PlayerFaceRenderer.draw(g,info.getSkin(),x+6,py,13);
-                String name=info.getProfile().getName();
+                String name=info.getProfile().name();
                 while(!name.isEmpty()&&mc.font.width(name)>w-27)
                     name=name.substring(0,name.length()-1);
                 g.drawString(mc.font,name,x+24,py+3,0xFFF2F4FC);
