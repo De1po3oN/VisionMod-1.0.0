@@ -112,6 +112,7 @@ public final class VisionWorldEffects {
     private static int landingAge;
     private static boolean grounded;
     private static int tick;
+    private static boolean renderFaulted;
 
     private VisionWorldEffects() {}
     public static int count() { return NAMES.length; }
@@ -130,13 +131,14 @@ public final class VisionWorldEffects {
         load();
         ClientTickEvents.END_CLIENT_TICK.register(VisionWorldEffects::tick);
         WorldRenderEvents.BEFORE_DEBUG_RENDER.register(ctx -> {
-            if (!VisionModClient.enabled || ctx.consumers()==null || ctx.matrices()==null)
+            if (renderFaulted || !VisionModClient.enabled || ctx.consumers()==null || ctx.matrices()==null)
                 return;
             Minecraft mc=Minecraft.getInstance();
             if(mc.level==null || mc.player==null ||
                 (!ENABLED[0] && !ENABLED[1] && !ENABLED[2] && !ENABLED[3])) return;
             Vec3 cam=mc.gameRenderer.getMainCamera().position();
             PoseStack pose=ctx.matrices();
+            try {
             // IMPORTANT: a shared ImmediateBufferSource finalizes the previous
             // draw buffer whenever its render type changes. Never retain and
             // write to a line consumer after obtaining the fill consumer.
@@ -169,7 +171,7 @@ public final class VisionWorldEffects {
                                 trailSampleColor(idx/(float)(samples-1),worldTime),alpha);
                             float ax=(float)(a.x-cam.x),az=(float)(a.z-cam.z);
                             float bx=(float)(b.x-cam.x),bz=(float)(b.z-cam.z);
-                            float ay=(float)(a.y-cam.y+.065),by=(float)(b.y-cam.y+.065);
+                            float ay=(float)(a.y-cam.y+.15),by=(float)(b.y-cam.y+.15);
                             VisionGeometry.vertex(fill,pose,(float)(ax+px),ay,(float)(az+pz),0,0,colorA,0,1,0);
                             VisionGeometry.vertex(fill,pose,(float)(ax-px),ay,(float)(az-pz),1,0,colorA,0,1,0);
                             VisionGeometry.vertex(fill,pose,(float)(bx-px),by,(float)(bz-pz),1,1,colorB,0,1,0);
@@ -193,12 +195,15 @@ public final class VisionWorldEffects {
             }
 
             if(ENABLED[3] && mc.options.getCameraType()!=CameraType.FIRST_PERSON) {
-                // Conical pastel brim instead of 54 detached floating cubes.
+                // Form a genuine non-degenerate 36-sector mesh. The old
+                // primitive repeated its apex as the fourth vertex and
+                // produced zero-area geometry, invisible on many GPUs.
+                // Each section has a small raised inner rim and wide brim.
                 Vec3 p=mc.player.position();
                 double cx=p.x-cam.x,cy=p.y+mc.player.getBbHeight()+.09-cam.y
                     +Math.sin(t*2.0)*.013,cz=p.z-cam.z;
-                int a=VisionGeometry.withAlpha(VisionMenuTheme.PURPLE,126);
-                int b=VisionGeometry.withAlpha(VisionMenuTheme.CYAN,119);
+                int tintA=VisionGeometry.withAlpha(VisionMenuTheme.PURPLE,185);
+                int tintB=VisionGeometry.withAlpha(VisionMenuTheme.CYAN,180);
                 for(int i=0;i<SEGMENTS;i++) {
                     double angle=i*2*Math.PI/SEGMENTS;
                     double next=(i+1)*2*Math.PI/SEGMENTS;
@@ -206,16 +211,28 @@ public final class VisionWorldEffects {
                     float z1=(float)(cz+Math.sin(angle)*.56);
                     float x2=(float)(cx+Math.cos(next)*.56);
                     float z2=(float)(cz+Math.sin(next)*.56);
-                    // A degenerate quad is one triangle in the quad pipeline.
+                    float ix1=(float)(cx+Math.cos(angle)*.012);
+                    float iz1=(float)(cz+Math.sin(angle)*.012);
+                    float ix2=(float)(cx+Math.cos(next)*.012);
+                    float iz2=(float)(cz+Math.sin(next)*.012);
+                    int color=i%2==0?tintA:tintB;
                     VisionGeometry.quad(fill,pose,
-                        (float)cx,(float)(cy+.33),(float)cz,
+                        ix1,(float)(cy+.34),iz1,
                         x1,(float)cy,z1,
                         x2,(float)cy,z2,
-                        (float)cx,(float)(cy+.33),(float)cz,
-                        i%2==0?a:b,0,1,0);
+                        ix2,(float)(cy+.34),iz2,
+                        color,0,1,0);
+                    // Also emit the reverse face for mods/shaders that cull
+                    // transparent triangles. No extra render type switches.
+                    VisionGeometry.quad(fill,pose,
+                        ix2,(float)(cy+.34),iz2,
+                        x2,(float)cy,z2,
+                        x1,(float)cy,z1,
+                        ix1,(float)(cy+.34),iz1,
+                        color,0,-1,0);
                 }
-                drawBand(fill,pose,cx,cy-.008,cz,.555,.085,
-                    VisionGeometry.withAlpha(VisionMenuTheme.CYAN,120),SEGMENTS);
+                drawBand(fill,pose,cx,cy-.008,cz,.555,.075,
+                    VisionGeometry.withAlpha(VisionMenuTheme.CYAN,145),SEGMENTS);
             }
 
             // LAST render pass: acquire the lines buffer only once after all
@@ -253,6 +270,13 @@ public final class VisionWorldEffects {
                     drawRing(pose,line,cx,cy+.003,cz,.565,
                         VisionGeometry.withAlpha(VisionMenuTheme.PURPLE,210),1.8f,SEGMENTS);
                 }
+            }
+            } catch (RuntimeException ex) {
+                // Do not crash the entire server session if a custom renderer
+                // rejects this pass. Log once and stop risky geometry.
+                renderFaulted=true;
+                System.err.println("[VisionMod][WORLD FX] Suspended after render error: "+ex);
+                ex.printStackTrace();
             }
         });
     }
