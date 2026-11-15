@@ -24,6 +24,7 @@ public final class VisionModClient implements ClientModInitializer {
         VisionPerformance.load();
         VisionAdvanced.load();
         VisionMenuTheme.load();
+        VisionHudLayout.init();
         VisionRenderBoost.init();
         VisionHotkeys.init();
         OreHighlight.init();
