@@ -30,11 +30,56 @@ public final class VisionLyricsSource {
     private static long loadedStamp=Long.MIN_VALUE;
     private static long startedAt=System.nanoTime();
     private static String currentPath="No lyric file";
+    // Track position supplied explicitly by the paired browser extension.
+    // No microphone permission or inaccessible browser application scraping.
+    private static List<Line> browserLines=List.of();
+    private static String browserArtist="",browserTitle="",browserProvider="";
+    private static long browserPositionMs,browserReceivedNanos;
+    private static boolean browserPaused;
     private VisionLyricsSource(){}
 
     public static String fileLocation(){return FILE.toString();}
-    public static boolean active(){return !timeline.isEmpty();}
-    public static String status(){return active()?"Timed lyrics loaded":"Manual text / no linked player";}
+    public static boolean browserConnected(){
+        return !browserTitle.isBlank() && System.nanoTime()-browserReceivedNanos<12_000_000_000L;
+    }
+    public static boolean active(){return browserConnected() || !timeline.isEmpty();}
+    public static String status(){
+        if(browserConnected())
+            return browserProvider+": "+browserArtist+" - "+browserTitle+
+                (browserLines.isEmpty()?" (lyrics pending/unavailable)":" (synced)");
+        return !timeline.isEmpty()?"Local timed lyrics loaded":"Manual text / no linked player";
+    }
+    public static void receiveBrowserTrack(String provider,String artist,String title,
+                                           long positionMs,boolean paused){
+        boolean newTrack=!artist.equals(browserArtist)||!title.equals(browserTitle)
+            ||!provider.equals(browserProvider);
+        browserArtist=artist;browserTitle=title;browserProvider=provider;
+        browserPositionMs=positionMs;browserPaused=paused;
+        browserReceivedNanos=System.nanoTime();
+        if(newTrack)browserLines=List.of();
+    }
+    public static void setBrowserLyrics(String artist,String title,String syncedLrc){
+        if(!artist.equals(browserArtist)||!title.equals(browserTitle))return;
+        browserLines=parse(List.of((syncedLrc==null?"":syncedLrc).split("\\R")));
+    }
+    public static void clearBrowserTrack(){
+        browserArtist="";browserTitle="";browserProvider="";
+        browserLines=List.of();browserReceivedNanos=0;
+    }
+    private static long livePosition(){
+        long elapsed=browserPaused?0:Math.max(0,(System.nanoTime()-browserReceivedNanos)/1_000_000L);
+        return Math.max(0,browserPositionMs+elapsed);
+    }
+    private static String lineAt(List<Line> entries,long ms) {
+        if(entries.isEmpty())return null;
+        int low=0,high=entries.size()-1,found=-1;
+        while(low<=high){
+            int middle=(low+high)>>>1;
+            if(entries.get(middle).millis()<=ms){found=middle;low=middle+1;}
+            else high=middle-1;
+        }
+        return found<0 ? "♪" : entries.get(found).text();
+    }
 
     public static void poll(){
         long now=System.nanoTime();
@@ -78,16 +123,15 @@ public final class VisionLyricsSource {
         return List.copyOf(result);
     }
     public static String current(){
+        if(browserConnected()){
+            String line=lineAt(browserLines,livePosition());
+            // Never leave an enabled overlay blank when a song is playing
+            // but no synced lyric record is available for this track.
+            return line!=null ? line : "♪ "+browserTitle+" — "+browserArtist;
+        }
         poll();
         if(timeline.isEmpty())return null;
-        long elapsed=Math.max(0,(System.nanoTime()-startedAt)/1_000_000L);
-        int low=0,high=timeline.size()-1,found=-1;
-        while(low<=high){
-            int middle=(low+high)>>>1;
-            if(timeline.get(middle).millis()<=elapsed){found=middle;low=middle+1;}
-            else high=middle-1;
-        }
-        return found<0 ? "♪" : timeline.get(found).text();
+        return lineAt(timeline,Math.max(0,(System.nanoTime()-startedAt)/1_000_000L));
     }
     public static String testLine(String... rows){
         List<Line> parsed=parse(List.of(rows));
