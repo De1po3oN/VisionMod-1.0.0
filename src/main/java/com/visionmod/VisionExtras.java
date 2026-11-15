@@ -171,17 +171,24 @@ public final class VisionExtras {
         });
         HudElementRegistry.addLast(Identifier.fromNamespaceAndPath("visionmod", "extra_hud"), (graphics, tracker) -> {
             Minecraft mc = Minecraft.getInstance();
-            if (!VisionModClient.enabled || mc.player == null || mc.level == null || mc.screen != null) return;
+            if (!VisionModClient.enabled || mc.player == null || mc.level == null ||
+                !VisionHudLayout.hudVisible(mc)) return;
             int y = 8;
             if (cps) {
-                graphics.drawString(mc.font, "CPS: " + clickRate(), 8, y, 0xFFF2F7FF);
-                y += 13;
+                String label="CPS: "+clickRate();
+                var pos=VisionHudLayout.place(VisionHudLayout.Widget.CPS,8,y,
+                    Math.max(72,mc.font.width(label)+8),12);
+                graphics.drawString(mc.font,label,pos.x(),pos.y(),0xFFF2F7FF);
+                y+=13;
             }
             if (hungerHud) {
                 var food = mc.player.getFoodData();
-                graphics.drawString(mc.font, "Food " + food.getFoodLevel() + "/20  Sat "
-                    + Math.round(food.getSaturationLevel() * 10f) / 10f, 8, y, 0xFFFFD166);
-                y += 13;
+                String label="Food "+food.getFoodLevel()+"/20  Sat "+
+                    Math.round(food.getSaturationLevel()*10f)/10f;
+                var pos=VisionHudLayout.place(VisionHudLayout.Widget.FOOD,8,y,
+                    Math.max(135,mc.font.width(label)+8),12);
+                graphics.drawString(mc.font,label,pos.x(),pos.y(),0xFFFFD166);
+                y+=13;
             }
             if (armorHud) {
                 int pieces = 0, worn = 0, total = 0;
@@ -197,8 +204,10 @@ public final class VisionExtras {
                 }
                 String label = "Armor " + pieces + "/4";
                 if (total > 0) label += "  Dur " + Math.round(100f * worn / total) + "%";
-                graphics.drawString(mc.font, label, 8, y, 0xFF65F0B2);
-                y += 13;
+                var pos=VisionHudLayout.place(VisionHudLayout.Widget.ARMOR,8,y,
+                    Math.max(112,mc.font.width(label)+8),12);
+                graphics.drawString(mc.font,label,pos.x(),pos.y(),0xFF65F0B2);
+                y+=13;
             }
             if (shulkerHud) {
                 ItemStack held = mc.player.getMainHandItem();
@@ -211,8 +220,10 @@ public final class VisionExtras {
                             totalItems += content.getCount();
                         }
                     }
-                    graphics.drawString(mc.font, "Shulker: " + distinct + " stacks / " + totalItems + " items",
-                        8, y, 0xFFAC79FF);
+                    String label="Shulker: "+distinct+" stacks / "+totalItems+" items";
+                    var pos=VisionHudLayout.place(VisionHudLayout.Widget.SHULKER,8,y,
+                        Math.max(145,mc.font.width(label)+8),12);
+                    graphics.drawString(mc.font,label,pos.x(),pos.y(),0xFFAC79FF);
                 }
             }
         });
