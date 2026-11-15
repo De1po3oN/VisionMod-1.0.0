@@ -298,7 +298,7 @@ public final class VisionDashboardScreen extends Screen {
         search.setMaxLength(48);
         search.setHint(Component.literal("Find a module..."));
         addRenderableWidget(search);
-        customText = new EditBox(font, contentX + 12, top + 230,
+        customText = new EditBox(font, contentX + 12, top + Math.min(230,h-100),
             Math.max(90, contentW - 24), 20, Component.literal("Custom text / friends"));
         customText.setMaxLength(120);
         customText.visible = false;
@@ -528,6 +528,10 @@ public final class VisionDashboardScreen extends Screen {
         } else if(details.title.equals("World Lyrics") || details.title.equals("Social Radar")) {
             g.drawString(font,details.title.equals("World Lyrics")?"LYRIC LINES: separate each with |":"FRIENDS (COMMA SEPARATED):",
                 x+16,y+103,MUTED);
+            if(details.title.equals("World Lyrics")) {
+                textFit(g,"SOURCE: "+VisionLyricsSource.status(),x+16,y+117,ww-30,WHITE);
+                textFit(g,"Timed file: config/visionmod/lyrics.lrc",x+16,y+131,ww-30,MUTED);
+            }
             if(details.title.equals("Social Radar")) {
                 textFit(g,"NEARBY: "+VisionExtendedFeatures.nearbyFriends(),
                     x+16,y+117,ww-32,WHITE);
