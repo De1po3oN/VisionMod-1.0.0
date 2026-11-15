@@ -37,13 +37,14 @@ public final class VisionCustomModels {
     private record Box(AABB geometry, int color) { }
     private static List<Box> boxes = List.of();
     public static boolean enabled;
+    private static boolean renderFaulted;
 
     private VisionCustomModels() {}
 
     public static void init() {
         load();
         WorldRenderEvents.BEFORE_DEBUG_RENDER.register(context -> {
-            if (!VisionModClient.enabled || !enabled || boxes.isEmpty() ||
+            if (renderFaulted || !VisionModClient.enabled || !enabled || boxes.isEmpty() ||
                 context.consumers() == null || context.matrices() == null) return;
             Minecraft mc = Minecraft.getInstance();
             if (mc.player == null || mc.level == null ||
@@ -53,6 +54,7 @@ public final class VisionCustomModels {
             Vec3 player = mc.player.position();
             var pose = context.matrices();
             pose.pushPose();
+            try {
             // Local geometry rotates with the player's body, NOT the Free Look camera.
             pose.translate(player.x - camera.x, player.y - camera.y + 1.08,
                 player.z - camera.z);
@@ -65,12 +67,19 @@ public final class VisionCustomModels {
                     (float)a.minX,(float)a.minY,(float)a.minZ,
                     (float)a.maxX,(float)a.maxY,(float)a.maxZ,b.color());
             }
-            pose.popPose();
+            } catch (RuntimeException ex) {
+                renderFaulted=true;
+                System.err.println("[VisionMod][CUSTOM MODEL] Disabled invalid renderer: "+ex);
+                ex.printStackTrace();
+            } finally {
+                pose.popPose();
+            }
         });
     }
 
     public static void setEnabled(boolean value) {
         enabled = value;
+        if(enabled)renderFaulted=false;
         if (enabled) load();
     }
 
@@ -89,6 +98,7 @@ public final class VisionCustomModels {
                     """;
                 Files.writeString(FILE, sample, StandardCharsets.UTF_8);
             }
+            if(Files.size(FILE)>64*1024)throw new IOException("Model exceeds 64 KiB");
             List<Box> parsed = new ArrayList<>();
             try (Reader reader = Files.newBufferedReader(FILE, StandardCharsets.UTF_8)) {
                 JsonObject doc = JsonParser.parseReader(reader).getAsJsonObject();
