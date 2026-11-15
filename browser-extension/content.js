@@ -20,6 +20,7 @@
     if(nums.some(n=>!Number.isFinite(n)||n<0))return null;
     return nums.reduce((value,number)=>value*60+number,0)*1000;
   }
+  let estimateTrack="",estimateMs=0,estimateAt=Date.now();
   function read(){
     const metadata=navigator.mediaSession?.metadata;
     const title=spotify?pick([
@@ -75,7 +76,15 @@
       const value=Number(bar?.getAttribute("aria-valuenow"));
       if(bar && Number.isFinite(value)&&value>=0)positionMs=value*1000;
     }
-    if(positionMs===null)positionMs=0;
+    const key=provider+"|"+trackArtist+"|"+trackTitle;
+    const now=Date.now();
+    if(positionMs===null){
+      positionMs=key===estimateTrack?
+        estimateMs+(paused?0:Math.max(0,now-estimateAt)):0;
+    }
+    estimateTrack=key;
+    estimateMs=positionMs;
+    estimateAt=now;
     return {provider,title:trackTitle,artist:trackArtist,positionMs,paused};
   }
   let lastKey="",lastSent=0;
