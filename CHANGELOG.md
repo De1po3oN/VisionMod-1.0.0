@@ -1,3 +1,14 @@
+# VisionMod 2.0.0 — Draggable HUD and local LRC source (2026-11-15)
+
+- Added a shared normalized coordinate store for 11 movable client HUD overlays with Fabric chat-screen mouse input events. Drag with LMB inside chat; RMB resets widget position; world-space overlays and vanilla reticle are not draggable to keep aiming consistent.
+- Moved HUD drawing paths in VisionExtras, VisionFeaturePack, VisionExtendedFeatures, VisionTabHeads, and VisionWorldLyrics to the shared coordinate system. Conditional overlays have draggable layout handles while chat is open.
+- Added an optional local `lyrics.lrc` timed-lyric reader (mm:ss.xx), bounded file size and once/second modification polling. Existing user-authored lyric lines remain supported.
+- Lyrics are NOT connected to the active music player; this requires a separate Spotify/Yandex/YouTube/etc. integration.
+- Actions Build #228 + client startup smoke #109 SUCCESS (54 existing toggle tests, extra LRC + hitbox parsing assertions). Dragging/mouse and actual song sync not tested in-game. See HUD_DRAG_AND_LYRICS_RU.md.
+
+---
+
+
 # 2.0.0 — Trail RGB, gradient, TAB Heads and item-physics fixes (2026-11-15)
 
 - Custom trail colors: two HEX/RGB inputs, solid/gradient/rainbow modes, six palettes, configurable alpha and width, persisted alongside existing World FX settings. Trail no longer joins teleportation gaps and color interpolation follows the ribbon.
