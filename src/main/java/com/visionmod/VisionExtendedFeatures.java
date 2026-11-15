@@ -74,6 +74,7 @@ public final class VisionExtendedFeatures {
     public static void toggle(int i) {
         if (i < 0 || i >= FLAGS.length) return;
         FLAGS[i] = !FLAGS[i];
+        if (i==4) VisionPetRenderer.retryAfterToggle();
         // Earlier builds persisted an empty ownLyric, making World Lyrics
         // appear totally broken even when its button was enabled.
         if (i==3 && FLAGS[3] && lyric.isBlank())
