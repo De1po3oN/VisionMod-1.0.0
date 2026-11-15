@@ -137,24 +137,14 @@ public final class VisionWorldEffects {
                 (!ENABLED[0] && !ENABLED[1] && !ENABLED[2] && !ENABLED[3])) return;
             Vec3 cam=mc.gameRenderer.getMainCamera().position();
             PoseStack pose=ctx.matrices();
-            VertexConsumer line=ctx.consumers().getBuffer(RenderTypes.lines());
-            // One shared existing vanilla texture, no extra shader or framebuffers.
+            // IMPORTANT: a shared ImmediateBufferSource finalizes the previous
+            // draw buffer whenever its render type changes. Never retain and
+            // write to a line consumer after obtaining the fill consumer.
+            // Render ALL translucent geometry first, ALL outlines second.
+            // One shared original texture, no extra GPU resources.
             VertexConsumer fill=ctx.consumers().getBuffer(
                 RenderTypes.entityTranslucent(VisionGeometry.WHITE_TEXTURE));
             double t=System.nanoTime()*1.0e-9;
-
-            if(ENABLED[0] && mc.hitResult instanceof EntityHitResult hit &&
-                hit.getEntity() instanceof LivingEntity living &&
-                living!=mc.player && living.isAlive() &&
-                living.distanceToSqr(mc.player)<24*24) {
-                int c=VisionTools2.hitColor();
-                AABB box=living.getBoundingBox().inflate(.035);
-                ShapeRenderer.renderShape(pose,line,Shapes.create(box),
-                    -cam.x,-cam.y,-cam.z,VisionGeometry.withAlpha(c,210),2f);
-                double radius=living.getBbWidth()*.64+.12;
-                double cx=living.getX()-cam.x,cy=box.minY-cam.y+.035,cz=living.getZ()-cam.z;
-                drawRing(pose,line,cx,cy,cz,radius,VisionGeometry.withAlpha(c,160),1.5f,SEGMENTS);
-            }
 
             if(ENABLED[1] && TRAIL.size()>=2) {
                 TrailPoint last=null;
@@ -184,8 +174,6 @@ public final class VisionWorldEffects {
                             VisionGeometry.vertex(fill,pose,(float)(ax-px),ay,(float)(az-pz),1,0,colorA,0,1,0);
                             VisionGeometry.vertex(fill,pose,(float)(bx-px),by,(float)(bz-pz),1,1,colorB,0,1,0);
                             VisionGeometry.vertex(fill,pose,(float)(bx+px),by,(float)(bz+pz),0,1,colorB,0,1,0);
-                            VisionGeometry.line(line,pose,ax,ay,az,bx,by,bz,
-                                VisionGeometry.withAlpha(colorB,Math.min(230,alpha+28)),1.3f);
                         }
                     }
                     last=current;
@@ -202,11 +190,6 @@ public final class VisionWorldEffects {
                 drawBand(fill,pose,cx,cy,cz,.22+eased*1.05,
                     .065*(1-progress)+.018,
                     VisionGeometry.withAlpha(VisionMenuTheme.CYAN,alpha),SEGMENTS);
-                drawRing(pose,line,cx,cy+.012,cz,.22+eased*1.05,
-                    VisionGeometry.withAlpha(VisionMenuTheme.PURPLE,alpha),1.8f,SEGMENTS);
-                if(progress<.7f) drawRing(pose,line,cx,cy+.025,cz,
-                    .12+eased*.67,VisionGeometry.withAlpha(VisionMenuTheme.CYAN,
-                        (int)(80*(1-progress))),1.1f,SEGMENTS);
             }
 
             if(ENABLED[3] && mc.options.getCameraType()!=CameraType.FIRST_PERSON) {
@@ -233,8 +216,43 @@ public final class VisionWorldEffects {
                 }
                 drawBand(fill,pose,cx,cy-.008,cz,.555,.085,
                     VisionGeometry.withAlpha(VisionMenuTheme.CYAN,120),SEGMENTS);
-                drawRing(pose,line,cx,cy+.003,cz,.565,
-                    VisionGeometry.withAlpha(VisionMenuTheme.PURPLE,210),1.8f,SEGMENTS);
+            }
+
+            // LAST render pass: acquire the lines buffer only once after all
+            // translucent vertices have been submitted. No more fill writes
+            // may follow, otherwise Minecraft throws "Not building!".
+            if(ENABLED[0] || ENABLED[2] || ENABLED[3]) {
+                VertexConsumer line=ctx.consumers().getBuffer(RenderTypes.lines());
+                if(ENABLED[0] && mc.hitResult instanceof EntityHitResult hit &&
+                    hit.getEntity() instanceof LivingEntity living &&
+                    living!=mc.player && living.isAlive() &&
+                    living.distanceToSqr(mc.player)<24*24) {
+                    int c=VisionTools2.hitColor();
+                    AABB box=living.getBoundingBox().inflate(.035);
+                    ShapeRenderer.renderShape(pose,line,Shapes.create(box),
+                        -cam.x,-cam.y,-cam.z,VisionGeometry.withAlpha(c,210),2f);
+                    double radius=living.getBbWidth()*.64+.12;
+                    drawRing(pose,line,living.getX()-cam.x,box.minY-cam.y+.035,
+                        living.getZ()-cam.z,radius,VisionGeometry.withAlpha(c,160),1.5f,SEGMENTS);
+                }
+                if(ENABLED[2] && landingAge>0 && landingPos!=null) {
+                    float progress=(20-landingAge)/20f;
+                    float eased=1-(1-progress)*(1-progress);
+                    double cx=landingPos.x-cam.x,cy=landingPos.y-cam.y+.045,cz=landingPos.z-cam.z;
+                    int alpha=(int)(190*(1-progress));
+                    drawRing(pose,line,cx,cy+.012,cz,.22+eased*1.05,
+                        VisionGeometry.withAlpha(VisionMenuTheme.PURPLE,alpha),1.8f,SEGMENTS);
+                    if(progress<.7f)drawRing(pose,line,cx,cy+.025,cz,
+                        .12+eased*.67,VisionGeometry.withAlpha(VisionMenuTheme.CYAN,
+                        (int)(80*(1-progress))),1.1f,SEGMENTS);
+                }
+                if(ENABLED[3] && mc.options.getCameraType()!=CameraType.FIRST_PERSON) {
+                    Vec3 p=mc.player.position();
+                    double cx=p.x-cam.x,cy=p.y+mc.player.getBbHeight()+.09-cam.y
+                        +Math.sin(t*2)*.013,cz=p.z-cam.z;
+                    drawRing(pose,line,cx,cy+.003,cz,.565,
+                        VisionGeometry.withAlpha(VisionMenuTheme.PURPLE,210),1.8f,SEGMENTS);
+                }
             }
         });
     }
