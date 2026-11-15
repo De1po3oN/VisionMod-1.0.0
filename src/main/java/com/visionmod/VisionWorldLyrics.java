@@ -126,9 +126,14 @@ public final class VisionWorldLyrics {
 
         // Stable anchor: screen projection of player position in third-person;
         // first-person text floats in forward view space.
-        int sx=w/2,sy=Math.min(h-49,Math.max(38,h/2-60));
+        // First-person lyrics must NEVER cover the aim area.
+        // Anchor them unobtrusively at the top-right. Third-person still
+        // projects text above the player when possible.
+        int boxWidth=mc.font.width(current)+32;
+        int sx=Math.max(boxWidth/2+12,w-boxWidth/2-20),sy=43;
         var camera=mc.gameRenderer.getMainCamera();
-        if(camera.isInitialized()) {
+        if(camera.isInitialized() &&
+            mc.options.getCameraType()!=CameraType.FIRST_PERSON) {
             Vec3 forward=Vec3.directionFromRotation(camera.xRot(),camera.yRot());
             Vec3 right=forward.cross(new Vec3(0,1,0));
             if(right.lengthSqr()>1.0e-5) {
