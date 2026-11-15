@@ -74,6 +74,14 @@ public final class VisionSelfTest {
         } catch(Exception e) {
             throw new IllegalStateException("[VisionMod][SELFTEST] Pet texture QA failed",e);
         }
+        if (!"Second".equals(VisionLyricsSource.testLine(
+                "[00:00.00]First","[00:01.50]Second")) ||
+            !VisionHudLayout.Widget.CPS.label.equals("CPS") ||
+            VisionHudLayout.Widget.values().length!=11 ||
+            !new VisionHudLayout.Bounds(10,20,50,13).contains(12,24) ||
+            new VisionHudLayout.Bounds(10,20,50,13).contains(61,24))
+            throw new IllegalStateException("[VisionMod][SELFTEST] LRC / HUD widget regression");
+        System.out.println("[VisionMod][SELFTEST] PASS: Timed LRC parsing and 11 HUD layout widget IDs.");
         System.out.println("[VisionMod][SELFTEST] PASS: World Lyrics text rotation and packaged Pet texture.");
         VisionAmbientParticles.selfTestPool();
         verifyAmbientSprite(VisionAmbientParticles.heartResource());
