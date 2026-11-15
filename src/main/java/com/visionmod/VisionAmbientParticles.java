@@ -58,16 +58,19 @@ public final class VisionAmbientParticles {
             Vec3 camera = mc.gameRenderer.getMainCamera().position();
             var cameraRotation = mc.gameRenderer.getMainCamera().rotation();
             PoseStack pose = ctx.matrices();
-            VertexConsumer hearts = ctx.consumers().getBuffer(RenderTypes.entityTranslucent(HEART));
-            VertexConsumer snow = ctx.consumers().getBuffer(RenderTypes.entityTranslucent(SNOW));
-
-            // Interpolate between client ticks for smooth motion at any FPS.
+            // A shared ImmediateBufferSource ends the previous buffer when
+            // getBuffer() switches render type. Render one entire sprite type
+            // before obtaining the next, otherwise it throws "Not building!".
             float partial = Math.min(1.0f, Math.max(0.0f,
                 (System.nanoTime() - lastTickNanos) / 50_000_000.0f));
-            for (int i = 0; i < count; i++) {
+            for (int kind=HEART_KIND; kind<=SNOW_KIND; kind++) {
+                if ((kind==HEART_KIND && !VisionExtras.hearts) ||
+                    (kind==SNOW_KIND && !VisionExtras.snow)) continue;
+                VertexConsumer output = ctx.consumers().getBuffer(
+                    RenderTypes.entityTranslucent(kind==HEART_KIND?HEART:SNOW));
+                for (int i = 0; i < count; i++) {
                 Sprite p = ACTIVE[i];
-                if ((p.type == HEART_KIND && !VisionExtras.hearts) ||
-                    (p.type == SNOW_KIND && !VisionExtras.snow)) continue;
+                if (p.type != kind) continue;
 
                 double x = p.prevX + (p.x - p.prevX) * partial - camera.x;
                 double y = p.prevY + (p.y - p.prevY) * partial - camera.y;
@@ -92,7 +95,7 @@ public final class VisionAmbientParticles {
                 pose.mulPose(Axis.ZP.rotationDegrees(
                     p.spin * (p.age + partial) + (float)Math.sin(p.phase + p.age*.07f)*3f));
                 int color = (alpha << 24) | (p.color & 0x00ffffff);
-                VertexConsumer output = p.type == HEART_KIND ? hearts : snow;
+
                 // PNG images use top-left UV origin while world +Y is UP.
                 // Assign v=0 to the TOP vertices, otherwise hearts are upside-down.
                 VisionGeometry.vertex(output,pose,-size,-size,0f,0f,1f,color,0f,0f,1f);
@@ -100,6 +103,7 @@ public final class VisionAmbientParticles {
                 VisionGeometry.vertex(output,pose, size, size,0f,1f,0f,color,0f,0f,1f);
                 VisionGeometry.vertex(output,pose,-size, size,0f,0f,0f,color,0f,0f,1f);
                 pose.popPose();
+                }
             }
         });
     }
