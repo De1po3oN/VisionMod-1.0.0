@@ -190,11 +190,12 @@ public final class VisionDashboardScreen extends Screen {
         m.add(new Module(category,VisionWorldEffects.NAMES[id],
             switch(id) {
                 case 0 -> "Targeted living-entity outline";
-                case 1 -> "Limited trail behind the player";
+                case 1 -> "Editable RGB gradient trail: RMB to customize";
                 case 2 -> "Landing rings at the player's feet";
                 default -> "Third-person local head decoration";
             },
-            ()->VisionWorldEffects.enabled(id),()->VisionWorldEffects.toggle(id),null));
+            ()->VisionWorldEffects.enabled(id),()->VisionWorldEffects.toggle(id),
+            id==1 ? ()->net.minecraft.client.Minecraft.getInstance().setScreen(new VisionTrailSettingsScreen()) : null));
     }
 
     private static void extended(List<Module> m,int category,int id) {
