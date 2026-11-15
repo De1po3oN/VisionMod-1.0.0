@@ -92,6 +92,8 @@ public final class VisionDashboardScreen extends Screen {
         extras(m,HUD,"Shulker Summary","Item totals in shulker containers",9);
         extras(m,HUD,"Snowflakes","Configurable ambient snow",7);
         extras(m,HUD,"Air Hearts","Configurable floating heart particles",8);
+        m.add(new Module(HUD,"Tab Heads","Player skin heads when holding TAB",
+            ()->VisionTabHeads.enabled,VisionTabHeads::toggle,null));
         extras(m,HUD,"Shulker Tooltip","Preview shulker items",15);
         feature(m,HUD,0); feature(m,HUD,1); feature(m,HUD,2);
         feature(m,HUD,4); feature(m,HUD,5);
