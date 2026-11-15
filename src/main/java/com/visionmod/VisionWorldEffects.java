@@ -41,6 +41,70 @@ public final class VisionWorldEffects {
     private static final int SEGMENTS=36;
     private static final int MAX_TRAIL=25;
     private static final long TRAIL_LIFETIME=28;
+    // Preserved in world-effects-2.properties, independent of menu/GUI state.
+    private static int trailStartColor = 0xFF67E8F9;
+    private static int trailEndColor = 0xFFB66DFF;
+    /** 0 solid, 1 two-color gradient, 2 smooth cycling rainbow. */
+    private static int trailMode = 1;
+    private static float trailWidth = 0.115f;
+    private static int trailOpacity = 160;
+
+    public static int trailStartColor() { return trailStartColor; }
+    public static int trailEndColor() { return trailEndColor; }
+    public static int trailMode() { return trailMode; }
+    public static String trailModeLabel() {
+        return switch(trailMode) { case 0 -> "SOLID"; case 2 -> "RAINBOW"; default -> "GRADIENT"; };
+    }
+    public static float trailWidth() { return trailWidth; }
+    public static int trailOpacity() { return trailOpacity; }
+    public static String trailColorHex(int value) {
+        return String.format(java.util.Locale.ROOT, "#%06X", value & 0xFFFFFF);
+    }
+    /** Strictly accept #RRGGBB, RRGGBB, or decimal R,G,B. */
+    public static int parseTrailColor(String value) {
+        if (value == null) throw new IllegalArgumentException("No color");
+        String input = value.trim();
+        if (input.matches("(?i)#?[0-9a-f]{6}"))
+            return 0xFF000000 | Integer.parseInt(input.replace("#", ""), 16);
+        String[] channels = input.split(",",-1);
+        if (channels.length != 3) throw new IllegalArgumentException("Use #RRGGBB or R,G,B");
+        int color = 0xFF000000;
+        for (int i=0;i<3;i++) {
+            int v;
+            try { v = Integer.parseInt(channels[i].trim()); }
+            catch(NumberFormatException e) { throw new IllegalArgumentException("RGB channels must be numbers"); }
+            if (v < 0 || v > 255) throw new IllegalArgumentException("RGB channels must be 0-255");
+            color |= v << (16 - 8*i);
+        }
+        return color;
+    }
+    public static void setTrailColor(int index,int color) {
+        if (index==0) trailStartColor = 0xFF000000 | (color & 0xFFFFFF);
+        else if (index==1) trailEndColor = 0xFF000000 | (color & 0xFFFFFF);
+        else return;
+        save();
+    }
+    public static void setTrailMode(int mode) {
+        trailMode = Math.max(0,Math.min(2,mode)); save();
+    }
+    public static void cycleTrailMode() { setTrailMode((trailMode+1)%3); }
+    public static void cycleTrailWidth() {
+        trailWidth = trailWidth < .09f ? .115f : trailWidth < .15f ? .22f : .065f;
+        save();
+    }
+    public static void cycleTrailOpacity() {
+        trailOpacity = trailOpacity <= 110 ? 160 : trailOpacity <= 160 ? 220 : 90;
+        save();
+    }
+    public static int trailSampleColor(float along,long ticks) {
+        float t=Math.max(0f,Math.min(1f,along));
+        return switch(trailMode) {
+            case 0 -> trailStartColor;
+            case 2 -> 0xFF000000 | (java.awt.Color.HSBtoRGB(
+                (float)((t*.85 + ticks*.009) % 1.0),.83f,1f) & 0xFFFFFF);
+            default -> VisionGeometry.blendRgb(trailStartColor,trailEndColor,t);
+        };
+    }
     private record TrailPoint(Vec3 position,long time) {}
     private static final Deque<TrailPoint> TRAIL = new ArrayDeque<>(MAX_TRAIL);
     private static ClientLevel previousWorld;
@@ -95,33 +159,37 @@ public final class VisionWorldEffects {
             if(ENABLED[1] && TRAIL.size()>=2) {
                 TrailPoint last=null;
                 long worldTime=mc.level.getGameTime();
-                int previousColor=VisionMenuTheme.CYAN;
+                int idx=0, samples=TRAIL.size();
                 for(TrailPoint current:TRAIL) {
                     if(last!=null) {
                         Vec3 a=last.position(),b=current.position();
                         double dx=b.x-a.x,dz=b.z-a.z;
                         double length=Math.sqrt(dx*dx+dz*dz);
-                        if(length>.02 && length<3.0) {
-                            float strength=(float)Math.max(0,1.0-(worldTime-current.time())/(double)TRAIL_LIFETIME);
-                            float width=.115f*strength+.018f;
+                        // Never join teleportations, world transitions or server corrections.
+                        if(length>.025 && length<2.5 && Math.abs(b.y-a.y)<1.7) {
+                            float strength=(float)Math.max(0,1.0-
+                                (worldTime-current.time())/(double)TRAIL_LIFETIME);
+                            float width=trailWidth*(.35f+.65f*strength);
                             double px=-dz/length*width,pz=dx/length*width;
-                            int colored=VisionGeometry.blendRgb(previousColor,
-                                VisionMenuTheme.PURPLE,(float)((worldTime+current.time())%30)/30f);
-                            int alpha=(int)(strength*160);
+                            int alpha=(int)(strength*trailOpacity);
+                            int colorA=VisionGeometry.withAlpha(
+                                trailSampleColor((idx-1f)/(samples-1f),worldTime),
+                                Math.max(0,alpha-18));
+                            int colorB=VisionGeometry.withAlpha(
+                                trailSampleColor(idx/(float)(samples-1),worldTime),alpha);
                             float ax=(float)(a.x-cam.x),az=(float)(a.z-cam.z);
                             float bx=(float)(b.x-cam.x),bz=(float)(b.z-cam.z);
-                            float ay=(float)(a.y-cam.y+.09),by=(float)(b.y-cam.y+.09);
-                            VisionGeometry.quad(fill,pose,
-                                (float)(ax+px),ay,(float)(az+pz),
-                                (float)(ax-px),ay,(float)(az-pz),
-                                (float)(bx-px),by,(float)(bz-pz),
-                                (float)(bx+px),by,(float)(bz+pz),
-                                VisionGeometry.withAlpha(colored,alpha),0,1,0);
+                            float ay=(float)(a.y-cam.y+.065),by=(float)(b.y-cam.y+.065);
+                            VisionGeometry.vertex(fill,pose,(float)(ax+px),ay,(float)(az+pz),0,0,colorA,0,1,0);
+                            VisionGeometry.vertex(fill,pose,(float)(ax-px),ay,(float)(az-pz),1,0,colorA,0,1,0);
+                            VisionGeometry.vertex(fill,pose,(float)(bx-px),by,(float)(bz-pz),1,1,colorB,0,1,0);
+                            VisionGeometry.vertex(fill,pose,(float)(bx+px),by,(float)(bz+pz),0,1,colorB,0,1,0);
                             VisionGeometry.line(line,pose,ax,ay,az,bx,by,bz,
-                                VisionGeometry.withAlpha(colored,Math.min(210,alpha+45)),1.4f);
+                                VisionGeometry.withAlpha(colorB,Math.min(230,alpha+28)),1.3f);
                         }
                     }
                     last=current;
+                    idx++;
                 }
             }
 
@@ -211,6 +279,8 @@ public final class VisionWorldEffects {
             if(++tick>=2) {
                 tick=0;
                 Vec3 p=mc.player.position();
+                if (!TRAIL.isEmpty() && TRAIL.peekLast().position().distanceToSqr(p)>7.0)
+                    TRAIL.clear();
                 if(TRAIL.isEmpty() || TRAIL.peekLast().position().distanceToSqr(p)>.012) {
                     TRAIL.addLast(new TrailPoint(p,now));
                     while(TRAIL.size()>MAX_TRAIL) TRAIL.removeFirst();
@@ -241,12 +311,28 @@ public final class VisionWorldEffects {
             p.load(in);
             for(int i=0;i<ENABLED.length;i++)
                 ENABLED[i]=Boolean.parseBoolean(p.getProperty("effect."+i,"false"));
+            try { trailStartColor=parseTrailColor(p.getProperty("trail.start", "#67E8F9")); }
+            catch(IllegalArgumentException e){trailStartColor=0xFF67E8F9;}
+            try { trailEndColor=parseTrailColor(p.getProperty("trail.end", "#B66DFF")); }
+            catch(IllegalArgumentException e){trailEndColor=0xFFB66DFF;}
+            try { trailMode=Math.max(0,Math.min(2,Integer.parseInt(p.getProperty("trail.mode","1")))); }
+            catch(NumberFormatException e){trailMode=1;}
+            try { trailWidth=Math.max(.04f,Math.min(.30f,Float.parseFloat(p.getProperty("trail.width",".115")))); }
+            catch(NumberFormatException e){trailWidth=.115f;}
+            if(!Float.isFinite(trailWidth))trailWidth=.115f;
+            try { trailOpacity=Math.max(30,Math.min(250,Integer.parseInt(p.getProperty("trail.opacity","160")))); }
+            catch(NumberFormatException e){trailOpacity=160;}
         }catch(Exception e){System.err.println("[VisionMod] World FX load: "+e);}
     }
     private static void save() {
         Properties p=new Properties();
         for(int i=0;i<ENABLED.length;i++)
             p.setProperty("effect."+i,Boolean.toString(ENABLED[i]));
+        p.setProperty("trail.start",trailColorHex(trailStartColor));
+        p.setProperty("trail.end",trailColorHex(trailEndColor));
+        p.setProperty("trail.mode",Integer.toString(trailMode));
+        p.setProperty("trail.width",Float.toString(trailWidth));
+        p.setProperty("trail.opacity",Integer.toString(trailOpacity));
         try {
             Files.createDirectories(CONFIG.getParent());
             try(OutputStream out=Files.newOutputStream(CONFIG)) {
