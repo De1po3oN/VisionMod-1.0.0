@@ -7,7 +7,7 @@
   "host_permissions": ["http://127.0.0.1:38567/*"],
   "background": {"service_worker": "background.js"},
   "content_scripts": [
-    {"matches": ["https://open.spotify.com/*", "https://soundcloud.com/*", "https://www.soundcloud.com/*"],
+    {"matches": ["https://open.spotify.com/*", "https://soundcloud.com/*", "https://www.soundcloud.com/*", "https://music.youtube.com/*"],
       "js": ["content.js"], "run_at": "document_idle"}
   ],
   "options_page": "options.html",
