@@ -19,6 +19,7 @@ public final class VisionPetRenderer {
     // If a conflicting renderer/shader throws, stop this visual rather than
     // crashing the Minecraft client on every subsequent frame.
     private static boolean renderFaulted;
+    public static void retryAfterToggle(){renderFaulted=false;}
     private VisionPetRenderer() {}
 
     public static void init() {
