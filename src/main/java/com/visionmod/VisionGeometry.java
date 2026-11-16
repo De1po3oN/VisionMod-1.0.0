@@ -81,22 +81,33 @@ public final class VisionGeometry {
             vertex(out,pose,(float)(x+Math.cos(a)*inner),(float)y,(float)(z+Math.sin(a)*inner),0,0,innerColor,0,-1,0);
         }
     }
+    private static final java.util.Map<Integer,float[]> SPHERES=new java.util.LinkedHashMap<>();
     public static void ellipsoid(VertexConsumer out,PoseStack pose,float x,float y,float z,
                                  float rx,float ry,float rz,int color,int slices,int rings){
-        // Quad latitude strips; shared texture/consumer for the whole companion.
-        for(int row=0;row<rings;row++)for(int col=0;col<slices;col++){
-            double a=-Math.PI/2+row*Math.PI/rings,b=-Math.PI/2+(row+1)*Math.PI/rings;
-            double c=col*Math.PI*2/slices,d=(col+1)*Math.PI*2/slices;
-            sphereVertex(out,pose,x,y,z,rx,ry,rz,a,c,color);
-            sphereVertex(out,pose,x,y,z,rx,ry,rz,b,c,color);
-            sphereVertex(out,pose,x,y,z,rx,ry,rz,b,d,color);
-            sphereVertex(out,pose,x,y,z,rx,ry,rz,a,d,color);
+        slices=Math.clamp(slices,4,24);rings=Math.clamp(rings,3,12);
+        int key=slices*32+rings;
+        float[] mesh=SPHERES.get(key);
+        if(mesh==null){
+            mesh=sphereMesh(slices,rings);
+            if(SPHERES.size()>=12)SPHERES.remove(SPHERES.keySet().iterator().next());
+            SPHERES.put(key,mesh);
+        }
+        for(int i=0;i<mesh.length;i+=5){
+            float nx=mesh[i],ny=mesh[i+1],nz=mesh[i+2];
+            vertex(out,pose,x+rx*nx,y+ry*ny,z+rz*nz,mesh[i+3],mesh[i+4],color,nx,ny,nz);
         }
     }
-    private static void sphereVertex(VertexConsumer out,PoseStack pose,float x,float y,float z,
-                                      float rx,float ry,float rz,double latitude,double longitude,int color){
-        float nx=(float)(Math.cos(latitude)*Math.cos(longitude)),ny=(float)Math.sin(latitude),nz=(float)(Math.cos(latitude)*Math.sin(longitude));
-        vertex(out,pose,x+rx*nx,y+ry*ny,z+rz*nz,(float)(longitude/(Math.PI*2)),(float)(.5-latitude/Math.PI),color,nx,ny,nz);
+    private static float[] sphereMesh(int slices,int rings){
+        float[] mesh=new float[slices*rings*4*5];int cursor=0;
+        for(int row=0;row<rings;row++)for(int col=0;col<slices;col++)for(int corner=0;corner<4;corner++){
+            double latitude=-Math.PI/2+(row+(corner==1||corner==2?1:0))*Math.PI/rings;
+            double longitude=(col+(corner>=2?1:0))*Math.PI*2/slices;
+            mesh[cursor++]=(float)(Math.cos(latitude)*Math.cos(longitude));
+            mesh[cursor++]=(float)Math.sin(latitude);
+            mesh[cursor++]=(float)(Math.cos(latitude)*Math.sin(longitude));
+            mesh[cursor++]=(float)(longitude/(Math.PI*2));mesh[cursor++]=(float)(.5-latitude/Math.PI);
+        }
+        return mesh;
     }
 
     public static int withAlpha(int rgb, int alpha) {

@@ -11,7 +11,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   smoke-client:
@@ -43,8 +43,9 @@ jobs:
           xvfb-run -a -s '-screen 0 1280x720x24' bash -c '
             timeout --signal=TERM 100s gradle runClient --no-daemon --console=plain > smoke-client.log 2>&1 &
             game=$!
-            python3 tests/capture-editors.py
+            python3 tests/capture-editors.py > capture-editors.log 2>&1
             capture=$?
+            cat capture-editors.log
             wait "$game"
             status=$?
             if [ "$capture" -ne 0 ]; then exit "$capture"; fi
@@ -78,6 +79,7 @@ jobs:
         with:
           name: VisionMod-Client-Smoke-Logs
           path: |
+            capture-editors.log
             editor-captures/**
             smoke-client.log
             smoke-status.txt
@@ -85,3 +87,13 @@ jobs:
             run/crash-reports/**
           if-no-files-found: warn
           retention-days: 7
+
+      - name: Check out isolated CI evidence branch
+        if: always()
+        uses: actions/checkout@v4
+        with:
+          ref: codex/visual-evidence
+          path: .qa-evidence
+      - name: Save smoke outputs outside source branch
+        if: always()
+        run: bash tests/publish-evidence.sh smoke

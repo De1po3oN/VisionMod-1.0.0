@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   build:
@@ -76,3 +76,11 @@ jobs:
           path: build/libs/visionmod-2.0.0.jar
           if-no-files-found: error
           retention-days: 30
+
+      - name: Check out isolated CI evidence branch
+        uses: actions/checkout@v4
+        with:
+          ref: codex/visual-evidence
+          path: .qa-evidence
+      - name: Save build outputs outside source branch
+        run: bash tests/publish-evidence.sh build

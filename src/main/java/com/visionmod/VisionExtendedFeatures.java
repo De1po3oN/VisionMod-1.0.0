@@ -91,6 +91,9 @@ public final class VisionExtendedFeatures {
     public static String colorLabel() {
         return switch (worldColor) { case 1 -> "WARM"; case 2 -> "COOL"; default -> "DUSK"; };
     }
+    public static int worldColor(){return worldColor;}
+    public static void setWorldColor(int value){worldColor=Math.clamp(value,0,2);save();}
+    public static void setPetColor(int value){petColor=value|0xFF000000;save();}
     public static int petColor() { return petColor; }
     public static String petColorLabel() {
         for(int i=0;i<PET_PALETTE.length;i++)

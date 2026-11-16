@@ -66,6 +66,14 @@ public final class VisionProfiles {
         data.addProperty("trailStart",VisionWorldEffects.trailColorHex(VisionWorldEffects.trailStartColor()));
         data.addProperty("trailEnd",VisionWorldEffects.trailColorHex(VisionWorldEffects.trailEndColor()));
         data.addProperty("trailMode",VisionWorldEffects.trailMode());
+        data.addProperty("trailWidth",VisionWorldEffects.trailWidth());
+        data.addProperty("trailOpacity",VisionWorldEffects.trailOpacity());
+        data.addProperty("ambientStyle",VisionExtras.ambientStyle);
+        data.addProperty("ambientDensity",VisionExtras.ambientDensity);
+        data.addProperty("petColor",String.format("#%06X",VisionExtendedFeatures.petColor()&0xFFFFFF));
+        data.addProperty("worldColor",VisionExtendedFeatures.worldColor());
+        data.addProperty("fullBrightLevel",VisionAppearance.brightness);
+        data.addProperty("handScale",VisionAppearance.handScale);
         data.addProperty("appearanceDetail",VisionAppearance.detail);
         data.addProperty("appearanceOpacity",VisionAppearance.opacity);
         data.addProperty("appearanceAnimations",VisionAppearance.animations);
@@ -158,9 +166,17 @@ public final class VisionProfiles {
         int trailEnd=optionalHex(data,"trailEnd",VisionWorldEffects.trailEndColor());
         int trailMode=optionalChoice(data,"trailMode",VisionWorldEffects.trailMode(),0,1,2);
         int appearanceDetail=optionalChoice(data,"appearanceDetail",VisionAppearance.detail,0,1,2);
-        int appearanceOpacity=optionalChoice(data,"appearanceOpacity",VisionAppearance.opacity,100,150,190,225,240);
+        int appearanceOpacity=optionalRange(data,"appearanceOpacity",VisionAppearance.opacity,100,240);
         boolean appearanceAnimations=optionalFlag(data,"appearanceAnimations",VisionAppearance.animations);
         int soundPreset=optionalChoice(data,"soundPreset",VisionExtendedFeatures.soundPreset(),0,1,2);
+        float trailWidth=optionalFloat(data,"trailWidth",VisionWorldEffects.trailWidth(),.04f,.30f);
+        int trailOpacity=optionalRange(data,"trailOpacity",VisionWorldEffects.trailOpacity(),30,250);
+        int ambientStyle=optionalChoice(data,"ambientStyle",VisionExtras.ambientStyle,0,1);
+        int ambientDensity=optionalChoice(data,"ambientDensity",VisionExtras.ambientDensity,1,2,3);
+        int petColor=optionalHex(data,"petColor",VisionExtendedFeatures.petColor());
+        int worldColor=optionalChoice(data,"worldColor",VisionExtendedFeatures.worldColor(),0,1,2);
+        int brightness=optionalRange(data,"fullBrightLevel",VisionAppearance.brightness,3,16);
+        float handScale=optionalFloat(data,"handScale",VisionAppearance.handScale,.5f,.9f);
         // Validate every field before changing any mod settings.
         boolean[] switches = new boolean[] {
             flag(data, "fullBright"), flag(data, "oreHighlight"), flag(data, "clearWater"),
@@ -244,6 +260,10 @@ public final class VisionProfiles {
             if (exZoomFactor != .2f && exZoomFactor != .35f && exZoomFactor != .5f)
                 throw new IllegalArgumentException("Unsupported zoom factor");
         }
+        VisionWorldEffects.setTrailWidth(trailWidth);VisionWorldEffects.setTrailOpacity(trailOpacity);
+        VisionExtras.ambientStyle=ambientStyle;VisionExtras.ambientDensity=ambientDensity;
+        VisionExtendedFeatures.setPetColor(petColor);VisionExtendedFeatures.setWorldColor(worldColor);
+        VisionAppearance.brightness=brightness;VisionAppearance.handScale=handScale;
         VisionAppearance.detail=appearanceDetail;VisionAppearance.opacity=appearanceOpacity;VisionAppearance.animations=appearanceAnimations;VisionAppearance.save();
         for(int i=0;i<3&&VisionExtendedFeatures.soundPreset()!=soundPreset;i++)VisionExtendedFeatures.cycleSound();
         applyFlags(hud2,VisionFeaturePack::enabled,VisionFeaturePack::toggle);
@@ -342,6 +362,23 @@ public final class VisionProfiles {
         if(!v.isJsonPrimitive()||!v.getAsJsonPrimitive().isString()||v.getAsString().length()>120)
             throw new IllegalArgumentException("Invalid text: "+key);
         return v.getAsString();
+    }
+
+    private static float optionalFloat(JsonObject data,String key,float fallback,float min,float max){
+        if(!data.has(key))return fallback;
+        var v=data.get(key);
+        if(!v.isJsonPrimitive()||!v.getAsJsonPrimitive().isNumber())throw new IllegalArgumentException("Invalid number: "+key);
+        float value=v.getAsFloat();
+        if(!Float.isFinite(value)||value<min||value>max)throw new IllegalArgumentException("Out of range: "+key);
+        return value;
+    }
+    private static int optionalRange(JsonObject data,String key,int fallback,int min,int max){
+        if(!data.has(key))return fallback;
+        var primitive=data.get(key);
+        if(!primitive.isJsonPrimitive()||!primitive.getAsJsonPrimitive().isNumber())throw new IllegalArgumentException("Invalid number: "+key);
+        double d=primitive.getAsDouble();
+        if(!Double.isFinite(d)||d!=Math.rint(d)||d<min||d>max)throw new IllegalArgumentException("Out of range: "+key);
+        return (int)d;
     }
 
     private static boolean flag(JsonObject data, String key) {

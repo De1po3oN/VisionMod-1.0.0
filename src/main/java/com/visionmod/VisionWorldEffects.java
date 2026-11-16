@@ -88,6 +88,8 @@ public final class VisionWorldEffects {
         trailMode = Math.max(0,Math.min(2,mode)); save();
     }
     public static void cycleTrailMode() { setTrailMode((trailMode+1)%3); }
+    public static void setTrailWidth(float value){if(Float.isFinite(value)){trailWidth=Math.clamp(value,.04f,.3f);save();}}
+    public static void setTrailOpacity(int value){trailOpacity=Math.clamp(value,30,250);save();}
     public static void cycleTrailWidth() {
         trailWidth = trailWidth < .09f ? .115f : trailWidth < .15f ? .22f : .065f;
         save();
