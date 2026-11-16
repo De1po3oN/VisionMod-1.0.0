@@ -51,8 +51,12 @@ final class VisionInventoryGameTest {
         context.runOnClient(mc->check(mc.player.containerMenu.getCarried().getCount()==8,"Fixture did not pick up apples"));
         context.getInput().holdShift();slot(context,dirt);context.getInput().scroll(1);context.waitTicks(2);
         context.runOnClient(mc->check(mc.player.getInventory().countItem(Items.DIRT)==16&&mc.player.containerMenu.getCarried().getCount()==8,"Scroller changed inventory with a carried stack"));
+        // Keep the fixture's placement click outside vanilla's double-click collection window.
+        context.waitTicks(6);
         context.getInput().releaseShift();slot(context,apple);context.getInput().pressMouse(0);
-        context.waitTicks(2);serverCounts(world,0,16,8);
+        context.waitTicks(2);
+        context.runOnClient(mc->check(mc.player.containerMenu.getCarried().isEmpty()&&mc.player.getInventory().countItem(Items.APPLE)==8,"Fixture did not return the carried apples"));
+        serverCounts(world,0,16,8);
         // Destination full: vanilla rejects the move without loss or duplication.
         world.getServer().runOnServer(server->{
             var chest=(Container)server.overworld().getBlockEntity(CHEST);
@@ -70,7 +74,8 @@ final class VisionInventoryGameTest {
     private static void serverCounts(TestSingleplayerContext world,int stone,int dirt,int apple){
         world.getServer().runOnServer(server->{
             var inventory=server.getPlayerList().getPlayers().getFirst().getInventory();
-            check(inventory.countItem(Items.STONE)==stone&&inventory.countItem(Items.DIRT)==dirt&&inventory.countItem(Items.APPLE)==apple,"Server rejected or duplicated an inventory transfer");
+            check(inventory.countItem(Items.STONE)==stone&&inventory.countItem(Items.DIRT)==dirt&&inventory.countItem(Items.APPLE)==apple,
+                "Unexpected server counts: stone="+inventory.countItem(Items.STONE)+", dirt="+inventory.countItem(Items.DIRT)+", apple="+inventory.countItem(Items.APPLE)+", carried="+server.getPlayerList().getPlayers().getFirst().containerMenu.getCarried().getCount());
         });
     }
     private static void logInventory(ClientGameTestContext context,String stage){
