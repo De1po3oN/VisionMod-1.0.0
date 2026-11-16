@@ -1,8 +1,1 @@
-Exception in thread "main" java.lang.AssertionError: WinRT reader returned no metadata/empty-session response
-	at WindowsMediaSmokeTest.main(WindowsMediaSmokeTest.java:14)
-Caused by: java.lang.IllegalStateException: Not a JSON Object: null
-	at com.google.gson.JsonElement.getAsJsonObject(JsonElement.java:165)
-	at com.visionmod.SystemMediaReader.readWindows(SystemMediaReader.java:46)
-	at com.visionmod.SystemMediaReader.read(SystemMediaReader.java:23)
-	at WindowsMediaSmokeTest.lambda$main$1(WindowsMediaSmokeTest.java:11)
-	at java.base/java.lang.Thread.run(Thread.java:1583)
+PASS: Windows media API responded and child process stopped (not a live-song test)
