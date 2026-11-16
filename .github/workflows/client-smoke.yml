@@ -48,12 +48,14 @@ jobs:
             cat capture-editors.log
             wait "$game"
             status=$?
+            printf "Game process status: %s\nCapture status: %s\n" "$status" "$capture" > game-exit-status.txt
             if [ "$capture" -ne 0 ]; then exit "$capture"; fi
             exit "$status"
           '
           status=$?
           set -e
-          echo "Client process status: $status" | tee smoke-status.txt
+          echo "Smoke runner status: $status" | tee smoke-status.txt
+          cat game-exit-status.txt
           tail -n 100 smoke-client.log
           if grep -Eiq 'MixinApplyError|InvalidInjectionException|MixinTransformerError|NoClassDefFoundError|Crash report saved|The game crashed|SELFTEST.*failed|SELFTEST.*exception' smoke-client.log; then
             echo "Found a fatal client / mixin exception"
@@ -83,6 +85,7 @@ jobs:
             editor-captures/**
             smoke-client.log
             smoke-status.txt
+            game-exit-status.txt
             run/logs/latest.log
             run/crash-reports/**
           if-no-files-found: warn

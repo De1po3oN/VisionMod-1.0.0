@@ -8,8 +8,13 @@ log = Path('smoke-client.log')
 output = Path('editor-captures')
 output.mkdir(exist_ok=True)
 seen = set()
+started = time.monotonic()
+startup_captured = False
 end = time.monotonic() + 90
 while time.monotonic() < end:
+    if not startup_captured and time.monotonic() - started > 40:
+        ImageGrab.grab(xdisplay=os.environ['DISPLAY']).save(output / 'startup.png')
+        startup_captured = True
     text = log.read_text(errors='replace') if log.exists() else ''
     for stage in range(8):
         if stage not in seen and f'[VisionMod][VISUAL] {stage}' in text:

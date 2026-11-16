@@ -20,3 +20,10 @@ printf '527175ca6d81050b53bdd4c457a6d6e017626b0e  %s\n' "$gson" | sha1sum -c -
   tests/stubs/net/minecraft/client/Minecraft.java tests/stubs/net/fabricmc/loader/api/FabricLoader.java \
   src/main/java/com/visionmod/{VisionLyricsSource,VisionLyricsLookup}.java tests/LyricsSourceTest.java
 "$java_bin" -ea -Dvisionmod.test.config="$work/config" -cp "$work/classes:$gson" LyricsSourceTest
+
+"$javac_bin" -encoding UTF-8 --release 21 -cp "$work/classes" -d "$work/classes" \
+  tests/stubs/com/mojang/blaze3d/vertex/*.java tests/stubs/net/minecraft/resources/Identifier.java \
+  tests/stubs/net/minecraft/client/renderer/rendertype/RenderTypes.java \
+  tests/stubs/net/minecraft/client/renderer/texture/OverlayTexture.java \
+  src/main/java/com/visionmod/VisionGeometry.java tests/MeshRegressionTest.java
+"$java_bin" -ea -cp "$work/classes" MeshRegressionTest

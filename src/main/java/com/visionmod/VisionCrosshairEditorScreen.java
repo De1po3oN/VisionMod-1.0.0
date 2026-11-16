@@ -28,8 +28,13 @@ public final class VisionCrosshairEditorScreen extends VisionPanelScreen {
     private void paint(MouseButtonEvent e){
         int col=(int)(e.x()-cx)/cell,row=(int)(e.y()-cy)/cell;
         if(!hit(e.x(),e.y(),cx,cy,canvas,canvas)||(col==lastX&&row==lastY))return;
+        int fromX=lastX<0?col:lastX,fromY=lastY<0?row:lastY;
+        int steps=Math.max(Math.abs(col-fromX),Math.abs(row-fromY));
+        for(int i=0;i<=steps;i++){
+            float t=steps==0?0:i/(float)steps;
+            VisionExtras.setPixel(Math.round(fromX+(col-fromX)*t),Math.round(fromY+(row-fromY)*t),!erase);
+        }
         lastX=col;lastY=row;
-        VisionExtras.setPixel(col,row,!erase);
     }
     @Override public boolean mouseClicked(MouseButtonEvent e,boolean doubled){
         if((e.button()==0||e.button()==1)&&hit(e.x(),e.y(),cx,cy,canvas,canvas)){

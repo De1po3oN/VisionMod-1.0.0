@@ -16,7 +16,7 @@ folder.mkdir()
 if kind=='build':
     shutil.copy2('build/libs/visionmod-2.0.0.jar',folder/'visionmod-2.0.0.jar')
 else:
-    for name in ['smoke-client.log','smoke-status.txt','capture-editors.log']:
+    for name in ['smoke-client.log','smoke-status.txt','capture-editors.log','game-exit-status.txt']:
         if Path(name).is_file(): shutil.copy2(name,folder/name)
     for image in Path('editor-captures').glob('*.png'): shutil.copy2(image,folder/image.name)
 (report/'README.md').write_text('VisionMod CI evidence only. Source: codex/visual-refresh.\nEach folder records its exact source SHA and workflow run.\n')
