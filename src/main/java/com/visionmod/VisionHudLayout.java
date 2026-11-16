@@ -76,7 +76,7 @@ public final class VisionHudLayout {
 
     public static boolean chatOpen(Minecraft mc) {return mc.screen instanceof ChatScreen;}
     public static boolean hudVisible(Minecraft mc) {
-        return mc.screen == null || chatOpen(mc);
+        return !mc.options.hideGui && (mc.screen == null || chatOpen(mc));
     }
     public static boolean moved(Widget id){return id.moved;}
 

@@ -116,6 +116,8 @@ public final class VisionWorldEffects {
     private static int airborneTicks;
     private static int tick;
     private static boolean renderFaulted;
+    private static long renderedFrames;
+    static long renderedFrames(){return renderedFrames;}
     public static boolean suspended(){return renderFaulted;}
 
     private VisionWorldEffects() {}
@@ -135,7 +137,7 @@ public final class VisionWorldEffects {
     public static void init() {
         load();
         ClientTickEvents.END_CLIENT_TICK.register(VisionWorldEffects::tick);
-        WorldRenderEvents.BEFORE_DEBUG_RENDER.register(ctx->{
+        WorldRenderEvents.AFTER_ENTITIES.register(ctx->{
             Minecraft mc=Minecraft.getInstance();
             if(renderFaulted||!VisionModClient.enabled||mc.player==null||mc.level==null||ctx.consumers()==null||ctx.matrices()==null)return;
             if(!ENABLED[0]&&!ENABLED[1]&&!ENABLED[2]&&!ENABLED[3])return;
@@ -205,6 +207,7 @@ public final class VisionWorldEffects {
                     AABB box=target.getBoundingBox().move(target.getPosition(partial).subtract(target.position())).inflate(.045);
                     corners(lines,pose,box.move(-cam.x,-cam.y,-cam.z),VisionGeometry.withAlpha(c,210));
                 }
+                renderedFrames++;
             }catch(RuntimeException ex){renderFaulted=true;System.err.println("[VisionMod][WORLD FX] Renderer suspended: "+ex);}
         });
     }

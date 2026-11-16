@@ -16,7 +16,7 @@ public final class TargetOutline {
     private TargetOutline() { }
 
     public static void init() {
-        WorldRenderEvents.BEFORE_DEBUG_RENDER.register(context -> {
+        WorldRenderEvents.AFTER_ENTITIES.register(context -> {
             if (!VisionModClient.enabled || !VisionExtras.targetOutline ||
                     context.consumers() == null || context.matrices() == null) return;
             Minecraft mc = Minecraft.getInstance();

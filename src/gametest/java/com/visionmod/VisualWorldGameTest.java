@@ -47,8 +47,11 @@ public final class VisualWorldGameTest implements FabricClientGameTest {
             context.waitTicks(35);
             assertRenderers(context);
             capture(context,"01-first-person");
-            context.runOnClient(mc->mc.options.setCameraType(CameraType.THIRD_PERSON_BACK));
+            context.runOnClient(mc->{mc.options.setCameraType(CameraType.THIRD_PERSON_BACK);mc.options.hideGui=true;});
             context.waitTicks(10);assertRenderers(context);capture(context,"02-pet-hat-target");
+            world.getServer().runCommand("kill @e[type=minecraft:armor_stand]");
+            world.getServer().runCommand("tp @p 4 -60 0 0 12");
+            context.waitTicks(3);
             context.getInput().holdKey(options->options.keyUp);
             context.getInput().holdKey(options->options.keyJump);
             context.waitTicks(18);
@@ -56,6 +59,7 @@ public final class VisualWorldGameTest implements FabricClientGameTest {
             context.waitTicks(6);assertRenderers(context);capture(context,"03-trail-and-particles");
             context.getInput().releaseKey(options->options.keyUp);
             context.waitTicks(25);assertRenderers(context);capture(context,"04-landing-and-pet");
+            context.runOnClient(mc->mc.options.hideGui=false);
             context.setScreen(VisionDashboardScreen::new);
             context.waitTicks(3);capture(context,"05-dashboard-in-world");
             context.setScreen(()->null);
@@ -78,6 +82,9 @@ public final class VisualWorldGameTest implements FabricClientGameTest {
             if(VisionPetRenderer.suspended())throw new AssertionError("Pet renderer silently suspended");
             if(VisionWorldEffects.suspended())throw new AssertionError("World FX silently suspended");
             if(VisionCustomModels.suspended())throw new AssertionError("Custom model renderer silently suspended");
+            if(mc.options.getCameraType()!=CameraType.FIRST_PERSON&&
+                (VisionPetRenderer.renderedFrames()==0||VisionWorldEffects.renderedFrames()==0||VisionCustomModels.renderedFrames()==0))
+                throw new AssertionError("An enabled renderer never submitted a frame");
         });
     }
     private static void capture(ClientGameTestContext context,String name)throws java.io.IOException{

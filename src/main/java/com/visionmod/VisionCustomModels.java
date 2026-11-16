@@ -38,13 +38,15 @@ public final class VisionCustomModels {
     private static List<Box> boxes = List.of();
     public static boolean enabled;
     private static boolean renderFaulted;
+    private static long renderedFrames;
+    static long renderedFrames(){return renderedFrames;}
     public static boolean suspended(){return renderFaulted;}
 
     private VisionCustomModels() {}
 
     public static void init() {
         load();
-        WorldRenderEvents.BEFORE_DEBUG_RENDER.register(context -> {
+        WorldRenderEvents.AFTER_ENTITIES.register(context -> {
             if (renderFaulted || !VisionModClient.enabled || !enabled || boxes.isEmpty() ||
                 context.consumers() == null || context.matrices() == null) return;
             Minecraft mc = Minecraft.getInstance();
@@ -72,6 +74,7 @@ public final class VisionCustomModels {
                 VertexConsumer lines=context.consumers().getBuffer(RenderTypes.lines());
                 for(Box b:boxes)ShapeRenderer.renderShape(pose,lines,Shapes.create(b.geometry()),0,0,0,VisionGeometry.withAlpha(b.color(),65),1f);
             }
+                renderedFrames++;
             } catch (RuntimeException ex) {
                 renderFaulted=true;
                 System.err.println("[VisionMod][CUSTOM MODEL] Disabled invalid renderer: "+ex);

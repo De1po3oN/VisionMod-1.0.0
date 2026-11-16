@@ -103,7 +103,7 @@ public final class OreHighlight {
             }
         });
 
-        WorldRenderEvents.BEFORE_DEBUG_RENDER.register(context -> {
+        WorldRenderEvents.AFTER_ENTITIES.register(context -> {
             VisionPerformance.observeFrame();
             if (!VisionModClient.isOreEnabled() || visible.isEmpty() ||
                 context.consumers() == null || context.matrices() == null) return;

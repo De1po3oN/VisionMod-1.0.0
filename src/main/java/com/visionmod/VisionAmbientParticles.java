@@ -49,7 +49,7 @@ public final class VisionAmbientParticles {
 
     public static void init() {
         ClientTickEvents.END_CLIENT_TICK.register(VisionAmbientParticles::tick);
-        WorldRenderEvents.BEFORE_DEBUG_RENDER.register(ctx -> {
+        WorldRenderEvents.AFTER_ENTITIES.register(ctx -> {
             if (!VisionModClient.enabled || ctx.consumers() == null ||
                 ctx.matrices() == null || count == 0) return;
 

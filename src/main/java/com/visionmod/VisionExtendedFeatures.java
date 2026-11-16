@@ -130,7 +130,7 @@ public final class VisionExtendedFeatures {
         ClientTickEvents.END_CLIENT_TICK.register(VisionExtendedFeatures::tick);
         HudElementRegistry.addLast(Identifier.fromNamespaceAndPath("visionmod", "extended_hud"),
             (g, tracker) -> renderHud(g));
-        WorldRenderEvents.BEFORE_DEBUG_RENDER.register(context -> {
+        WorldRenderEvents.AFTER_ENTITIES.register(context -> {
             if (!VisionModClient.enabled || context.matrices() == null ||
                 context.consumers() == null || !FLAGS[0]) return;
             Minecraft mc = Minecraft.getInstance();

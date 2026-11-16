@@ -11,14 +11,14 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.phys.Vec3;
 
-/** One quiet lyric line. Browser clock → local LRC → optional manual text. */
+/** One quiet lyric line. Native media clock → local LRC → optional manual text. */
 public final class VisionWorldLyrics {
     private static String cachedText = "";
     private static String[] lines = {""};
     private VisionWorldLyrics() {}
     public static void init() {
         HudElementRegistry.addLast(Identifier.fromNamespaceAndPath("visionmod", "world_lyrics_visible"), (g,t)->render(g));
-        WorldRenderEvents.BEFORE_DEBUG_RENDER.register(VisionWorldLyrics::renderInWorld);
+        WorldRenderEvents.AFTER_ENTITIES.register(VisionWorldLyrics::renderInWorld);
     }
     public static String previewLine(String text, long ticks) {
         text = text == null ? "" : text;

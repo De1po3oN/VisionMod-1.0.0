@@ -11,11 +11,13 @@ import net.minecraft.world.phys.Vec3;
 /** Rounded, animated local companion. One texture and consumer for every part. */
 public final class VisionPetRenderer {
     private static boolean renderFaulted;
+    private static long renderedFrames;
+    static long renderedFrames(){return renderedFrames;}
     public static boolean suspended(){return renderFaulted;}
     public static void retryAfterToggle(){renderFaulted=false;}
     private VisionPetRenderer(){}
     public static void init(){
-        WorldRenderEvents.BEFORE_DEBUG_RENDER.register(ctx->{
+        WorldRenderEvents.AFTER_ENTITIES.register(ctx->{
             Minecraft mc=Minecraft.getInstance();
             if(renderFaulted||!VisionModClient.enabled||!VisionExtendedFeatures.enabled(4)||
                 mc.player==null||mc.level==null||ctx.matrices()==null||ctx.consumers()==null)return;
@@ -28,7 +30,7 @@ public final class VisionPetRenderer {
             PoseStack pose=ctx.matrices();pose.pushPose();
             try{
                 pose.translate(pos.x-cam.x,pos.y-cam.y,pos.z-cam.z);
-                pose.mulPose(Axis.YP.rotationDegrees(180-mc.gameRenderer.getMainCamera().yRot()));
+                pose.mulPose(Axis.YP.rotationDegrees(-mc.gameRenderer.getMainCamera().yRot()));
                 pose.mulPose(Axis.ZP.rotationDegrees((float)Math.sin(t*1.6)*3));
                 VertexConsumer out=ctx.consumers().getBuffer(RenderTypes.entityTranslucent(VisionGeometry.WHITE_TEXTURE));
                 int fur=VisionExtendedFeatures.petColor(),light=EffectMath.blend(fur,0xFFFFFFFF,.62f);
@@ -57,6 +59,7 @@ public final class VisionPetRenderer {
                 ball(out,pose,-.235f-flutter,-.025f,.065f,.115f,.055f,.022f,0xC3D8C9FF,8,4);
                 ball(out,pose,.235f+flutter,-.025f,.065f,.115f,.055f,.022f,0xC3D8C9FF,8,4);
                 VisionGeometry.band(out,pose,0,-.35,0,.30,.028,VisionGeometry.withAlpha(fur,85),VisionGeometry.withAlpha(fur,0),20);
+                renderedFrames++;
             }catch(RuntimeException e){renderFaulted=true;System.err.println("[VisionMod][PET] Renderer suspended: "+e);}
             finally{pose.popPose();}
         });
