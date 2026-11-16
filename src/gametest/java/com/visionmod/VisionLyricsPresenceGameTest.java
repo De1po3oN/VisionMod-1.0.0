@@ -45,7 +45,7 @@ final class VisionLyricsPresenceGameTest {
         });context.waitTicks(2);
         long blank=context.computeOnClient(mc->VisionWorldLyrics.renderedFrames());context.waitTicks(2);
         context.runOnClient(mc->check(blank==VisionWorldLyrics.renderedFrames(),"Instrumental gap submitted a placeholder world panel"));
-        context.runOnClient(mc->{VisionLyricsSource.clearMediaTrack();VisionExtendedFeatures.setCustomText("");});
+        context.runOnClient(mc->{VisionLyricsSource.clearMediaTrack();VisionExtendedFeatures.setCustomText("");mc.options.hideGui=false;});
         context.waitFor(mc->VisionPresenceClient.confirmed(mc.player.getUUID()),100);
         context.runOnClient(mc->{
             UUID id=mc.player.getUUID();
