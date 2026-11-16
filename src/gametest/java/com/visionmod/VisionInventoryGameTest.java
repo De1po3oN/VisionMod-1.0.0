@@ -28,7 +28,7 @@ final class VisionInventoryGameTest {
         context.waitTicks(2);
         context.waitFor(mc->mc.player.getInventory().countItem(Items.STONE)==32,100);
         serverCounts(world,32,0,0);
-        // First stack uses vanilla shift-click; dragging onto the second invokes Fast Scroller.
+        // Initial press and subsequent hovered slots both use ordinary QUICK_MOVE packets.
         slot(context,1);context.getInput().holdMouse(0);context.waitTicks(2);
         logInventory(context,"initial shift-click");
         slot(context,2);context.waitTicks(2);slot(context,1);slot(context,2);

@@ -93,7 +93,7 @@ public class CoreRegressionTest {
         check(!SystemMediaTrack.fromMpris("Test","{}").positionKnown(),"missing native position is not invented");
         var gesture=new FastScrollGesture();
         gesture.beginDrag(1);
-        check(!gesture.visit(1),"drag does not repeat the initial vanilla shift-click");
+        check(!gesture.visit(1),"drag does not repeat the initial handled shift-click");
         check(gesture.visit(2)&&!gesture.visit(2),"one quick move per visited slot");
         check(gesture.visit(3)&&!gesture.visit(2),"returning across a slot does not send duplicate transfers");
         gesture.reset();check(gesture.visit(2),"new drag can revisit a previous slot");

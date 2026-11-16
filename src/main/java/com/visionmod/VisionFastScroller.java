@@ -21,6 +21,7 @@ public final class VisionFastScroller {
                 if(click.button()==0&&ready(container)){
                     Slot slot=slotAt(container,click.x(),click.y());
                     gesture.beginDrag(slot==null?-1:slot.index);
+                    if(movable(slot)){transfer(container,slot);return false;}
                 }
                 return true;
             });
