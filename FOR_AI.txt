@@ -1,3 +1,10 @@
+*** 2026-11-16 · FREE LOOK / HOTBAR / SYNCED LYRICS ***
+Последний запрос: Lyrics должны идти в темп песни, плавный хотбар, Free Look не работает пять дней. Кодовый checkpoint abad564, codex/visual-refresh.
+КОРЕНЬ FREE LOOK ДОКАЗАН по bytecode MC1.21.11: ordinal0/setRotation только для interpolated minecart; обычная камера использует второй вызов. Удалён ordinal, require2; не возвращать ordinal0. Реальный client test Alt/mouse/camera/player aim/release/front/F5/menu/rebind PASS /43940033956.
+HotbarTween + SmoothHotbarMixin: 140 ms, настоящий слот сразу; Appearance.smoothHotbar, профиль. Реальный hook/number7/end-position/OFF PASS.
+LyricsSearch exact/search fallback, нормализация/длительность; native rate/duration/positionKnown/capture timestamp, опрос 500 ms, пустые LRC-паузы, local LRC на media clock, generation cancellation. 280 core +16 source +8 HTTP fixture +mesh PASS. Windows /43940033959 и build /43940034016 PASS. LiveLyricsSmoke отдельно проверяет public LRCLIB; смотреть lyrics-live.log, не путать с реальной музыкой.
+См. CONTROLS_LYRICS_QA_RU.md. После восстановления среды был старый work/main; рабочая ветка получена fetch/switch. Локальный JDK снова /workspace/.visionmod-tools/jdk21. Не выдавать старые JAR до фикса камеры.
+
 *** 2026-11-16 · АКТУАЛЬНОЕ ПРОДОЛЖЕНИЕ ***
 Пользователь просит автономно улучшить внешний вид всех функций и исправлять баги. Обязательное уточнение: ЧИСТЫЙ МОД БЕЗ БРАУЗЕРНЫХ РАСШИРЕНИЙ. Не восстанавливать browser-extension, pairing/token/HTTP bridge из истории ниже.
 Работа в codex/visual-refresh, main не перезаписана. Версия2.0.0, MC1.21.11/Fabric/Java21; репозиторий исторически называется1.0.0.

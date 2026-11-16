@@ -38,6 +38,13 @@ jobs:
           tail -n 70 world-client.log
           test "$status" -eq 0
           grep -q '\[VisionMod\]\[WORLDTEST\] PASS:' world-client.log
+      - name: Verify real public timed lyrics lookup
+        run: |
+          set +e
+          gradle -PvisualGameTest verifyLiveLyrics --no-daemon --console=plain --max-workers=2 > lyrics-live.log 2>&1
+          status=$?
+          tail -n 35 lyrics-live.log
+          exit "$status"
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -45,6 +52,7 @@ jobs:
           path: |
             world-prepare.log
             world-client.log
+            lyrics-live.log
             build/run/clientGameTest/vision-world-captures/**
           if-no-files-found: warn
       - uses: actions/checkout@v4

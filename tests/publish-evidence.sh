@@ -16,7 +16,7 @@ folder.mkdir()
 if kind=='build':
     shutil.copy2('build/libs/visionmod-2.0.0.jar',folder/'visionmod-2.0.0.jar')
 elif kind=='world':
-    for name in ['world-client.log','world-prepare.log']:
+    for name in ['world-client.log','world-prepare.log','lyrics-live.log']:
         if Path(name).is_file(): shutil.copy2(name,folder/name)
     for image in Path('build/run/clientGameTest/vision-world-captures').glob('*.png'): shutil.copy2(image,folder/image.name)
 elif kind=='windows':

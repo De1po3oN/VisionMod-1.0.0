@@ -50,4 +50,9 @@ if (providers.gradleProperty('visualGameTest').isPresent()) {
   classpath=sourceSets.gametest.runtimeClasspath
   mainClass='com.visionmod.InspectMinecraftHooks'
  }
+ tasks.register('verifyLiveLyrics',JavaExec) {
+  dependsOn tasks.named('gametestClasses')
+  classpath=sourceSets.gametest.runtimeClasspath
+  mainClass='com.visionmod.LiveLyricsSmoke'
+ }
 }
