@@ -29,7 +29,9 @@ jobs:
       - name: Prepare client dependencies before timed smoke
         run: gradle build downloadAssets --no-daemon --console=plain --max-workers=2
       - name: Prepare screenshot utility
-        run: python3 -m pip install Pillow
+        run: |
+          python3 -m pip install Pillow
+          python3 tests/test-capture.py
       - name: Start Minecraft in virtual display
         shell: bash
         env:
