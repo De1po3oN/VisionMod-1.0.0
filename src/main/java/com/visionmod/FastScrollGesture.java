@@ -8,6 +8,7 @@ public final class FastScrollGesture {
     private boolean dragging;
     private int wheelSlot=-1;
     private double wheel;
+    public boolean dragging(){return dragging;}
     public void beginDrag(int firstSlot){visited.clear();dragging=true;if(firstSlot>=0)visited.set(firstSlot);}
     public boolean visit(int slot){
         if(!dragging)beginDrag(-1);

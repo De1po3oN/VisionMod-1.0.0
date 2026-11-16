@@ -74,6 +74,6 @@ final class VisionInventoryGameTest {
         });
     }
     private static void logInventory(ClientGameTestContext context,String stage){
-        context.runOnClient(mc->System.out.println("[VisionMod][INVENTORY] "+stage+": dirt="+mc.player.getInventory().countItem(Items.DIRT)+", apple="+mc.player.getInventory().countItem(Items.APPLE)+", carried="+mc.player.containerMenu.getCarried().getCount()+", left="+mc.mouseHandler.isLeftPressed()+", shift="+mc.hasShiftDown()));
+        context.runOnClient(mc->System.out.println("[VisionMod][INVENTORY] "+stage+": dirt="+mc.player.getInventory().countItem(Items.DIRT)+", apple="+mc.player.getInventory().countItem(Items.APPLE)+", carried="+mc.player.containerMenu.getCarried().getCount()+", shift="+mc.hasShiftDown()));
     }
 }

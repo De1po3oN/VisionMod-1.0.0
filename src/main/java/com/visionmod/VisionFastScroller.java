@@ -29,11 +29,10 @@ public final class VisionFastScroller {
                 return !dragAt(container,gesture,click.x(),click.y());
             });
             // A vanilla Shift-click may not enter the screen's drag state.
-            // Sample the real held button as well; visited slots cannot transfer twice.
+            // Retain GUI press/release state; vanilla's attack-button flag is for gameplay.
             ScreenEvents.afterRender(screen).register((scr,graphics,x,y,delta)->{
                 if(!ready(container)){gesture.reset();return;}
-                if(!client.mouseHandler.isLeftPressed()){gesture.endDrag();return;}
-                dragAt(container,gesture,x,y);
+                if(gesture.dragging())dragAt(container,gesture,x,y);
             });
             ScreenMouseEvents.allowMouseScroll(screen).register((scr,x,y,horizontal,vertical)->{
                 if(!ready(container)||vertical==0){gesture.clearWheel();return true;}
