@@ -1,0 +1,75 @@
+package com.visionmod;
+
+import net.fabricmc.fabric.api.client.gametest.v1.FabricClientGameTest;
+import net.fabricmc.fabric.api.client.gametest.v1.context.ClientGameTestContext;
+import net.minecraft.client.CameraType;
+import net.minecraft.world.entity.item.PrimedTnt;
+import java.nio.file.*;
+
+/** Real integrated-world render smoke; does not replace shader/visual acceptance or FPS measurement. */
+public final class VisualWorldGameTest implements FabricClientGameTest {
+    @Override public void runTest(ClientGameTestContext context){
+        try(var world=context.worldBuilder().create()){
+            world.getServer().runCommand("gamemode creative @p");
+            world.getServer().runCommand("time set day");
+            world.getServer().runCommand("weather clear");
+            world.getServer().runCommand("tp @p 0 -60 0 0 0");
+            world.getServer().runCommand("item replace entity @p armor.head with minecraft:diamond_helmet");
+            world.getServer().runCommand("item replace entity @p armor.chest with minecraft:diamond_chestplate");
+            world.getServer().runCommand("item replace entity @p armor.legs with minecraft:diamond_leggings");
+            world.getServer().runCommand("item replace entity @p armor.feet with minecraft:diamond_boots");
+            world.getServer().runCommand("item replace entity @p weapon.mainhand with minecraft:shulker_box");
+            world.getServer().runCommand("setblock 2 -60 0 minecraft:diamond_ore");
+            world.getServer().runCommand("summon minecraft:armor_stand 0 -60 2.5");
+            world.getServer().runOnServer(server->{
+                var level=server.overworld();
+                var tnt=new PrimedTnt(level,1,-60,2,null);tnt.setFuse(1200);level.addFreshEntity(tnt);
+            });
+            context.waitTicks(4);
+            context.runOnClient(mc->{
+                VisionModClient.enabled=true;VisionRenderBoost.enabled=false;
+                VisionModClient.oreHighlight=true;VisionPerformance.oreRadius=4;VisionPerformance.checksPerTick=80;
+                mc.options.setCameraType(CameraType.FIRST_PERSON);
+                for(int i:new int[]{0,1,2,3,7,8,9})if(!VisionExtras.enabled(i))VisionExtras.toggle(i);
+                for(int i=0;i<VisionWorldEffects.count();i++)if(!VisionWorldEffects.enabled(i))VisionWorldEffects.toggle(i);
+                for(int i:new int[]{1,2,3,4,5,6,7})if(!VisionFeaturePack.enabled(i))VisionFeaturePack.toggle(i);
+                for(int i:new int[]{0,1,2,3,4,5})if(!VisionExtendedFeatures.enabled(i))VisionExtendedFeatures.toggle(i);
+                VisionExtendedFeatures.setCustomText("VISION · WORLD TEST");
+                if(!VisionTools2.selected(1))VisionTools2.toggle(1);
+                VisionTabHeads.enabled=true;
+            });
+            world.getClientWorld().waitForChunksRender();
+            context.waitTicks(35);
+            assertRenderers(context);
+            capture(context,"01-first-person");
+            context.runOnClient(mc->mc.options.setCameraType(CameraType.THIRD_PERSON_BACK));
+            context.waitTicks(10);assertRenderers(context);capture(context,"02-pet-hat-target");
+            context.getInput().holdKey(options->options.keyUp);
+            context.getInput().holdKey(options->options.keyJump);
+            context.waitTicks(18);
+            context.getInput().releaseKey(options->options.keyJump);
+            context.waitTicks(6);assertRenderers(context);capture(context,"03-trail-and-particles");
+            context.getInput().releaseKey(options->options.keyUp);
+            context.waitTicks(25);assertRenderers(context);capture(context,"04-landing-and-pet");
+            context.setScreen(VisionDashboardScreen::new);
+            context.waitTicks(3);capture(context,"05-dashboard-in-world");
+            context.setScreen(()->null);
+            context.runOnClient(mc->VisionModClient.enabled=false);
+            context.waitTicks(3);capture(context,"06-global-off");
+            System.out.println("[VisionMod][WORLDTEST] PASS: loaded world, active renderers, movement/jump, six framebuffer captures and global OFF");
+        }catch(Exception e){throw new AssertionError("Vision world render test failed",e);}
+    }
+    private static void assertRenderers(ClientGameTestContext context){
+        context.runOnClient(mc->{
+            if(mc.level==null||mc.player==null)throw new AssertionError("World not loaded");
+            if(VisionPetRenderer.suspended())throw new AssertionError("Pet renderer silently suspended");
+            if(VisionWorldEffects.suspended())throw new AssertionError("World FX silently suspended");
+            if(VisionCustomModels.suspended())throw new AssertionError("Custom model renderer silently suspended");
+        });
+    }
+    private static void capture(ClientGameTestContext context,String name)throws java.io.IOException{
+        Path image=context.takeScreenshot("vision-world-"+name);
+        Path directory=Path.of("vision-world-captures");Files.createDirectories(directory);
+        Files.copy(image,directory.resolve(name+".png"),StandardCopyOption.REPLACE_EXISTING);
+    }
+}

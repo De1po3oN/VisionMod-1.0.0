@@ -2,7 +2,7 @@
 # CI-only output branch; never writes the development branch or prints credentials.
 set -euo pipefail
 kind=$1
-case "$kind" in build|smoke|windows) ;; *) exit 2 ;; esac
+case "$kind" in build|smoke|windows|world) ;; *) exit 2 ;; esac
 python3 - "$kind" <<'PY'
 import json, os, shutil, sys
 from pathlib import Path
@@ -15,6 +15,9 @@ folder.mkdir()
 (folder/'source.json').write_text(json.dumps({'sha':os.environ['GITHUB_SHA'], 'run':os.environ['GITHUB_RUN_ID'], 'attempt':os.environ['GITHUB_RUN_ATTEMPT']},indent=2)+'\n')
 if kind=='build':
     shutil.copy2('build/libs/visionmod-2.0.0.jar',folder/'visionmod-2.0.0.jar')
+elif kind=='world':
+    if Path('world-client.log').is_file(): shutil.copy2('world-client.log',folder/'world-client.log')
+    for image in Path('build/run/clientGameTest/vision-world-captures').glob('*.png'): shutil.copy2(image,folder/image.name)
 elif kind=='windows':
     if Path('windows-media.log').is_file(): shutil.copy2('windows-media.log',folder/'windows-media.log')
 else:

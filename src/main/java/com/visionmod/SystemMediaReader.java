@@ -42,7 +42,9 @@ public final class SystemMediaReader implements AutoCloseable {
         try(BufferedReader reader=new BufferedReader(new InputStreamReader(process.getInputStream(),StandardCharsets.UTF_8))){
             String line;
             while(!closed&&(line=reader.readLine())!=null){
-                if(line.length()>16384)continue;
+                line=line.strip();
+                if(line.isEmpty()||line.length()>16384)continue;
+                if(!line.startsWith("{"))continue;
                 JsonObject doc=JsonParser.parseString(line).getAsJsonObject();
                 if(doc.has("error"))throw new java.io.IOException("Windows media API returned an error");
                 if(!doc.has("title")){sink.accept(null);continue;}

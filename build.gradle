@@ -30,3 +30,14 @@ dependencies {
 processResources { inputs.property 'version', project.version; filesMatching('fabric.mod.json') { expand 'version': project.version } }
 tasks.withType(JavaCompile).configureEach { options.release = 21 }
 java { sourceCompatibility = JavaVersion.VERSION_21; targetCompatibility = JavaVersion.VERSION_21 }
+
+// Optional, isolated render tests. Test classes are never included in the mod JAR.
+if (providers.gradleProperty('visualGameTest').isPresent()) {
+ loom { mods { visionmod { sourceSet sourceSets.main } } }
+ fabricApi.configureTests {
+  createSourceSet = true
+  modId = 'visionmod-visual-tests'
+  enableGameTests = false
+  enableClientGameTests = true
+ }
+}
