@@ -1,29 +1,32 @@
-"""Capture actual editor frames inside the smoke test's Xvfb display."""
-import os
+"""Validate and retain native Minecraft framebuffer screenshots (not X11 root)."""
+import shutil
 import time
 from pathlib import Path
-from PIL import ImageGrab
+from PIL import Image, ImageStat
 
-log = Path('smoke-client.log')
-output = Path('editor-captures')
+source=Path('run/screenshots')
+output=Path('editor-captures')
 output.mkdir(exist_ok=True)
-seen = set()
-started = time.monotonic()
-startup_captured = False
-end = time.monotonic() + 90
-while time.monotonic() < end:
-    if not startup_captured and time.monotonic() - started > 40:
-        ImageGrab.grab(xdisplay=os.environ['DISPLAY']).save(output / 'startup.png')
-        startup_captured = True
-    text = log.read_text(errors='replace') if log.exists() else ''
+seen=set()
+started=time.time()
+end=time.monotonic()+90
+while time.monotonic()<end:
     for stage in range(8):
-        if stage not in seen and f'[VisionMod][VISUAL] {stage}' in text:
-            time.sleep(.5)
-            ImageGrab.grab(xdisplay=os.environ['DISPLAY']).save(output / f'{stage:02d}.png')
+        image=source/f'vision-editor-{stage:02d}.png'
+        if stage in seen or not image.exists() or image.stat().st_mtime<started:
+            continue
+        try:
+            with Image.open(image) as frame:
+                if frame.width<160 or frame.height<100 or max(ImageStat.Stat(frame.convert('RGB')).var)<5:
+                    continue
+                frame.verify()
+            shutil.copy2(image,output/f'{stage:02d}.png')
             seen.add(stage)
-    if len(seen) == 8:
-        print('Captured 8 real Minecraft editor frames')
+        except (OSError,ValueError):
+            pass  # The asynchronous screenshot writer may still own this file.
+    if len(seen)==8:
+        print('PASS: 8 nonblank Minecraft framebuffer screenshots')
         break
     time.sleep(.15)
 else:
-    raise SystemExit(f'Only captured {len(seen)} of 8 editors')
+    raise SystemExit(f'Only {len(seen)} of 8 nonblank editor captures; missing {sorted(set(range(8))-seen)}')

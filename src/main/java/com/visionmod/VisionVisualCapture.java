@@ -13,7 +13,14 @@ public final class VisionVisualCapture {
                 if(stage<0){if(mc.screen==null||mc.getOverlay()!=null)return;
                     if(ticks==0)System.out.println("[VisionMod][VISUAL] Initial screen: "+mc.screen.getClass().getSimpleName());
                     if(++ticks<40)return;stage=0;ticks=0;}
-                if(ticks++!=0){if(ticks>=80){ticks=0;stage++;}return;}
+                if(ticks++!=0){
+                    if(ticks==12&&stage>=0&&stage<8){
+                        final int capturedStage=stage;
+                        net.minecraft.client.Screenshot.grab(mc.gameDirectory,String.format(java.util.Locale.ROOT,"vision-editor-%02d.png",stage),mc.getMainRenderTarget(),1,
+                            message->System.out.println("[VisionMod][VISUAL] Saved framebuffer "+capturedStage));
+                    }
+                    if(ticks>=80){ticks=0;stage++;}return;
+                }
                 switch(stage){
                     case 0->mc.setScreen(new VisionDashboardScreen());
                     case 1->mc.setScreen(new VisionAppearanceScreen());

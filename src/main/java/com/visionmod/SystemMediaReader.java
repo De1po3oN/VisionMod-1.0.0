@@ -37,13 +37,14 @@ public final class SystemMediaReader implements AutoCloseable {
         String powershell=(systemRoot==null?"C:\\Windows":systemRoot)+"\\System32\\WindowsPowerShell\\v1.0\\powershell.exe";
         if(closed)return;
         process=new ProcessBuilder(powershell,"-NoLogo","-NoProfile","-NonInteractive","-EncodedCommand",encoded)
-            .redirectError(ProcessBuilder.Redirect.DISCARD).start();
+            .redirectErrorStream(true).start();
         if(closed){close();return;}
         try(BufferedReader reader=new BufferedReader(new InputStreamReader(process.getInputStream(),StandardCharsets.UTF_8))){
             String line;
             while(!closed&&(line=reader.readLine())!=null){
                 if(line.length()>16384)continue;
                 JsonObject doc=JsonParser.parseString(line).getAsJsonObject();
+                if(doc.has("error"))throw new java.io.IOException("Windows media API returned an error");
                 if(!doc.has("title")){sink.accept(null);continue;}
                 sink.accept(new SystemMediaTrack(text(doc,"provider"),text(doc,"title"),text(doc,"artist"),
                     doc.get("positionMs").getAsLong(),doc.get("paused").getAsBoolean()));
