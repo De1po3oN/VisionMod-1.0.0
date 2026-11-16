@@ -5,6 +5,7 @@ import net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderEvents;
 import net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderContext;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
+import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.phys.Vec3;
 
@@ -15,6 +16,9 @@ public final class VisionWorldLyrics {
     private static long renderedFrames;
     private static Vec3 lastAnchor;
     private static String lastRenderedText="";
+    // Text render types are not all flushed after entity geometry in 1.21.11.
+    // Own the font batch rather than relying on that shared, selective flush.
+    private static final MultiBufferSource.BufferSource TEXT_BUFFERS=MultiBufferSource.immediate(new com.mojang.blaze3d.vertex.ByteBufferBuilder(8192));
     private VisionWorldLyrics() {}
     public static void init() {
         WorldRenderEvents.AFTER_ENTITIES.register(VisionWorldLyrics::renderInWorld);
@@ -40,9 +44,10 @@ public final class VisionWorldLyrics {
         if(!camera.isInitialized())return;
         String text=current(mc);
         if(text.isBlank())return;
-        // Camera's own axes also work looking straight up/down and in front-facing F5.
-        var offset=new org.joml.Vector3f(0,-.40f,-2.4f).rotate(camera.rotation());
-        Vec3 relative=new Vec3(offset.x,offset.y,offset.z);
+        // Use actual look angles, including front F5 and straight up/down.
+        Vec3 forward=Vec3.directionFromRotation(camera.xRot(),camera.yRot());
+        Vec3 up=Vec3.directionFromRotation(camera.xRot()-90,camera.yRot());
+        Vec3 relative=forward.scale(2.4).add(up.scale(-.40));
         lastAnchor=camera.position().add(relative);
         float scale=.014f;
         double aspect=(double)mc.getWindow().getWidth()/Math.max(1,mc.getWindow().getHeight());
@@ -58,8 +63,9 @@ public final class VisionWorldLyrics {
             for(int i=0;i<count;i++) {
                 var row=rows.get(i);
                 mc.font.drawInBatch(row,-mc.font.width(row)*.5f,i*11,0xFFF4F1FF,true,
-                    pose.last().pose(),ctx.consumers(),Font.DisplayMode.SEE_THROUGH,0,VisionGeometry.FULL_BRIGHT);
+                    pose.last().pose(),TEXT_BUFFERS,Font.DisplayMode.SEE_THROUGH,0,VisionGeometry.FULL_BRIGHT);
             }
+            TEXT_BUFFERS.endBatch();
             renderedFrames++;
             lastRenderedText=text;
         } finally {pose.popPose();}

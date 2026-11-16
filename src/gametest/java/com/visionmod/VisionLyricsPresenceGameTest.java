@@ -8,7 +8,7 @@ import net.minecraft.client.player.RemotePlayer;
 import net.minecraft.client.renderer.entity.state.AvatarRenderState;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.Avatar;
-import org.joml.Vector3f;
+import net.minecraft.world.phys.Vec3;
 import static com.visionmod.GuiTestInput.check;
 
 /** Real world text submissions and a real integrated-server presence handshake. */
@@ -80,8 +80,10 @@ final class VisionLyricsPresenceGameTest {
         context.runOnClient(mc->{
             var camera=mc.gameRenderer.getMainCamera();
             var relative=VisionWorldLyrics.lastAnchor().subtract(camera.position());
-            var local=new Vector3f((float)relative.x,(float)relative.y,(float)relative.z).rotate(camera.rotation().conjugate(new org.joml.Quaternionf()));
-            check(Math.abs(local.x)<.01&&Math.abs(local.y+.40)<.01&&Math.abs(local.z+2.4)<.01,"World text was not in front of the actual camera");
+            var forward=Vec3.directionFromRotation(camera.xRot(),camera.yRot());
+            var up=Vec3.directionFromRotation(camera.xRot()-90,camera.yRot());
+            var right=Vec3.directionFromRotation(0,camera.yRot()+90);
+            check(Math.abs(relative.dot(right))<.01&&Math.abs(relative.dot(up)+.40)<.01&&Math.abs(relative.dot(forward)-2.4)<.01,"World text was not in front of the actual camera");
         });
     }
 }
