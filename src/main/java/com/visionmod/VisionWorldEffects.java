@@ -182,7 +182,7 @@ public final class VisionWorldEffects {
                             landingPos.z-cam.z,radius,.055+local*.03,VisionGeometry.withAlpha(color,alpha),VisionGeometry.withAlpha(color,0),steps);
                     }
                 }
-                if(ENABLED[3]&&mc.options.getCameraType()!=CameraType.FIRST_PERSON){
+                if(ENABLED[3]&&mc.options.getCameraType()!=CameraType.FIRST_PERSON&&cam.distanceToSqr(mc.player.getEyePosition(partial))>=.85*.85){
                     Vec3 pos=mc.player.getPosition(partial).subtract(cam);
                     double yy=pos.y+mc.player.getBbHeight()+.08;
                     for(int i=0;i<steps;i++){

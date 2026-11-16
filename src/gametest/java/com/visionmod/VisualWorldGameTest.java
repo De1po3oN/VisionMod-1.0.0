@@ -63,6 +63,7 @@ public final class VisualWorldGameTest implements FabricClientGameTest {
             context.waitTicks(2);assertRenderers(context);
             context.runOnClient(mc->{if(!VisionWorldEffects.landingActive())throw new AssertionError("Landing did not trigger jump rings");});
             capture(context,"04-landing-and-pet");
+            VisionPetMotionGameTest.run(context,world);
             context.runOnClient(mc->mc.options.hideGui=false);
             VisionControlsGameTest.run(context);
             VisionInventoryGameTest.run(context,world);
