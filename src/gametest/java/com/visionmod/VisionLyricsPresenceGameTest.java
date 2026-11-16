@@ -15,6 +15,12 @@ import static com.visionmod.GuiTestInput.check;
 final class VisionLyricsPresenceGameTest {
     static void run(ClientGameTestContext context,TestSingleplayerContext world)throws Exception{
         context.runOnClient(mc->{
+            // Keep the host's missing/real media session and HTTP lookup from replacing
+            // our controlled, paused track. Native/HTTP integrations have separate tests.
+            try{
+                var stop=VisionMediaSession.class.getDeclaredMethod("stop");stop.setAccessible(true);stop.invoke(null);
+                var retry=VisionMediaSession.class.getDeclaredField("retryAt");retry.setAccessible(true);retry.setLong(null,Long.MAX_VALUE);
+            }catch(ReflectiveOperationException error){throw new AssertionError(error);}
             VisionModClient.enabled=true;VisionAppearance.playerBadge=true;
             if(!VisionExtendedFeatures.enabled(3))VisionExtendedFeatures.toggle(3);
             mc.options.hideGui=true;mc.options.setCameraType(CameraType.FIRST_PERSON);
@@ -33,7 +39,13 @@ final class VisionLyricsPresenceGameTest {
         }
         context.runOnClient(mc->{
             VisionLyricsSource.receiveMediaTrack("Test","Artist","Synced song",1500,true);
-            VisionLyricsSource.setMediaLyrics("Artist","Synced song","[00:01.00]FIRST TIMED LINE\n[00:02.00]SECOND TIMED LINE\n[00:03.00]");
+            String fixture="[00:01.00]FIRST TIMED LINE\n[00:02.00]SECOND TIMED LINE\n[00:03.00]";
+            try{
+                var field=VisionLyricsLookup.class.getDeclaredField("CACHE");field.setAccessible(true);
+                @SuppressWarnings("unchecked") var cache=(java.util.Map<String,String>)field.get(null);
+                cache.put("Artist\nSynced song\n0",fixture);
+            }catch(ReflectiveOperationException error){throw new AssertionError(error);}
+            VisionLyricsSource.setMediaLyrics("Artist","Synced song",fixture);
         });context.waitTicks(1);
         context.runOnClient(mc->{
             check(VisionWorldLyrics.lastRenderedText().equals("FIRST TIMED LINE"),"Timed world line did not render");
@@ -72,7 +84,11 @@ final class VisionLyricsPresenceGameTest {
         context.waitFor(mc->VisionPresenceClient.confirmed(mc.player.getUUID()),100);
         context.runOnClient(mc->VisionModClient.enabled=false);
         context.waitFor(mc->!VisionPresenceClient.confirmed(mc.player.getUUID()),100);
-        context.runOnClient(mc->{VisionModClient.enabled=true;mc.options.hideGui=false;});
+        context.runOnClient(mc->{
+            VisionModClient.enabled=true;mc.options.hideGui=false;
+            try{var retry=VisionMediaSession.class.getDeclaredField("retryAt");retry.setAccessible(true);retry.setLong(null,0);}
+            catch(ReflectiveOperationException error){throw new AssertionError(error);}
+        });
         context.waitFor(mc->VisionPresenceClient.confirmed(mc.player.getUUID()),100);
         System.out.println("[VisionMod][LYRICS_PRESENCE] PASS: first-person/F5 world text, camera anchor, immediate timed seek, blank interval, server handshake/withdraw/restore, real name tag/TAB hooks and unknown-player exclusion");
     }
