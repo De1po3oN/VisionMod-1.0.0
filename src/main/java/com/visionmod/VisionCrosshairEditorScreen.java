@@ -52,5 +52,6 @@ public final class VisionCrosshairEditorScreen extends VisionPanelScreen {
     }
     @Override public boolean mouseDragged(MouseButtonEvent e,double dx,double dy){if(painting){paint(e);return true;}return super.mouseDragged(e,dx,dy);}
     @Override public void onClose(){if(painting)VisionExtras.commitPixels();super.onClose();}
+    @Override public void removed(){if(painting){painting=false;VisionExtras.commitPixels();}super.removed();}
     @Override public boolean mouseReleased(MouseButtonEvent e){if(painting){painting=false;VisionExtras.commitPixels();return true;}return super.mouseReleased(e);}
 }

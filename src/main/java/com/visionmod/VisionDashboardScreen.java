@@ -109,7 +109,7 @@ public final class VisionDashboardScreen extends Screen {
         extras(m,MOTION,"Zoom","Hold assigned zoom key",4);
         motion(m,MOTION,0); motion(m,MOTION,1); motion(m,MOTION,2);
         motion(m,MOTION,3); motion(m,MOTION,4);
-        extras(m,TOOLS,"Fast Scroller","Inventory scrolling helper",5);
+        extras(m,TOOLS,"Fast Scroller","Shift + колесо или Shift + ЛКМ по слотам",5);
         tools(m,TOOLS,0); tools(m,TOOLS,1);
         extended(m,TOOLS,5);
         extras(m,TOOLS,"Arrow Hit Sound","Custom feedback for arrow impact",10);
@@ -291,6 +291,7 @@ public final class VisionDashboardScreen extends Screen {
 
 
     @Override protected void init() {
+        String previousQuery=search==null?"":search.getValue();
         layout=DashboardLayout.of(width,height);
         w=layout.width();h=layout.height();sidebar=layout.sidebar();
         left=(width-w)/2;top=(height-h)/2;
@@ -298,10 +299,15 @@ public final class VisionDashboardScreen extends Screen {
         columns=layout.columns();rows=layout.rows();cardsPerPage=layout.cards();
         search=new EditBox(font,contentX,top+21,contentW,20,Component.literal("Поиск"));
         search.setMaxLength(48);search.setHint(Component.literal("Найти модуль…"));
+        search.setValue(previousQuery);
+        search.setResponder(value->{page=0;cachedQuery=null;});
         addRenderableWidget(search);
         customText=new EditBox(font,left+24,top+116,w-48,20,Component.literal("Друзья через запятую"));
         customText.setMaxLength(120);customText.visible=false;customText.active=false;
         addRenderableWidget(customText);
+        if(details!=null)openDetails(details);
+        page=Math.min(page,maxPage(filtered()));
+        VisionMenuSession.entered(this);
     }
     @Override public void renderBackground(GuiGraphics g,int mx,int my,float delta) {}
     private int accent(){return VisionMenuTheme.CYAN;}
@@ -332,7 +338,7 @@ public final class VisionDashboardScreen extends Screen {
         if(cachedCategory==category&&query.equals(cachedQuery))return cachedModules;
         cachedModules=CATALOG.stream().filter(m->query.isEmpty()?m.category==category:
             (m.title+" "+m.info).toLowerCase(Locale.ROOT).contains(query)).toList();
-        cachedCategory=category;cachedQuery=query;page=0;return cachedModules;
+        cachedCategory=category;cachedQuery=query;return cachedModules;
     }
     private int cardX(int i){return left+layout.cardLeft(i);}
     private int cardY(int i){return top+layout.cardTop(i);}
@@ -509,6 +515,7 @@ public final class VisionDashboardScreen extends Screen {
     }
     @Override public boolean keyPressed(KeyEvent e){
         if(captureBind>=0){VisionHotkeys.assign(captureBind,e.key()==GLFW.GLFW_KEY_ESCAPE?0:e.key());captureBind=-1;return true;}
+        if(VisionMenuSession.closeFromKey(this,e))return true;
         if(e.key()==GLFW.GLFW_KEY_ESCAPE&&(details!=null||modal!=0)){modal=0;closeDetails();return true;}
         if(details!=null||modal!=0){
             if(customText.visible)return super.keyPressed(e);

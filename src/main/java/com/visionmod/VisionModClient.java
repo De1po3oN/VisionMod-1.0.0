@@ -30,6 +30,7 @@ public final class VisionModClient implements ClientModInitializer {
         VisionHotkeys.init();
         OreHighlight.init();
         VisionExtras.init();
+        VisionFastScroller.init();
         VisionTabHeads.init();
         VisionAmbientParticles.init();
         VisionCombatTracker.init();
@@ -48,6 +49,7 @@ public final class VisionModClient implements ClientModInitializer {
         KeyMapping.Category category=KeyMapping.Category.register(Identifier.fromNamespaceAndPath("visionmod","general"));
         KeyMapping toggleAll=KeyBindingHelper.registerKeyBinding(new KeyMapping("key.visionmod.toggle",InputConstants.Type.KEYSYM,InputConstants.KEY_END,category));
         KeyMapping openMenu=KeyBindingHelper.registerKeyBinding(new KeyMapping("key.visionmod.menu",InputConstants.Type.KEYSYM,GLFW.GLFW_KEY_RIGHT_SHIFT,category));
+        VisionMenuSession.bind(openMenu);
         ClientTickEvents.END_CLIENT_TICK.register(client->{
             VisionHotkeys.tick(client);
             VisionPerformance.tick(client);
@@ -57,7 +59,7 @@ public final class VisionModClient implements ClientModInitializer {
                 enabled=!enabled;
                 if(client.player!=null)client.player.displayClientMessage(Component.literal(enabled?"Vision Mod: ON":"Vision Mod: OFF"),true);
             }
-            while(openMenu.consumeClick())if(client.screen==null)client.setScreen(new VisionDashboardScreen());
+            VisionMenuSession.tick(client);
         });
     }
 }

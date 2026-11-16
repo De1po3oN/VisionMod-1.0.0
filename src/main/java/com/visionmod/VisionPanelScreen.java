@@ -3,6 +3,7 @@ package com.visionmod;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.input.MouseButtonEvent;
+import net.minecraft.client.input.KeyEvent;
 import net.minecraft.network.chat.Component;
 
 /** Shared adaptive editor frame; subclasses place their content inside body bounds. */
@@ -13,6 +14,7 @@ public abstract class VisionPanelScreen extends Screen {
     protected VisionPanelScreen(String caption){super(Component.literal(caption));this.caption=caption;}
     @Override protected final void init(){
         layout=PanelLayout.of(width,height);x=layout.x();y=layout.y();w=layout.width();h=layout.height();build();
+        VisionMenuSession.entered(this);
     }
     protected void build(){}
     protected abstract void draw(GuiGraphics g,int mx,int my,float delta);
@@ -39,6 +41,7 @@ public abstract class VisionPanelScreen extends Screen {
         if(e.button()==0&&hit(e.x(),e.y(),x+w-93,y+h-29,77,20)){onClose();return true;}
         return super.mouseClicked(e,doubled);
     }
-    @Override public void onClose(){minecraft.setScreen(new VisionDashboardScreen());}
+    @Override public boolean keyPressed(KeyEvent event){return VisionMenuSession.closeFromKey(this,event)||super.keyPressed(event);}
+    @Override public void onClose(){minecraft.setScreen(VisionMenuSession.dashboard());}
     @Override public boolean isPauseScreen(){return false;}
 }
