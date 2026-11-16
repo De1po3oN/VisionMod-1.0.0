@@ -7,6 +7,7 @@ public final class VisionAppearanceScreen extends VisionOptionsScreen {
         option("Детализация эффектов",VisionAppearance::quality,VisionAppearance::cycleDetail);
         option("Непрозрачность HUD",()->Math.round(VisionAppearance.opacity*100f/255)+"%",VisionAppearance::cycleOpacity);
         option("Плавные анимации",()->VisionAppearance.animations?"ВКЛ":"ВЫКЛ",VisionAppearance::toggleAnimations);
+        option("Плавный хотбар",()->VisionAppearance.smoothHotbar?"ВКЛ":"ВЫКЛ",()->{VisionAppearance.smoothHotbar=!VisionAppearance.smoothHotbar;VisionAppearance.save();});
         option("Яркость FullBright",()->Integer.toString(VisionAppearance.brightness),VisionAppearance::cycleBrightness);
         option("Масштаб предметов в руке",()->Math.round(VisionAppearance.handScale*100)+"%",VisionAppearance::cycleHandScale);
         option("Позиции HUD",()->"Сбросить · двигать можно через чат",VisionHudLayout::reset);

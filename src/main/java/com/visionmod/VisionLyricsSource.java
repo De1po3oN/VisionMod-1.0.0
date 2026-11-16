@@ -13,28 +13,36 @@ public final class VisionLyricsSource {
     private static long lastPollNanos, loadedStamp = Long.MIN_VALUE, startedAt = System.nanoTime();
     private static String mediaArtist = "", mediaTitle = "", mediaProvider = "";
     private static long mediaPositionMs, mediaReceivedNanos;
-    private static boolean mediaPaused;
+    private static long mediaDurationMs;
+    private static double mediaRate=1;
+    private static boolean mediaPaused,mediaPositionKnown=true;
     private VisionLyricsSource() {}
 
     public static String fileLocation() { return FILE.toString(); }
-    // Background media timers can be throttled; allow a 90 second heartbeat window.
+    // Stop presenting a stale song after a native reader disconnects.
     public static boolean mediaConnected() {
-        return !mediaTitle.isBlank() && System.nanoTime() - mediaReceivedNanos < 90_000_000_000L;
+        return !mediaTitle.isBlank() && System.nanoTime() - mediaReceivedNanos < 10_000_000_000L;
     }
     public static boolean active() { return mediaConnected() || !timeline.isEmpty(); }
     public static String status() {
-        if (mediaConnected()) return mediaLines.isEmpty() ? "Трек подключён · ищем текст" :
+        if (mediaConnected()) return !mediaPositionKnown?"Плеер не передаёт позицию песни":mediaLines.isEmpty() ? "Трек подключён · ищем текст" :
             mediaPaused ? "Пауза" : "Текст синхронизирован";
         return !timeline.isEmpty() ? "Локальный LRC" : "Включи музыку в браузере";
     }
     public static String trackLabel() { return mediaTitle + (mediaArtist.isBlank() ? "" : " — " + mediaArtist); }
     public static String artist() { return mediaArtist; }
     public static String title() { return mediaTitle; }
+    public static long durationMs(){return mediaDurationMs;}
+    public static boolean positionKnown(){return mediaPositionKnown;}
     public static void receiveMediaTrack(String provider, String artist, String title, long positionMs, boolean paused) {
-        boolean changed = !artist.equals(mediaArtist) || !title.equals(mediaTitle) || !provider.equals(mediaProvider);
-        mediaArtist = artist; mediaTitle = title; mediaProvider = provider;
-        mediaPositionMs = Math.clamp(positionMs, 0, 86_400_000L);
-        mediaPaused = paused; mediaReceivedNanos = System.nanoTime();
+        receiveMediaTrack(new SystemMediaTrack(provider,title,artist,positionMs,paused),System.nanoTime());
+    }
+    public static void receiveMediaTrack(SystemMediaTrack track,long observedNanos){
+        boolean changed=!track.artist().equals(mediaArtist)||!track.title().equals(mediaTitle)||!track.provider().equals(mediaProvider);
+        mediaArtist=track.artist();mediaTitle=track.title();mediaProvider=track.provider();
+        mediaPositionMs=track.positionMs();mediaPaused=track.paused();mediaDurationMs=track.durationMs();
+        mediaRate=track.playbackRate();mediaPositionKnown=track.positionKnown();
+        mediaReceivedNanos=Math.min(System.nanoTime(),observedNanos);
         if (changed) { mediaLines = LrcTimeline.EMPTY; VisionLyricsLookup.trackChanged(); }
     }
     public static void setMediaLyrics(String artist, String title, String lrc) {
@@ -45,7 +53,8 @@ public final class VisionLyricsSource {
         mediaLines = LrcTimeline.EMPTY; mediaReceivedNanos = 0; VisionLyricsLookup.trackChanged();
     }
     private static long livePosition() {
-        return mediaPositionMs + (mediaPaused ? 0 : Math.max(0, (System.nanoTime() - mediaReceivedNanos) / 1_000_000L));
+        long position=mediaPositionMs+(mediaPaused?0:(long)(Math.max(0,(System.nanoTime()-mediaReceivedNanos)/1_000_000.0)*mediaRate));
+        return mediaDurationMs>0?Math.min(position,mediaDurationMs):position;
     }
     public static void poll() {
         long now = System.nanoTime();
@@ -61,15 +70,17 @@ public final class VisionLyricsSource {
         } catch (IOException e) { timeline = LrcTimeline.EMPTY; }
     }
     public static String current() {
-        if (mediaConnected()) {
-            String line = mediaLines.at(livePosition());
-            return line == null || line.isBlank() ? "♪ " + trackLabel() : line;
-        }
         poll();
+        if (mediaConnected()) {
+            LrcTimeline selected=mediaLines.isEmpty()?timeline:mediaLines;
+            if(!mediaPositionKnown||selected.isEmpty())return "♪ "+trackLabel();
+            String line=selected.at(livePosition());
+            return line==null?"":line;
+        }
         return timeline.at(Math.max(0, (System.nanoTime() - startedAt) / 1_000_000L));
     }
     public static float progress() {
-        if (mediaConnected()) return mediaLines.progress(livePosition());
+        if (mediaConnected()) return mediaPositionKnown?(mediaLines.isEmpty()?timeline:mediaLines).progress(livePosition()):-1;
         return timeline.progress(Math.max(0, (System.nanoTime() - startedAt) / 1_000_000L));
     }
     public static String testLine(String... rows) { return LrcTimeline.parse(String.join("\n", rows)).at(1500); }

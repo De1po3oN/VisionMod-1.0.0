@@ -64,6 +64,7 @@ public final class VisualWorldGameTest implements FabricClientGameTest {
             context.runOnClient(mc->{if(!VisionWorldEffects.landingActive())throw new AssertionError("Landing did not trigger jump rings");});
             capture(context,"04-landing-and-pet");
             context.runOnClient(mc->mc.options.hideGui=false);
+            VisionControlsGameTest.run(context);
             context.setScreen(VisionDashboardScreen::new);
             context.waitTicks(3);capture(context,"05-dashboard-in-world");
             context.setScreen(()->null);
@@ -75,7 +76,7 @@ public final class VisualWorldGameTest implements FabricClientGameTest {
                     throw new AssertionError("Global OFF left a renderer running");
                 System.out.println("[VisionMod][WORLDTEST] Submitted frames: pet="+frames[0]+", world="+frames[1]+", custom="+frames[2]);
             });
-            System.out.println("[VisionMod][WORLDTEST] PASS: loaded world, active renderers, movement/jump, six framebuffer captures and global OFF");
+            System.out.println("[VisionMod][WORLDTEST] PASS: loaded world, active renderers, movement/jump, input/camera/hotbar, framebuffer captures and global OFF");
         }catch(Throwable e){
             Thread.getAllStackTraces().forEach((thread,stack)->{
                 if(thread.getName().equals("Server thread")||thread.getName().equals("Render thread")||thread.getName().startsWith("Worker-")){
@@ -97,7 +98,7 @@ public final class VisualWorldGameTest implements FabricClientGameTest {
                 throw new AssertionError("An enabled renderer never submitted a frame");
         });
     }
-    private static void capture(ClientGameTestContext context,String name)throws java.io.IOException{
+    static void capture(ClientGameTestContext context,String name)throws java.io.IOException{
         Path image=context.takeScreenshot("vision-world-"+name);
         Path directory=Path.of("vision-world-captures");Files.createDirectories(directory);
         Files.copy(image,directory.resolve(name+".png"),StandardCopyOption.REPLACE_EXISTING);

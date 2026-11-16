@@ -49,7 +49,10 @@ public final class SystemMediaReader implements AutoCloseable {
                 if(doc.has("error"))throw new java.io.IOException("Windows media API returned an error");
                 if(!doc.has("title")){sink.accept(null);continue;}
                 sink.accept(new SystemMediaTrack(text(doc,"provider"),text(doc,"title"),text(doc,"artist"),
-                    doc.get("positionMs").getAsLong(),doc.get("paused").getAsBoolean()));
+                    doc.get("positionMs").getAsLong(),doc.get("paused").getAsBoolean(),
+                    doc.has("durationMs")?doc.get("durationMs").getAsLong():0,
+                    doc.has("rate")?doc.get("rate").getAsDouble():1,
+                    !doc.has("positionKnown")||doc.get("positionKnown").getAsBoolean()));
             }
         }
     }
@@ -87,7 +90,7 @@ public final class SystemMediaReader implements AutoCloseable {
                     if(!track.paused())break;
                 }catch(java.io.IOException ignored){ /* A player may close during enumeration. */ }
             }
-            sink.accept(choice);Thread.sleep(2000);
+            sink.accept(choice);Thread.sleep(500);
         }
     }
 }

@@ -6,6 +6,7 @@ import com.visionmod.PanelLayout;
 import com.visionmod.EffectMath;
 import com.visionmod.BoundedLyricsBody;
 import com.visionmod.HudPacking;
+import com.visionmod.HotbarTween;
 
 public class CoreRegressionTest {
     private static int checks;
@@ -77,6 +78,18 @@ public class CoreRegressionTest {
         check(alone.x()==17&&alone.y()==23,"free preferred position remains stable");
         var crowded=HudPacking.find(5,5,80,30,100,50,java.util.List.of(new HudPacking.Rect(0,0,100,50)));
         check(crowded.x()>=0&&crowded.y()>=0&&crowded.x()+80<=100&&crowded.y()+30<=50,"impossible packing still stays on screen");
+        var hotbar=new HotbarTween();
+        check(hotbar.sample(0,0,true)==0,"hotbar initial slot snaps");
+        check(hotbar.sample(6,0,true)==0,"hotbar retarget has no jump");
+        float midway=hotbar.sample(6,70_000_000,true);
+        check(midway>0&&midway<120,"hotbar passes through intermediate positions");
+        check(hotbar.sample(2,70_000_000,true)==midway,"rapid scroll preserves continuity");
+        check(hotbar.sample(2,210_000_000,true)==40,"retarget ends at actual selected item");
+        check(hotbar.sample(8,220_000_000,false)==160,"disabled animation snaps without changing inventory");
+        hotbar.reset();check(hotbar.sample(3,300_000_000,true)==60,"world change clears old slot motion");
+        var speed=SystemMediaTrack.fromMpris("Test","{'xesam:title': <'Track'>, 'Position': <int64 1500000>, 'mpris:length': <int64 200000000>, 'Rate': <1.5>, 'PlaybackStatus': <'Playing'>}");
+        check(speed.positionKnown()&&speed.durationMs()==200000&&speed.playbackRate()==1.5,"native duration and speed decoded");
+        check(!SystemMediaTrack.fromMpris("Test","{}").positionKnown(),"missing native position is not invented");
         if(args.length>0&&args[0].equals("--mpris")){
             final boolean[] observed={false};
             try(var reader=new SystemMediaReader()){

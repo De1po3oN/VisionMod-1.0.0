@@ -55,17 +55,21 @@ public final class VisionMediaSession {
             if(active(current))status="Медиасессия недоступна · включи музыку в плеере";
         }finally{
             reader=null;
-            if(current==generation)running=false;
+            if(current==generation){
+                running=false;
+                Minecraft.getInstance().execute(()->{if(current==generation)VisionLyricsSource.clearMediaTrack();});
+            }
         }
     }
     private static void publish(int current,SystemMediaTrack track){
+        long observedNanos=System.nanoTime();
         Minecraft.getInstance().execute(()->{
             if(!active(current))return;
             if(track==null||track.title().isBlank()){
                 status="Включи музыку в браузере или плеере";VisionLyricsSource.clearMediaTrack();return;
             }
             status=track.paused()?"Музыка на паузе":"Музыка подключена";
-            VisionLyricsSource.receiveMediaTrack(track.provider(),track.artist(),track.title(),track.positionMs(),track.paused());
+            VisionLyricsSource.receiveMediaTrack(track,observedNanos);
         });
     }
 }

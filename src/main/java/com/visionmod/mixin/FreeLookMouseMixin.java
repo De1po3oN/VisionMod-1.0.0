@@ -4,6 +4,8 @@ import com.visionmod.FreeLook;
 import net.minecraft.client.MouseHandler;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Final;
+import net.minecraft.util.SmoothDouble;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -12,6 +14,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public abstract class FreeLookMouseMixin {
     @Shadow private double accumulatedDX;
     @Shadow private double accumulatedDY;
+    @Shadow @Final private SmoothDouble smoothTurnX;
+    @Shadow @Final private SmoothDouble smoothTurnY;
     @Inject(method="turnPlayer(D)V", at=@At("HEAD"), cancellable=true, require=1)
     private void visionmod$freeLook(double frameTime, CallbackInfo ci) {
         // Mouse movement may arrive between client ticks. Resync the hold
@@ -21,6 +25,7 @@ public abstract class FreeLookMouseMixin {
         FreeLook.rotate(accumulatedDX,accumulatedDY);
         accumulatedDX=0;
         accumulatedDY=0;
+        smoothTurnX.reset();smoothTurnY.reset();
         ci.cancel();
     }
 }

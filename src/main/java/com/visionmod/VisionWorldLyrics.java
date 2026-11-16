@@ -31,7 +31,7 @@ public final class VisionWorldLyrics {
     }
     private static String current(Minecraft mc) {
         String timed = VisionLyricsSource.current();
-        if (timed != null && !timed.isBlank()) return timed;
+        if (timed != null) return timed;
         String manual = previewLine(VisionExtendedFeatures.customText(), mc.level.getGameTime());
         return manual.isBlank() ? "♪ Нет музыки" : manual;
     }
@@ -66,6 +66,7 @@ public final class VisionWorldLyrics {
             !useWorld(mc,mc.getWindow().getGuiScaledWidth(),mc.getWindow().getGuiScaledHeight())) return;
         Vec3 relative = anchor(mc).subtract(mc.gameRenderer.getMainCamera().position());
         String text = current(mc);
+        if(text.isBlank())return;
         PoseStack pose = ctx.matrices();
         pose.pushPose();
         try {
@@ -80,6 +81,7 @@ public final class VisionWorldLyrics {
         Minecraft mc = Minecraft.getInstance();
         if (!ready(mc) || !VisionHudLayout.hudVisible(mc) || useWorld(mc,g.guiWidth(),g.guiHeight())) return;
         String text = current(mc);
+        if(text.isBlank())return;
         int max = Math.max(48,Math.min(300,g.guiWidth()-40));
         text = mc.font.plainSubstrByWidth(text,max);
         int ww = mc.font.width(text)+24;

@@ -13,13 +13,14 @@ else
 fi
 printf '527175ca6d81050b53bdd4c457a6d6e017626b0e  %s\n' "$gson" | sha1sum -c -
 "$javac_bin" -encoding UTF-8 --release 21 -cp "$gson" -d "$work/classes" \
-  src/main/java/com/visionmod/{LrcTimeline,SystemMediaTrack,SystemMediaReader,BoundedLyricsBody,DashboardLayout,PanelLayout,EffectMath,HudPacking}.java tests/CoreRegressionTest.java
+  src/main/java/com/visionmod/{LrcTimeline,LyricsSearch,SystemMediaTrack,SystemMediaReader,BoundedLyricsBody,DashboardLayout,PanelLayout,EffectMath,HudPacking,HotbarTween}.java tests/CoreRegressionTest.java
 "$java_bin" -ea -cp "$work/classes:$gson" CoreRegressionTest "$@"
 
 "$javac_bin" -encoding UTF-8 --release 21 -cp "$gson:$work/classes" -d "$work/classes" \
   tests/stubs/net/minecraft/client/Minecraft.java tests/stubs/net/fabricmc/loader/api/FabricLoader.java \
-  src/main/java/com/visionmod/{VisionLyricsSource,VisionLyricsLookup}.java tests/LyricsSourceTest.java
+  src/main/java/com/visionmod/{VisionLyricsSource,VisionLyricsLookup}.java tests/LyricsSourceTest.java tests/LyricsLookupRegressionTest.java
 "$java_bin" -ea -Dvisionmod.test.config="$work/config" -cp "$work/classes:$gson" LyricsSourceTest
+"$java_bin" -ea -cp "$work/classes:$gson" com.visionmod.LyricsLookupRegressionTest
 
 "$javac_bin" -encoding UTF-8 --release 21 -cp "$work/classes" -d "$work/classes" \
   tests/stubs/com/mojang/blaze3d/vertex/*.java tests/stubs/net/minecraft/resources/Identifier.java \

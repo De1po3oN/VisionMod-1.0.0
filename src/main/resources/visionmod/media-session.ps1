@@ -26,9 +26,12 @@ while ($true) {
             $media = Await ($session.TryGetMediaPropertiesAsync()) ([Windows.Media.Control.GlobalSystemMediaTransportControlsSessionMediaProperties])
             $timeline = $session.GetTimelineProperties()
             $paused = $session.GetPlaybackInfo().PlaybackStatus.ToString() -ne 'Playing'
+            $rate = $session.GetPlaybackInfo().PlaybackRate
+            if ($null -eq $rate -or $rate -le 0) { $rate = 1.0 }
             $position = [Math]::Max(0, ($timeline.Position - $timeline.StartTime).TotalMilliseconds)
             # The Windows timeline is stamped, and may not update every poll.
-            if (-not $paused) { $position += [Math]::Max(0, ([DateTimeOffset]::Now - $timeline.LastUpdatedTime).TotalMilliseconds) }
+            $positionKnown = $timeline.LastUpdatedTime.Year -ge 2000
+            if (-not $paused -and $positionKnown) { $position += [Math]::Max(0, ([DateTimeOffset]::Now - $timeline.LastUpdatedTime).TotalMilliseconds) * $rate }
             $duration = ($timeline.EndTime - $timeline.StartTime).TotalMilliseconds
             if ($duration -gt 0) { $position = [Math]::Min($position, $duration) }
             $artist = $media.Artist
@@ -37,11 +40,11 @@ while ($true) {
             if ($title.Length -gt 140) { $title = $title.Substring(0,140) }
             $artist = [string]$artist
             if ($artist.Length -gt 140) { $artist = $artist.Substring(0,140) }
-            $payload = @{ provider=$session.SourceAppUserModelId; title=$title; artist=$artist; positionMs=[long]$position; paused=$paused }
+            $payload = @{ provider=$session.SourceAppUserModelId; title=$title; artist=$artist; positionMs=[long]$position; paused=$paused; durationMs=[long][Math]::Max(0,$duration); rate=[double]$rate; positionKnown=$positionKnown }
             [Console]::WriteLine(($payload | ConvertTo-Json -Compress))
         }
     } catch {
         [Console]::WriteLine('{"error":"Media session unavailable"}')
     }
-    Start-Sleep -Milliseconds 2000
+    Start-Sleep -Milliseconds 500
 }

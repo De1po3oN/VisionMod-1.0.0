@@ -1,6 +1,7 @@
 package com.visionmod;
 
 import net.fabricmc.loader.api.FabricLoader;
+import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.client.Minecraft;
 import org.lwjgl.glfw.GLFW;
 
@@ -153,12 +154,12 @@ public final class VisionHotkeys {
 
     public static boolean holding(int id, Minecraft client) {
         if (id < 0 || id >= COUNT || client.screen != null) return false;
-        return pressed(bindings[id], client.getWindow().handle());
+        return pressed(bindings[id], client);
     }
 
-    private static boolean pressed(int binding, long window) {
-        if (binding > 0) return GLFW.glfwGetKey(window, binding) == GLFW.GLFW_PRESS;
-        if (binding < 0) return GLFW.glfwGetMouseButton(window, -binding - 1) == GLFW.GLFW_PRESS;
+    private static boolean pressed(int binding, Minecraft client) {
+        if (binding > 0) return InputConstants.isKeyDown(client.getWindow(),binding);
+        if (binding < 0) return GLFW.glfwGetMouseButton(client.getWindow().handle(), -binding - 1) == GLFW.GLFW_PRESS;
         return false;
     }
 
@@ -167,10 +168,9 @@ public final class VisionHotkeys {
             Arrays.fill(lastDown, false);
             return;
         }
-        long window = client.getWindow().handle();
         boolean gameplay = client.screen == null && VisionModClient.enabled;
         for (int i = 0; i < COUNT; i++) {
-            boolean down = pressed(bindings[i], window);
+            boolean down = pressed(bindings[i], client);
             if (gameplay && down && !lastDown[i] && !isHold(i)) trigger(i);
             lastDown[i] = down;
         }

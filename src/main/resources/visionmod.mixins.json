@@ -18,6 +18,7 @@
     "VisionSwingAnimationMixin",
     "ZoomFovMixin",
     "MouseExtrasMixin",
+    "SmoothHotbarMixin",
     "ArrowHitSoundMixin",
     "CompactHandMixin",
     "LowFireMixin",

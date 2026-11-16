@@ -21,12 +21,13 @@ public abstract class FreeLookCameraMixin {
         method = "setup(Lnet/minecraft/world/level/Level;Lnet/minecraft/world/entity/Entity;ZZF)V",
         at = @At(
             value = "INVOKE",
-            target = "Lnet/minecraft/client/Camera;setRotation(FF)V",
-            ordinal = 0
+            target = "Lnet/minecraft/client/Camera;setRotation(FF)V"
         ),
         // This hook is essential. A missing injection must fail CI's real
         // Minecraft startup rather than silently ship a broken Free Look.
-        require = 1
+        // In 1.21.11 ordinal 0 belongs ONLY to interpolated minecart riders.
+        // Intercept both base branches; reverse/sleep calls are guarded below.
+        require = 2
     )
     private void visionmod$orbit(Args args, Level area, Entity entity,
                                   boolean thirdPerson, boolean reverse, float partialTick) {
