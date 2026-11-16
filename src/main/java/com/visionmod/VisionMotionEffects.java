@@ -114,13 +114,17 @@ public final class VisionMotionEffects {
     private static void render(GuiGraphics g) {
         Minecraft mc = Minecraft.getInstance();
         if (!enabled(4) || mc.screen != null || mc.player == null || streakTicks <= 0) return;
-        // Original lightweight motion feedback, not a real framebuffer motion blur.
-        int w = g.guiWidth(), h = g.guiHeight();
-        int alpha = 7 * streakTicks;
-        int tint = alpha << 24 | 0x008D76C3;
-        int size = 2 + streakTicks / 2;
-        g.fill(0, h / 2 - 45, size, h / 2 + 45, tint);
-        g.fill(w - size, h / 2 - 45, w, h / 2 + 45, tint);
+        int w=g.guiWidth(),h=g.guiHeight();
+        float strength=streakTicks/7f;
+        for(int i=0;i<9;i++){
+            int length=8+(int)(i*2.5),yy=h/2-62+i*15;
+            int color=VisionGeometry.withAlpha(VisionMenuTheme.PURPLE,(int)(45*strength*(1-Math.abs(i-4)/6f)));
+            for(int n=0;n<4;n++){
+                int xx=3+n*5;int fade=VisionGeometry.withAlpha(color,(int)(((color>>>24)&255)*(1-n*.22)));
+                g.fill(xx,yy+n*2,xx+length,yy+n*2+1,fade);
+                g.fill(w-xx-length,yy+n*2,w-xx,yy+n*2+1,fade);
+            }
+        }
     }
     private static void load() {
         if (!Files.isRegularFile(FILE)) return;

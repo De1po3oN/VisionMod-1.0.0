@@ -48,7 +48,7 @@ public abstract class VisionItemPhysicsMixin {
             // Stable resting pose, lifted slightly off the floor to avoid Z-fighting.
             pose.translate(0,.065,0);
             pose.mulPose(Axis.XP.rotationDegrees(87.0f));
-            pose.mulPose(Axis.ZP.rotationDegrees((float)Math.sin(t*.055f)*1.5f));
+            // Grounded items remain still, rather than wobbling forever.
         }else{
             // Visually react to vertical travel; no model spin explosion.
             float movement=(float)Math.min(1,Math.sqrt(physics.visionmod$speed())*5f);

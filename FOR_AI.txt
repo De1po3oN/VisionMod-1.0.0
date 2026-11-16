@@ -1,3 +1,21 @@
+*** 2026-11-16 · ПРОДОЛЖЕНИЕ: ВИЗУАЛЫ ВСЕХ ГРУПП И УДАЛЁННАЯ ПРОВЕРКА ***
+Пользователь попросил самостоятельно довести внешний вид всех функций. Правки предыдущего этапа сохранены. Подготовлена codex/visual-refresh; не перезаписывать main без отдельного основания.
+См. VISUAL_REFRESH_RU.md: общий HUD, Target/TNT/Arrow/Hit/Blood/Social, Trails/Jump/Hat/ESP, округлый Pet, actual block shape, полировка ambient/motion/model/предметов, адаптивные редакторы. Общие параметры VisionAppearance; сохранение в профилях. HUD теперь 12.
+Локальные core tests: 267 PASS + 12 source logic PASS; синтаксис 79 Java-файлов PASS. Native Git push dry-run разрешён. GitHub API через gh возвращает Forbidden, но HTML github.com доступен; можно читать Actions там. Локальный Maven Fabric всё ещё запрещён прокси.
+CI теперь запускается на codex/**; client smoke заранее собирает/скачивает assets и должен снять 8 реальных редакторов через Xvfb. Статус CI здесь пока НЕ заявляется успешным. Это не тест мира/шейдеров/FPS.
+World Lyrics остаётся ЧИСТЫМ МОДОМ: никаких расширений, токенов или HTTP bridge. Windows runtime и 35 модулей целиком не объявлять принятыми.
+
+*** 2026-11-16 · НОВЫЕ ЛОКАЛЬНЫЕ ИЗМЕНЕНИЯ: ЧИСТЫЙ МОД, БЕЗ РАСШИРЕНИЙ ***
+Пользователь прямо потребовал «без расширений, чистый мод». Browser extension и VisionBrowserMusicBridge УДАЛЕНЫ. Не восстанавливать pairing/token/HTTP flow из старых записей ниже.
+Новые SystemMediaReader/SystemMediaTrack/VisionMediaSession: Windows Media Control через встроенный PowerShell, Linux MPRIS через gdbus. LRCLIB отдельно в VisionLyricsLookup; LrcTimeline и BoundedLyricsBody без Minecraft-зависимостей. macOS автоматический источник пока не поддержан.
+GUI переработан с общим DashboardLayout; World Lyrics имеет простой экран состояния. Исправлены сброс HUD, сохранение базовых флагов, часть покрытия профилей, интерполяция позиций и NO_OVERLAY.
+Основа HEAD f0ec0ee85c3b4fc1896ca0eb779bc9bab820fac1. Изменения НЕ закоммичены/НЕ отправлены; Actions не запускались. Версия осталась 2.0.0.
+Локальные core tests 126 PASS + 12 source logic PASS; реальный D-Bus adapter с тестовым плеером 129 PASS; JavaParser 71 файлов синтаксически PASS. Это НЕ Minecraft type-check, НЕ Windows-проверка и НЕ визуальная игровая приёмка.
+Полная Gradle-сборка заблокирована CONNECT 403 maven.fabricmc.net при разрешении Loom, новый JAR отсутствует. На исходной машине был только JRE, поставлен JDK21 в /workspace/.visionmod-tools/jdk21 с официальной контрольной суммой Temurin. Использовать JAVA_HOME оттуда.
+Далее: применить сетевые настройки, build, client smoke, Windows media API и реальная игровая проверка с Sodium/Iris; не заявлять «все баги исправлены». См. NATIVE_LYRICS_QA_RU.md и README.md.
+
+--- ИСТОРИЧЕСКИЕ ЗАПИСИ (могут противоречить текущему коду) ---
+
 *** ПОСЛЕДНЕЕ УТОЧНЕНИЕ / 2026-11-15: БРАУЗЕРНОЕ РАСШИРЕНИЕ, КРИТИЧНЫЙ FIX ***
 При распаковке первичного extension artifact Build #257 обнаружена настоящая функциональная ошибка: background.js определял адрес только из sender.tab?.url (без tabs permission может отсутствовать), а regexp не включал music.youtube.com. Это устранили в SHA 60dd38ef552eb94d5b76789a69cf28f0eb5ca871: теперь sender.url || sender.tab?.url, разрешены ровно https://open.spotify.com, soundcloud.com, www.soundcloud.com, music.youtube.com. Проверено ОТДЕЛЬНО локальным Node VM тестом с подменённым chrome runtime и fetch: все 3 сайта разрешены, чужой example.com отклонён, 3 авторизованных POST вызова. Node --check все JS PASS.
 ДЕЙСТВИТЕЛЬНО АКТУАЛЬНЫЙ EXTERNSION ARTIFACT: GitHub Build #262 https://github.com/De1po3oN/VisionMod-1.0.0/actions/runs/43726727370 SUCCESS; artifact id 14167295505, name VisionMod-Browser-Music-Extension, size 7171. В ответе file sandbox:/mnt/data/VisionMod-Browser-Music-Extension-v2.zip (путь только для этого сеанса). Проверен ZIP CRC, regexp and manifest. JAR code после #257 не изменялся, jar из #257 валиден.

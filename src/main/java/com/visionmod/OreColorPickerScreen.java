@@ -1,516 +1,59 @@
-
 package com.visionmod;
 
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.EditBox;
-import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
-
-import org.lwjgl.glfw.GLFW;
-
 import java.awt.Color;
 import java.util.Locale;
-import java.util.Map;
 
-public final class OreColorPickerScreen extends Screen {
-
-    private static final int TEXT = VisionMenuTheme.WHITE;
-    private static final int MUTED = VisionMenuTheme.MUTED;
-    private static final int ACCENT = VisionMenuTheme.CYAN;
-
-    private static final int SQUARE = 126;
-    private static final int HUE_WIDTH = 15;
-
-    private static final Map<String, Integer> NAMED =
-        Map.ofEntries(
-            Map.entry("red", 0xFF5555),
-            Map.entry("green", 0xFF55FF55),
-            Map.entry("blue", 0xFF5555FF),
-            Map.entry("yellow", 0xFFFFFF55),
-            Map.entry("cyan", 0xFF55FFFF),
-            Map.entry("pink", 0xFFFF55AA),
-            Map.entry("purple", 0xFFAA55FF),
-            Map.entry("orange", 0xFFFFAA33),
-            Map.entry("white", 0xFFFFFFFF),
-            Map.entry("black", 0xFF000000),
-            Map.entry("lime", 0xFF00FF00),
-            Map.entry("gold", 0xFFFFD700),
-            Map.entry("красный", 0xFFFF5555),
-            Map.entry("зелёный", 0xFF55FF55),
-            Map.entry("синий", 0xFF5555FF),
-            Map.entry("жёлтый", 0xFFFFFF55),
-            Map.entry("розовый", 0xFFFF55AA),
-            Map.entry("фиолетовый", 0xFFAA55FF),
-            Map.entry("голубой", 0xFF55FFFF),
-            Map.entry("белый", 0xFFFFFFFF),
-            Map.entry("чёрный", 0xFF000000)
-        );
-
-    private final int oreIndex;
-
-    private float hue;
-    private float saturation;
-    private float brightness;
-
-    private int previewColor;
-
-    private EditBox colorField;
-
-    private boolean draggingSquare = false;
-    private boolean draggingHue = false;
-    private boolean updatingField = false;
-    private boolean validInput = true;
-
-    public OreColorPickerScreen(int oreIndex) {
-        super(Component.literal("Ore Color Picker"));
-
-        this.oreIndex = Math.max(
-            0,
-            Math.min(OreColors.NAMES.length - 1, oreIndex)
-        );
-
-        previewColor = OreColors.getColor(this.oreIndex);
-
-        loadHSV(previewColor);
+/** Responsive HSV studio; the actual saved color is always reflected in the field. */
+public final class OreColorPickerScreen extends VisionPanelScreen {
+    private final int ore;
+    private float hue,sat,value;
+    private int size,sx,sy,hx,fieldX,fieldWidth;
+    private EditBox field;
+    private boolean squareDrag,hueDrag,changing;
+    private String error="";
+    public OreColorPickerScreen(int ore){super("ЦВЕТ РУДЫ");this.ore=Math.clamp(ore,0,OreColors.NAMES.length-1);load(OreColors.getColor(this.ore));}
+    private void load(int color){float[] hsv=Color.RGBtoHSB((color>>16)&255,(color>>8)&255,color&255,null);hue=hsv[0];sat=hsv[1];value=hsv[2];}
+    @Override protected void build(){
+        size=Math.min(165,layout.bodyBottom()-layout.bodyTop()-18);sx=x+16;sy=layout.bodyTop();hx=sx+size+10;
+        fieldX=hx+24;fieldWidth=x+w-16-fieldX;
+        field=new EditBox(font,fieldX,sy+53,fieldWidth,20,Component.literal("HEX / цвет"));
+        field.setMaxLength(24);field.setValue(String.format(Locale.ROOT,"#%06X",OreColors.getColor(ore)&0xFFFFFF));
+        field.setResponder(text->{
+            if(changing)return;
+            String raw=text.strip().toLowerCase(Locale.ROOT);
+            raw=switch(raw){case "red","красный"->"ff5555";case "blue","синий"->"5555ff";case "green","зелёный"->"55ff88";
+                case "pink","розовый"->"ff88c9";case "white","белый"->"ffffff";case "black","чёрный"->"000000";default->raw.replace("#","").replace("0x","");};
+            if(!raw.matches("[0-9a-f]{6}")){error="HEX: #RRGGBB";return;}
+            int color=0xFF000000|Integer.parseInt(raw,16);load(color);OreColors.setColor(ore,color);error="";
+        });addRenderableWidget(field);
     }
-
-    private int panelX() {
-        return VisionMenuTheme.x(width) + 57;
+    private void update(){
+        int color=Color.HSBtoRGB(hue,sat,value)|0xFF000000;OreColors.setColor(ore,color);
+        changing=true;field.setValue(String.format(Locale.ROOT,"#%06X",color&0xFFFFFF));changing=false;error="";
     }
-
-    private int panelY() {
-        return VisionMenuTheme.y(height) + 24;
+    @Override protected void draw(GuiGraphics g,int mx,int my,float delta){
+        for(int col=0;col<size;col++)g.fill(sx+col,sy,sx+col+1,sy+size,Color.HSBtoRGB(hue,col/(float)(size-1),1)|0xFF000000);
+        g.fillGradient(sx,sy,sx+size,sy+size,0,0xFF000000);
+        for(int row=0;row<size;row++)g.fill(hx,sy+row,hx+12,sy+row+1,Color.HSBtoRGB(row/(float)(size-1),1,1)|0xFF000000);
+        int xx=sx+Math.round(sat*(size-1)),yy=sy+Math.round((1-value)*(size-1));
+        VisionHudTheme.ring(g,xx,yy,4,1,0xFFFFFFFF);
+        int hy=sy+Math.round(hue*(size-1));g.fill(hx-2,hy-1,hx+14,hy+2,0xFFFFFFFF);
+        VisionHudTheme.round(g,fieldX,sy,fieldWidth,36,4,OreColors.getColor(ore));
+        VisionHudTheme.text(g,font,OreColors.NAMES[ore],fieldX,sy+41,fieldWidth,VisionMenuTheme.WHITE);
+        VisionHudTheme.text(g,font,error.isBlank()?"Сохраняется сразу":error,fieldX,sy+82,fieldWidth,error.isBlank()?VisionMenuTheme.MUTED:VisionMenuTheme.RED);
     }
-
-    private int squareX() {
-        return panelX() + 18;
+    private void pick(double mx,double my){
+        if(squareDrag){sat=EffectMath.unit((float)(mx-sx)/(size-1));value=1-EffectMath.unit((float)(my-sy)/(size-1));}
+        if(hueDrag)hue=EffectMath.unit((float)(my-sy)/(size-1));update();
     }
-
-    private int squareY() {
-        return panelY() + 51;
+    @Override public boolean mouseClicked(MouseButtonEvent e,boolean doubled){
+        if(e.button()==0){squareDrag=hit(e.x(),e.y(),sx,sy,size,size);hueDrag=hit(e.x(),e.y(),hx,sy,12,size);if(squareDrag||hueDrag){pick(e.x(),e.y());return true;}}
+        return super.mouseClicked(e,doubled);
     }
-
-    private int hueX() {
-        return squareX() + SQUARE + 13;
-    }
-
-    private void loadHSV(int color) {
-        float[] hsv = Color.RGBtoHSB(
-            (color >> 16) & 255,
-            (color >> 8) & 255,
-            color & 255,
-            null
-        );
-
-        hue = hsv[0];
-        saturation = hsv[1];
-        brightness = hsv[2];
-    }
-
-    private void updatePreview() {
-        previewColor = 0xFF000000 |
-            (Color.HSBtoRGB(
-                hue,
-                saturation,
-                brightness
-            ) & 0xFFFFFF);
-
-        validInput = true;
-        updateText();
-    }
-
-    private void updateText() {
-        if (colorField == null) {
-            return;
-        }
-
-        updatingField = true;
-
-        colorField.setValue(
-            String.format(
-                Locale.ROOT,
-                "#%06X",
-                previewColor & 0xFFFFFF
-            )
-        );
-
-        updatingField = false;
-    }
-
-    private void commitColor() {
-        OreColors.setColor(oreIndex, previewColor);
-    }
-
-    @Override
-    protected void init() {
-        int px = panelX();
-        int py = panelY();
-
-        colorField = new EditBox(
-            font,
-            px + 18,
-            py + 198,
-            153,
-            20,
-            Component.literal("HEX or color name")
-        );
-
-        colorField.setMaxLength(32);
-        colorField.setValue(
-            String.format(
-                Locale.ROOT,
-                "#%06X",
-                previewColor & 0xFFFFFF
-            )
-        );
-
-        colorField.setResponder(value -> {
-            if (updatingField) {
-                return;
-            }
-
-            Integer parsed = parseColor(value);
-
-            validInput = parsed != null;
-
-            if (parsed == null) {
-                return;
-            }
-
-            previewColor = 0xFF000000 | parsed;
-
-            loadHSV(previewColor);
-            commitColor();
-        });
-
-        addRenderableWidget(colorField);
-    }
-
-    private static Integer parseColor(String input) {
-        String value = input.trim()
-            .toLowerCase(Locale.ROOT);
-
-        if (NAMED.containsKey(value)) {
-            return NAMED.get(value) & 0xFFFFFF;
-        }
-
-        if (value.startsWith("#")) {
-            value = value.substring(1);
-        } else if (value.startsWith("0x")) {
-            value = value.substring(2);
-        }
-
-        if (!value.matches("[0-9a-f]{6}")) {
-            return null;
-        }
-
-        try {
-            return Integer.parseInt(value, 16);
-        } catch (NumberFormatException ignored) {
-            return null;
-        }
-    }
-
-    private static boolean inside(
-        double x,
-        double y,
-        int bx,
-        int by,
-        int w,
-        int h
-    ) {
-        return x >= bx && x < bx + w
-            && y >= by && y < by + h;
-    }
-
-    private static float clamp(float value) {
-        return Math.max(0F, Math.min(1F, value));
-    }
-
-    private void selectSquare(double mx, double my) {
-        saturation = clamp(
-            (float) ((mx - squareX()) / (SQUARE - 1))
-        );
-
-        brightness = 1F - clamp(
-            (float) ((my - squareY()) / (SQUARE - 1))
-        );
-
-        updatePreview();
-    }
-
-    private void selectHue(double my) {
-        hue = clamp(
-            (float) ((my - squareY()) / (SQUARE - 1))
-        );
-
-        updatePreview();
-    }
-
-    private static void drawRing(
-        GuiGraphics g,
-        int x,
-        int y,
-        int radius,
-        int color
-    ) {
-        for (int i = 0; i < 24; i++) {
-            double angle = Math.PI * 2.0 * i / 24.0;
-
-            int px = x + (int) Math.round(
-                Math.cos(angle) * radius
-            );
-
-            int py = y + (int) Math.round(
-                Math.sin(angle) * radius
-            );
-
-            g.fill(px, py, px + 2, py + 2, color);
-        }
-    }
-
-    @Override
-    public void renderBackground(
-        GuiGraphics graphics,
-        int mouseX,
-        int mouseY,
-        float delta
-    ) {
-        // No fullscreen blur or darkening.
-    }
-
-    @Override
-    public void render(
-        GuiGraphics g,
-        int mouseX,
-        int mouseY,
-        float delta
-    ) {
-        int px = panelX();
-        int py = panelY();
-
-        VisionMenuTheme.panel(g, font, width, height,
-            "VISION / COLOR", OreColors.NAMES[oreIndex] + "    -    edit ore outline");
-
-        int sx = squareX();
-        int sy = squareY();
-
-        // Hue/saturation gradient.
-        for (int x = 0; x < SQUARE; x++) {
-            float s = (float) x / (SQUARE - 1);
-
-            int color = 0xFF000000 |
-                (Color.HSBtoRGB(hue, s, 1F) & 0xFFFFFF);
-
-            g.fill(
-                sx + x, sy,
-                sx + x + 1, sy + SQUARE,
-                color
-            );
-        }
-
-        // Brightness overlay.
-        g.fillGradient(
-            sx, sy,
-            sx + SQUARE, sy + SQUARE,
-            0x00000000,
-            0xFF000000
-        );
-
-        g.renderOutline(
-            sx - 1, sy - 1,
-            SQUARE + 2, SQUARE + 2,
-            0xFF677789
-        );
-
-        // Vertical rainbow hue bar.
-        int hx = hueX();
-
-        for (int y = 0; y < SQUARE; y++) {
-            float h = (float) y / (SQUARE - 1);
-
-            int color = 0xFF000000 |
-                (Color.HSBtoRGB(h, 1F, 1F) & 0xFFFFFF);
-
-            g.fill(
-                hx, sy + y,
-                hx + HUE_WIDTH, sy + y + 1,
-                color
-            );
-        }
-
-        g.renderOutline(
-            hx - 1, sy - 1,
-            HUE_WIDTH + 2, SQUARE + 2,
-            0xFF677789
-        );
-
-        // Draggable selection circle.
-        int cx = sx + Math.round(
-            saturation * (SQUARE - 1)
-        );
-
-        int cy = sy + Math.round(
-            (1F - brightness) * (SQUARE - 1)
-        );
-
-        drawRing(g, cx, cy, 5, 0xFF000000);
-        drawRing(g, cx, cy, 4, 0xFFFFFFFF);
-
-        // Hue selection indicator.
-        int hy = sy + Math.round(
-            hue * (SQUARE - 1)
-        );
-
-        g.fill(
-            hx - 3, hy - 2,
-            hx + HUE_WIDTH + 3, hy + 2,
-            0xFFFFFFFF
-        );
-
-        // Current color preview.
-        g.fill(
-            px + 198, py + 51,
-            px + 319, py + 97,
-            previewColor
-        );
-
-        g.renderOutline(
-            px + 198, py + 51,
-            121, 46,
-            0xFFFFFFFF
-        );
-
-        g.drawString(
-            font,
-            "PREVIEW",
-            px + 198, py + 104,
-            MUTED
-        );
-
-        g.drawString(
-            font,
-            String.format(
-                Locale.ROOT,
-                "#%06X",
-                previewColor & 0xFFFFFF
-            ),
-            px + 198, py + 119,
-            TEXT
-        );
-
-        g.drawString(
-            font,
-            "HEX / NAME",
-            px + 18, py + 184,
-            MUTED
-        );
-
-        g.drawString(
-            font,
-            validInput ? "OK" : "INVALID",
-            px + 188, py + 184,
-            validInput ? 0xFF65F0B2 : 0xFFFF657D
-        );
-
-        g.fill(
-            px + 188, py + 198,
-            px + 320, py + 218,
-            VisionMenuTheme.SURFACE
-        );
-
-        g.drawCenteredString(
-            font,
-            "SAVE & BACK",
-            px + 254, py + 204,
-            ACCENT
-        );
-
-        super.render(g, mouseX, mouseY, delta);
-    }
-
-    @Override
-    public boolean mouseClicked(
-        MouseButtonEvent click,
-        boolean doubled
-    ) {
-        if (click.button() == GLFW.GLFW_MOUSE_BUTTON_LEFT) {
-
-            if (inside(
-                click.x(), click.y(),
-                squareX(), squareY(),
-                SQUARE, SQUARE
-            )) {
-                draggingSquare = true;
-                selectSquare(click.x(), click.y());
-                return true;
-            }
-
-            if (inside(
-                click.x(), click.y(),
-                hueX(), squareY(),
-                HUE_WIDTH, SQUARE
-            )) {
-                draggingHue = true;
-                selectHue(click.y());
-                return true;
-            }
-
-            if (inside(
-                click.x(), click.y(),
-                panelX() + 188,
-                panelY() + 198,
-                132, 20
-            )) {
-                commitColor();
-                minecraft.setScreen(new VisionDashboardScreen());
-                return true;
-            }
-        }
-
-        return super.mouseClicked(click, doubled);
-    }
-
-    @Override
-    public boolean mouseDragged(
-        MouseButtonEvent click,
-        double dx,
-        double dy
-    ) {
-        if (draggingSquare) {
-            selectSquare(click.x(), click.y());
-            return true;
-        }
-
-        if (draggingHue) {
-            selectHue(click.y());
-            return true;
-        }
-
-        return super.mouseDragged(click, dx, dy);
-    }
-
-    @Override
-    public boolean mouseReleased(MouseButtonEvent click) {
-        if (draggingSquare || draggingHue) {
-            draggingSquare = false;
-            draggingHue = false;
-            commitColor();
-            return true;
-        }
-
-        return super.mouseReleased(click);
-    }
-
-    @Override
-    public void onClose() {
-        commitColor();
-        minecraft.setScreen(new VisionDashboardScreen());
-    }
-
-    @Override
-    public boolean isPauseScreen() {
-        return false;
-    }
+    @Override public boolean mouseDragged(MouseButtonEvent e,double dx,double dy){if(squareDrag||hueDrag){pick(e.x(),e.y());return true;}return super.mouseDragged(e,dx,dy);}
+    @Override public boolean mouseReleased(MouseButtonEvent e){if(squareDrag||hueDrag){squareDrag=hueDrag=false;return true;}return super.mouseReleased(e);}
 }

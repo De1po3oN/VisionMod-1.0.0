@@ -63,7 +63,7 @@ public final class VisionSelfTest {
             "[VisionMod][SELFTEST] Expected 54 toggle+save checks, got "+passed);
         if (!"FIRST".equals(VisionWorldLyrics.previewLine("FIRST | SECOND",0)) ||
             !"SECOND".equals(VisionWorldLyrics.previewLine("FIRST | SECOND",70)) ||
-            VisionWorldLyrics.previewLine("",0).isBlank())
+            !VisionWorldLyrics.previewLine("",0).isBlank())
             throw new IllegalStateException("[VisionMod][SELFTEST] World Lyrics line playback failed");
         try (InputStream texture=VisionSelfTest.class.getResourceAsStream(
             "/assets/visionmod/textures/entity/pet_surface.png")) {
@@ -77,20 +77,18 @@ public final class VisionSelfTest {
         if (!"Second".equals(VisionLyricsSource.testLine(
                 "[00:00.00]First","[00:01.50]Second")) ||
             !VisionHudLayout.Widget.CPS.label.equals("CPS") ||
-            VisionHudLayout.Widget.values().length!=11 ||
+            VisionHudLayout.Widget.values().length!=12 ||
             !new VisionHudLayout.Bounds(10,20,50,13).contains(12,24) ||
             new VisionHudLayout.Bounds(10,20,50,13).contains(61,24))
             throw new IllegalStateException("[VisionMod][SELFTEST] LRC / HUD widget regression");
-        if(!VisionBrowserMusicBridge.hasPairingToken())
-            throw new IllegalStateException("Browser music bridge pairing token missing");
-        VisionLyricsSource.receiveBrowserTrack("Spotify","Test Artist","Test Song",1600,true);
-        VisionLyricsSource.setBrowserLyrics("Test Artist","Test Song",
+        VisionLyricsSource.receiveMediaTrack("Spotify","Test Artist","Test Song",1600,true);
+        VisionLyricsSource.setMediaLyrics("Test Artist","Test Song",
             "[00:00.00]TEST FIRST"+System.lineSeparator()+"[00:01.50]TEST SECOND");
         if(!"TEST SECOND".equals(VisionLyricsSource.current()))
-            throw new IllegalStateException("Browser lyric timestamp sync failed");
-        VisionLyricsSource.clearBrowserTrack();
-        System.out.println("[VisionMod][SELFTEST] PASS: Browser music pairing and timed lyric sync.");
-        System.out.println("[VisionMod][SELFTEST] PASS: Timed LRC parsing and 11 HUD layout widget IDs.");
+            throw new IllegalStateException("System media timestamp sync failed");
+        VisionLyricsSource.clearMediaTrack();
+        System.out.println("[VisionMod][SELFTEST] PASS: System media metadata and timed lyric sync.");
+        System.out.println("[VisionMod][SELFTEST] PASS: Timed LRC parsing and 12 HUD layout widget IDs.");
         System.out.println("[VisionMod][SELFTEST] PASS: World Lyrics text rotation and packaged Pet texture.");
         VisionAmbientParticles.selfTestPool();
         verifyAmbientSprite(VisionAmbientParticles.heartResource());

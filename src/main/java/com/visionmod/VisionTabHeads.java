@@ -30,8 +30,8 @@ public final class VisionTabHeads {
             "visionmod","tab_heads"),(g,tick)->{
             Minecraft mc=Minecraft.getInstance();
             if(!VisionModClient.enabled || !enabled || mc.player==null ||
-                mc.getConnection()==null || mc.screen!=null ||
-                !mc.options.keyPlayerList.isDown())return;
+                mc.getConnection()==null || !VisionHudLayout.hudVisible(mc) ||
+                (!mc.options.keyPlayerList.isDown()&&!VisionHudLayout.chatOpen(mc)))return;
             // TAB is only open on key hold. Draw a compact supplementary panel
             // left of the native tab list; never alter its HUD/layout.
             var infos=mc.getConnection().getOnlinePlayers();
@@ -40,9 +40,8 @@ public final class VisionTabHeads {
             var pos=VisionHudLayout.place(VisionHudLayout.Widget.TAB,
                 8,26,118,22+max*16);
             int x=pos.x(),y=pos.y(),w=pos.width(),h=pos.height();
-            g.fill(x-2,y-2,x+w+2,y+h+2,0x7D5E5190);
-            g.fill(x,y,x+w,y+h,0xC9161A2C);
-            g.drawString(mc.font,"TAB HEADS  "+infos.size(),x+7,y+7,0xFF9FDEFA);
+            VisionHudTheme.panel(g,x,y,w,h,VisionMenuTheme.PURPLE);
+            g.drawString(mc.font,"ИГРОКИ  "+infos.size(),x+7,y+7,VisionMenuTheme.CYAN);
             int index=0;
             for(PlayerInfo info:infos){
                 if(index>=max)break;

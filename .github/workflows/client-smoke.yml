@@ -2,7 +2,7 @@ name: Vision Mod client startup smoke test
 
 on:
   push:
-    branches: [main]
+    branches: [main, 'codex/**']
     paths:
       - '.github/workflows/client-smoke.yml'
       - 'src/**'
@@ -26,17 +26,30 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '9.7.1'
+      - name: Prepare client dependencies before timed smoke
+        run: gradle build downloadAssets --no-daemon --console=plain --max-workers=2
+      - name: Prepare screenshot utility
+        run: python3 -m pip install Pillow
       - name: Start Minecraft in virtual display
         shell: bash
         env:
           LIBGL_ALWAYS_SOFTWARE: "1"
           VISIONMOD_SELFTEST: "1"
+          VISIONMOD_VISUAL_QA: "1"
           MESA_GL_VERSION_OVERRIDE: "3.3"
         run: |
           set +e
           command -v xvfb-run
-          xvfb-run -a -s '-screen 0 1280x720x24' timeout --signal=TERM 100s \
-            gradle runClient --no-daemon --console=plain > smoke-client.log 2>&1
+          xvfb-run -a -s '-screen 0 1280x720x24' bash -c '
+            timeout --signal=TERM 100s gradle runClient --no-daemon --console=plain > smoke-client.log 2>&1 &
+            game=$!
+            python3 tests/capture-editors.py
+            capture=$?
+            wait "$game"
+            status=$?
+            if [ "$capture" -ne 0 ]; then exit "$capture"; fi
+            exit "$status"
+          '
           status=$?
           set -e
           echo "Client process status: $status" | tee smoke-status.txt
@@ -65,6 +78,7 @@ jobs:
         with:
           name: VisionMod-Client-Smoke-Logs
           path: |
+            editor-captures/**
             smoke-client.log
             smoke-status.txt
             run/logs/latest.log

@@ -57,6 +57,11 @@ public final class VisionExtendedFeatures {
     private static String lyric = "";
     private static String friends = "";
     private static String friendsNearby = "";
+    private static java.util.List<String> friendRows=java.util.List.of();
+    private static int soundPreset;
+    public static String soundLabel(){return switch(soundPreset){case 1->"AMETHYST";case 2->"CHIME";default->"SOFT";};}
+    public static int soundPreset(){return soundPreset;}
+    public static void cycleSound(){soundPreset=(soundPreset+1)%3;save();}
     private static int worldColor = 0;
     private static int petColor = 0xFFE6CAFC;
     private static final int[] PET_PALETTE={
@@ -77,8 +82,6 @@ public final class VisionExtendedFeatures {
         if (i==4) VisionPetRenderer.retryAfterToggle();
         // Earlier builds persisted an empty ownLyric, making World Lyrics
         // appear totally broken even when its button was enabled.
-        if (i==3 && FLAGS[3] && lyric.isBlank())
-            lyric="YOUR WORLD | YOUR STORY";
         save();
     }
     public static void cycleWorldColor() {
@@ -130,24 +133,23 @@ public final class VisionExtendedFeatures {
             Minecraft mc = Minecraft.getInstance();
             if (mc.player == null || mc.level == null) return;
 
-            Vec3 camera = mc.gameRenderer.getMainCamera().position();
-            VertexConsumer lines = context.consumers().getBuffer(RenderTypes.lines());
-
-            if (FLAGS[0] && mc.hitResult instanceof BlockHitResult hit &&
-                hit.getType() == HitResult.Type.BLOCK && mc.level.hasChunkAt(hit.getBlockPos())) {
-                BlockState state = mc.level.getBlockState(hit.getBlockPos());
-                if (!state.isAir()) {
-                    var bp = hit.getBlockPos();
-                    double x=bp.getX()-camera.x,y=bp.getY()-camera.y,z=bp.getZ()-camera.z;
-                    ShapeRenderer.renderShape(context.matrices(), lines, BLOCK_OUTLINE,
-                        x,y,z,VisionGeometry.withAlpha(VisionMenuTheme.CYAN,210),1.65F);
-                    VertexConsumer fill=context.consumers().getBuffer(
-                        RenderTypes.entityTranslucent(VisionGeometry.WHITE_TEXTURE));
-                    VisionGeometry.cube(fill,context.matrices(),
-                        (float)(x+.007),(float)(y+.007),(float)(z+.007),
-                        (float)(x+.993),(float)(y+.993),(float)(z+.993),
-                        VisionGeometry.withAlpha(VisionMenuTheme.PURPLE,28));
+            Vec3 camera=mc.gameRenderer.getMainCamera().position();
+            if(mc.hitResult instanceof BlockHitResult hit&&hit.getType()==HitResult.Type.BLOCK&&mc.level.hasChunkAt(hit.getBlockPos())){
+                var bp=hit.getBlockPos();BlockState state=mc.level.getBlockState(bp);
+                if(state.isAir())return;
+                VoxelShape shape=state.getShape(mc.level,bp);
+                if(shape.isEmpty())return;
+                double x=bp.getX()-camera.x,y=bp.getY()-camera.y,z=bp.getZ()-camera.z;
+                VertexConsumer fill=context.consumers().getBuffer(RenderTypes.entityTranslucent(VisionGeometry.WHITE_TEXTURE));
+                int alpha=VisionAppearance.animations?27+(int)(5*Math.sin(mc.level.getGameTime()*.09)):30;
+                int count=0;
+                for(AABB box:shape.toAabbs()){
+                    if(count++>=64)break;
+                    VisionGeometry.cube(fill,context.matrices(),(float)(x+box.minX-.002),(float)(y+box.minY-.002),(float)(z+box.minZ-.002),
+                        (float)(x+box.maxX+.002),(float)(y+box.maxY+.002),(float)(z+box.maxZ+.002),VisionGeometry.withAlpha(VisionMenuTheme.PURPLE,alpha));
                 }
+                VertexConsumer lines=context.consumers().getBuffer(RenderTypes.lines());
+                ShapeRenderer.renderShape(context.matrices(),lines,shape,x,y,z,VisionGeometry.withAlpha(VisionMenuTheme.CYAN,180),1.5f);
             }
 
         });
@@ -160,7 +162,7 @@ public final class VisionExtendedFeatures {
             lastPlayedHitSequence = VisionCombatTracker.hitSequence();
             lastShownDeathSequence = VisionCombatTracker.deathSequence();
             lastTarget = "";
-            friendsNearby = "";
+            friendsNearby = "";friendRows=java.util.List.of();
             return;
         }
         if (!VisionModClient.enabled) {
@@ -174,7 +176,9 @@ public final class VisionExtendedFeatures {
         if (hitEvent != lastPlayedHitSequence) {
             lastPlayedHitSequence = hitEvent;
             if (FLAGS[6]) {
-                mc.player.playSound(SoundEvents.EXPERIENCE_ORB_PICKUP, .30F, 1.35F);
+                if(soundPreset==1)mc.player.playSound(SoundEvents.AMETHYST_BLOCK_CHIME,.28F,1.2F);
+                else if(soundPreset==2)mc.player.playSound(SoundEvents.NOTE_BLOCK_CHIME.value(),.25F,1.5F);
+                else mc.player.playSound(SoundEvents.EXPERIENCE_ORB_PICKUP,.20F,1.55F);
             }
         }
         int deathEvent = VisionCombatTracker.deathSequence();
@@ -190,6 +194,7 @@ public final class VisionExtendedFeatures {
             ticks = 0;
             if (FLAGS[5] && !friends.isBlank()) {
                 StringBuilder near = new StringBuilder();
+                java.util.ArrayList<String> rows=new java.util.ArrayList<>();
                 for (Player other : mc.level.players()) {
                     if (other == mc.player || other.distanceToSqr(mc.player) > 48 * 48) continue;
                     String name = other.getGameProfile().name();
@@ -197,13 +202,14 @@ public final class VisionExtendedFeatures {
                         if (!friend.trim().isEmpty() && friend.trim().equalsIgnoreCase(name)) {
                             if (near.length() > 0) near.append(", ");
                             if (near.length() < 95) near.append(name);
+                            if(rows.size()<6)rows.add(name+"  ·  "+Math.round(Math.sqrt(other.distanceToSqr(mc.player)))+" m");
                             break;
                         }
                     }
                 }
-                friendsNearby = near.toString();
+                friendsNearby = near.toString();friendRows=java.util.List.copyOf(rows);
             } else {
-                friendsNearby = "";
+                friendsNearby = "";friendRows=java.util.List.of();
             }
         }
     }
@@ -229,17 +235,26 @@ public final class VisionExtendedFeatures {
             };
             g.fillGradient(0,0,w,h,top,bottom);
         }
-        if (FLAGS[1] && notificationTicks > 0) {
-            int a = Math.min(255, notificationTicks * 10);
-            // Local client can observe death after attacking, but cannot
-            // prove server-side kill attribution (teammates may finish it).
-            String title = "TARGET DOWN: " + lastTarget;
-            int width=Math.max(160,mc.font.width(title)+8);
-            var box=VisionHudLayout.place(VisionHudLayout.Widget.KILL,
-                (w-width)/2,h/2-38,width,14);
-            g.drawString(mc.font,title,box.x()+4,box.y(),(a << 24) | 0x00E7B5FF);
+        if(FLAGS[1]&&notificationTicks>0){
+            float progress=1-notificationTicks/28f;
+            int alpha=(int)(255*Math.min(1,notificationTicks/8f));
+            int width=Math.min(w-24,Math.max(166,mc.font.width(lastTarget)+32));
+            int lift=VisionAppearance.animations?(int)(5*(1-EffectMath.ease(progress))):0;
+            var box=VisionHudLayout.place(VisionHudLayout.Widget.KILL,(w-width)/2,h/2-65-lift,width,42);
+            VisionHudTheme.panel(g,box.x(),box.y(),box.width(),box.height(),VisionMenuTheme.PURPLE);
+            g.drawString(mc.font,"TARGET DOWN",box.x()+12,box.y()+8,VisionGeometry.withAlpha(VisionMenuTheme.PURPLE,alpha));
+            VisionHudTheme.text(g,mc.font,lastTarget,box.x()+12,box.y()+24,box.width()-24,VisionGeometry.withAlpha(VisionMenuTheme.WHITE,alpha));
+        }
+        if(FLAGS[5]){
+            int height=30+Math.max(1,friendRows.size())*14;
+            var box=VisionHudLayout.place(VisionHudLayout.Widget.SOCIAL,w-168,h-height-18,156,height);
+            VisionHudTheme.panel(g,box.x(),box.y(),box.width(),box.height(),0xFF96E2C2);
+            g.drawString(mc.font,"ДРУЗЬЯ РЯДОМ",box.x()+10,box.y()+9,0xFF96E2C2);
+            if(friendRows.isEmpty())g.drawString(mc.font,"Никого в радиусе 48 m",box.x()+10,box.y()+27,VisionMenuTheme.MUTED);
+            for(int i=0;i<friendRows.size();i++)VisionHudTheme.text(g,mc.font,friendRows.get(i),box.x()+10,box.y()+27+i*14,box.width()-20,VisionMenuTheme.WHITE);
         }
     }
+
 
     private static void load() {
         if (!Files.isRegularFile(FILE)) return;
@@ -249,8 +264,10 @@ public final class VisionExtendedFeatures {
             for (int i = 0; i < FLAGS.length; i++)
                 FLAGS[i] = Boolean.parseBoolean(p.getProperty("feature." + i, "false"));
             lyric = p.getProperty("ownLyric", "").replace("\r", " ").replace("\n", " ").trim();
+            if (lyric.equals("YOUR WORLD | YOUR STORY")) lyric="";
             friends = p.getProperty("friends", "");
             worldColor = Math.max(0, Math.min(2, Integer.parseInt(p.getProperty("worldColor", "0"))));
+            soundPreset=Math.clamp(Integer.parseInt(p.getProperty("soundPreset","0")),0,2);
             petColor = (int)Long.parseLong(p.getProperty("petColor", "ffa89cff"),16);
         } catch(Exception e) {
             System.err.println("[VisionMod] Extended feature settings read failed: " + e);
@@ -263,6 +280,7 @@ public final class VisionExtendedFeatures {
         p.setProperty("ownLyric", lyric);
         p.setProperty("friends", friends);
         p.setProperty("worldColor", Integer.toString(worldColor));
+        p.setProperty("soundPreset",Integer.toString(soundPreset));
         p.setProperty("petColor", Integer.toHexString(petColor));
         try {
             Files.createDirectories(FILE.getParent());

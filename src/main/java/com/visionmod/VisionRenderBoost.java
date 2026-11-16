@@ -24,6 +24,7 @@ public final class VisionRenderBoost {
     public static int chunkCap = 6;
     public static int targetFps = 50;
     private static boolean applied;
+    private static long nextRestoreAttempt;
     private static int savedChunks;
     private static double savedEntityScale;
     private static ParticleStatus savedParticles;
@@ -140,6 +141,8 @@ public final class VisionRenderBoost {
             client.options.weatherRadius().set(weatherCap);
     }
     private static void restore(Minecraft client) {
+        if(System.nanoTime()<nextRestoreAttempt)return;
+        nextRestoreAttempt=System.nanoTime()+5_000_000_000L;
         try {
             readBackup(client);
             client.options.renderDistance().set(savedChunks);
@@ -153,6 +156,7 @@ public final class VisionRenderBoost {
             client.options.cutoutLeaves().set(savedCutoutLeaves);
             client.options.weatherRadius().set(savedWeatherRadius);
             Files.deleteIfExists(BACKUP);
+            nextRestoreAttempt=0;
         } catch (Exception e) {
             System.err.println("[VisionMod] Video settings restore failed; backup retained: " + e);
         } finally {

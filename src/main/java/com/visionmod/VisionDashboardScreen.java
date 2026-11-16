@@ -33,7 +33,7 @@ public final class VisionDashboardScreen extends Screen {
     private static final int TOOLS = 5;
     private static final int PERFORMANCE = 6;
     private static final String[] TABS = {
-        "VISUALS", "HUD", "COMBAT", "WORLD FX", "MOTION", "TOOLS", "PERFORMANCE"
+        "ВИЗУАЛ", "HUD", "БОЙ", "МИР", "ДВИЖЕНИЕ", "УТИЛИТЫ", "FPS"
     };
     private static final String[] SYMBOLS = {
         "V", "H", "C", "W", "M", "T", "F"
@@ -65,8 +65,7 @@ public final class VisionDashboardScreen extends Screen {
     private List<Module> cachedModules = List.of();
     private String cachedQuery = null;
     private int cachedCategory = -1;
-    private long pageAt = System.nanoTime();
-    private final long openedAt = System.nanoTime();
+    private DashboardLayout layout;
 
     private int left, top, w, h, sidebar, contentX, contentW, columns, rows, cardsPerPage;
 
@@ -206,14 +205,16 @@ public final class VisionDashboardScreen extends Screen {
                 case 0 -> "Highlight selected blocks";
                 case 1 -> "Client-observed defeat notification";
                 case 2 -> "Dusk / warm / cool screen coloring";
-                case 3 -> "Floating lyrics • RMB to edit • | separates lines";
+                case 3 -> "Музыка из системного плеера · без расширений";
                 case 4 -> "Animated solid pet with colors and wings";
-                case 5 -> "Shows nearby friends in module details, not in chat";
+                case 5 -> "Панель друзей поблизости · до 48 блоков";
                 case 6 -> "Client hit-feedback sound";
                 default -> "Filter ordinary weather particles";
             },
             ()->VisionExtendedFeatures.enabled(id),
             ()->VisionExtendedFeatures.toggle(id),
+            id==6 ? VisionExtendedFeatures::cycleSound :
+            id==3 ? ()->net.minecraft.client.Minecraft.getInstance().setScreen(new VisionLyricsScreen()) :
             id==2 ? VisionExtendedFeatures::cycleWorldColor :
                 id==4 ? VisionExtendedFeatures::cyclePetColor : null));
     }
@@ -281,393 +282,229 @@ public final class VisionDashboardScreen extends Screen {
         };
     }
 
-    @Override
-    protected void init() {
-        w = Math.max(300,Math.min(628,width - 16));
-        h = Math.max(215,Math.min(390,height - 14));
-        left = (width - w)/2;
-        top = (height - h)/2;
-        sidebar = w >= 470 ? 136 : 102;
-        contentX = left + sidebar + 19;
-        contentW = w - sidebar - 36;
-        columns = contentW >= 335 ? 2 : 1;
-        rows = Math.max(1,Math.min(3,(h - 146)/71));
-        cardsPerPage = columns * rows;
-        search = new EditBox(font, left + w - Math.min(198,contentW) - 16,
-            top + 35,Math.min(184,contentW - 12),20,Component.literal("Search modules"));
-        search.setMaxLength(48);
-        search.setHint(Component.literal("Find a module..."));
+
+    @Override protected void init() {
+        layout=DashboardLayout.of(width,height);
+        w=layout.width();h=layout.height();sidebar=layout.sidebar();
+        left=(width-w)/2;top=(height-h)/2;
+        contentX=left+sidebar+22;contentW=layout.contentWidth();
+        columns=layout.columns();rows=layout.rows();cardsPerPage=layout.cards();
+        search=new EditBox(font,contentX,top+21,contentW,20,Component.literal("Поиск"));
+        search.setMaxLength(48);search.setHint(Component.literal("Найти модуль…"));
         addRenderableWidget(search);
-        customText = new EditBox(font, contentX + 12, top + Math.min(230,h-100),
-            Math.max(90, contentW - 24), 20, Component.literal("Custom text / friends"));
-        customText.setMaxLength(120);
-        customText.visible = false;
-        customText.active = false;
+        customText=new EditBox(font,left+24,top+116,w-48,20,Component.literal("Друзья через запятую"));
+        customText.setMaxLength(120);customText.visible=false;customText.active=false;
         addRenderableWidget(customText);
-        page = 0;
     }
-
-    @Override public void renderBackground(GuiGraphics g,int mx,int my,float delta) {
-        // World stays visible; no heavy post-processing blur or render-target copy.
-    }
-
-    private int accent() { return VisionMenuTheme.CYAN; }
-    private static void round(GuiGraphics g,int x,int y,int rw,int rh,int radius,int color) {
-        if (rw<=0 || rh<=0) return;
-        radius = Math.min(radius,Math.min(rw/2,rh/2));
-        g.fill(x+radius,y,x+rw-radius,y+rh,color);
-        g.fill(x,y+radius,x+rw,y+rh-radius,color);
-        for(int i=0;i<radius;i++) {
-            int inset = (int)Math.ceil(radius-Math.sqrt(radius*radius-(radius-i-.5)*(radius-i-.5)));
-            g.fill(x+inset,y+i,x+rw-inset,y+i+1,color);
-            g.fill(x+inset,y+rh-i-1,x+rw-inset,y+rh-i,color);
+    @Override public void renderBackground(GuiGraphics g,int mx,int my,float delta) {}
+    private int accent(){return VisionMenuTheme.CYAN;}
+    private static boolean inside(double mx,double my,int x,int y,int w,int h){return mx>=x&&my>=y&&mx<x+w&&my<y+h;}
+    private static void round(GuiGraphics g,int x,int y,int w,int h,int r,int color){
+        if(w<=0||h<=0)return;
+        r=Math.min(r,Math.min(w/2,h/2));
+        g.fill(x+r,y,x+w-r,y+h,color);g.fill(x,y+r,x+w,y+h-r,color);
+        for(int i=0;i<r;i++){
+            int inset=(int)Math.ceil(r-Math.sqrt(r*r-(r-i-.5)*(r-i-.5)));
+            g.fill(x+inset,y+i,x+w-inset,y+i+1,color);
+            g.fill(x+inset,y+h-i-1,x+w-inset,y+h-i,color);
         }
     }
-
-    private void textFit(GuiGraphics g,String value,int x,int y,int maxWidth,int color) {
-        String text = value;
-        while (!text.isEmpty() && font.width(text)>maxWidth)
-            text = text.substring(0,text.length()-1);
-        if (!text.equals(value) && text.length()>3)
-            text=text.substring(0,text.length()-3)+"...";
+    private void textFit(GuiGraphics g,String text,int x,int y,int max,int color){
+        if(max<1)return;
+        if(font.width(text)>max)text=font.plainSubstrByWidth(text,Math.max(1,max-font.width("…")))+"…";
         g.drawString(font,text,x,y,color);
     }
-
-    private List<Module> filtered() {
-        String q=search==null?"":search.getValue().trim().toLowerCase(Locale.ROOT);
-        if(cachedCategory==category && q.equals(cachedQuery))return cachedModules;
-        List<Module> result=new ArrayList<>();
-        for(Module m:CATALOG) {
-            if(q.isEmpty() && m.category!=category) continue;
-            if(!q.isEmpty() &&
-                !m.title.toLowerCase(Locale.ROOT).contains(q) &&
-                !m.info.toLowerCase(Locale.ROOT).contains(q)) continue;
-            result.add(m);
-        }
-        cachedQuery=q;
-        cachedCategory=category;
-        cachedModules=List.copyOf(result);
-        page=0;
-        pageAt=System.nanoTime();
-        return cachedModules;
+    private void button(GuiGraphics g,int x,int y,int w,int h,String text,boolean selected,int mx,int my){
+        boolean hover=inside(mx,my,x,y,w,h);
+        round(g,x,y,w,h,5,selected?0xFF443A65:hover?0xFF33364E:0xFF25283C);
+        if(selected)g.fill(x+6,y+h-2,x+w-6,y+h-1,accent());
+        textFit(g,text,x+8,y+(h-8)/2,w-16,selected?WHITE:MUTED);
     }
+    private List<Module> filtered(){
+        String query=search.getValue().trim().toLowerCase(Locale.ROOT);
+        if(cachedCategory==category&&query.equals(cachedQuery))return cachedModules;
+        cachedModules=CATALOG.stream().filter(m->query.isEmpty()?m.category==category:
+            (m.title+" "+m.info).toLowerCase(Locale.ROOT).contains(query)).toList();
+        cachedCategory=category;cachedQuery=query;page=0;return cachedModules;
+    }
+    private int cardX(int i){return left+layout.cardLeft(i);}
+    private int cardY(int i){return top+layout.cardTop(i);}
+    private int cardWidth(){return layout.cardWidth();}
+    private int maxPage(List<Module> m){return Math.max(0,(m.size()-1)/cardsPerPage);}
 
-    @Override public void render(GuiGraphics g,int mx,int my,float delta) {
-        long elapsed = System.nanoTime()-openedAt;
-        float arrival = ease((float)(elapsed/340_000_000.0));
-        float pageChange = ease((float)((System.nanoTime()-pageAt)/250_000_000.0));
-        g.fill(0,0,width,height,((int)(0x96*arrival)<<24)|0x00070812);
-        round(g,left-5,top+7,w+10,h+9,13,0x50040610);
-        round(g,left-1,top-1,w+2,h+2,12,BORDER);
-        round(g,left,top,w,h,12,BG);
-        // Prominent glass header and its thin accent line.
-        round(g,left+9,top+8,w-18,52,9,0xFF25243C);
-        g.fillGradient(left+20,top+57,left+w-20,top+59,accent(),VisionMenuTheme.PURPLE);
-        round(g,left+17,top+19,28,27,7,accent());
-        g.drawCenteredString(font,"V",left+31,top+28,0xFF151326);
-        g.drawString(font,"VISION",left+53,top+19,WHITE);
-        g.drawString(font,"VISUAL CLIENT  /  2.0.0",left+53,top+34,MUTED);
-        // Compact sidebar categories.
-        round(g,left+10,top+67,sidebar-8,h-113,9,0xFF17192A);
-        int tabTop=top+76,tabStep=Math.max(23,Math.min(37,(h-138)/TABS.length));
-        for(int i=0;i<TABS.length;i++){
-            int ty=tabTop+i*tabStep;
-            boolean on=i==category && search.getValue().isBlank();
-            boolean hover=inside(mx,my,left+17,ty,sidebar-21,tabStep-4);
-            if(on||hover)round(g,left+16,ty,sidebar-20,tabStep-4,6,on?0xFF383052:0xFF28283F);
-            if(on)g.fill(left+16,ty+4,left+19,ty+tabStep-8,accent());
-            g.drawString(font,SYMBOLS[i],left+24,ty+9,on?accent():MUTED);
-            textFit(g,TABS[i],left+41,ty+9,sidebar-61,on?WHITE:MUTED);
+    @Override public void render(GuiGraphics g,int mx,int my,float delta){
+        g.fill(0,0,width,height,0x80080B15);
+        round(g,left-4,top+6,w+8,h+3,12,0x6003040B);
+        round(g,left-1,top-1,w+2,h+2,10,0xFF46405E);
+        round(g,left,top,w,h,10,0xF5141725);
+        g.fillGradient(left+14,top+1,left+w-14,top+3,accent(),VisionMenuTheme.PURPLE);
+        g.drawString(font,"VISION",left+20,top+20,WHITE);
+        g.drawString(font,"2.0 / BETA",left+20,top+35,accent());
+        g.fill(left+16,top+59,left+w-16,top+60,0xFF303347);
+        int step=Math.min(36,(h-108)/TABS.length);
+        for(int i=0;i<TABS.length;i++)button(g,left+12,top+73+i*step,sidebar-4,step-3,
+            TABS[i],category==i&&search.getValue().isBlank(),mx,my);
+        button(g,left+12,top+h-29,sidebar-4,19,VisionModClient.enabled?"МОД: ВКЛ":"МОД: ВЫКЛ",VisionModClient.enabled,mx,my);
+        List<Module> modules=filtered();page=Math.min(page,maxPage(modules));
+        long active=CATALOG.stream().filter(m->m.enabled.getAsBoolean()).count();
+        textFit(g,search.getValue().isBlank()?TABS[category]:"РЕЗУЛЬТАТЫ",contentX,top+72,contentW-76,WHITE);
+        String counter=modules.size()+" / "+active+" вкл.";
+        g.drawString(font,counter,contentX+contentW-font.width(counter),top+72,MUTED);
+        for(int i=0;i<cardsPerPage&&page*cardsPerPage+i<modules.size();i++){
+            Module m=modules.get(page*cardsPerPage+i);
+            int x=cardX(i),y=cardY(i),cw=cardWidth();
+            boolean on=m.enabled.getAsBoolean(),hover=inside(mx,my,x,y,cw,60);
+            round(g,x,y,cw,60,6,hover?0xFF2E3048:0xFF202436);
+            g.fill(x+9,y+12,x+11,y+28,on?accent():0xFF57596E);
+            textFit(g,m.title,x+18,y+12,cw-56,WHITE);
+            round(g,x+cw-32,y+11,22,12,6,on?0xFF68578E:0xFF43465B);
+            round(g,x+cw-(on?20:29),y+14,6,6,3,on?accent():0xFFB2B1C5);
+            textFit(g,m.info,x+12,y+32,cw-24,MUTED);
+            int bind=bindingId(m);
+            textFit(g,bind>=0?VisionHotkeys.label(bind):"ПКМ · подробнее",x+12,y+47,cw-24,0xFF858BA6);
         }
-        // Bottom navigation remains in one place across all categories.
-        g.fill(left+12,top+h-42,left+w-12,top+h-41,0xFF3F3A57);
-        g.drawString(font,"END  toggle all   |   RMB  details",left+19,top+h-30,MUTED);
-        g.drawString(font,"OPEN BETA",left+20,top+h-17,accent());
-
-        List<Module> modules = filtered();
-        int maxPage=Math.max(0,(modules.size()-1)/Math.max(1,cardsPerPage));
-        if(page>maxPage)page=maxPage;
-        String heading=search.getValue().isBlank()?TABS[category]:"SEARCH RESULTS";
-        g.drawString(font,heading,contentX,top+75,WHITE);
-        g.drawString(font,modules.size()+" MODULES",contentX,top+89,MUTED);
-        int first=page*cardsPerPage;
-        int gap=11,cardW=(contentW-(columns-1)*gap)/columns;
-        int cardH=63;
-        for(int i=0;i<cardsPerPage && first+i<modules.size();i++) {
-            Module m=modules.get(first+i);
-            int cx=contentX+(i%columns)*(cardW+gap);
-            int cy=top+112+(i/columns)*71;
-            boolean hovered=inside(mx,my,cx,cy,cardW,cardH);
-            boolean enabled=m.enabled.getAsBoolean();
-            int slide=(int)(8*(1-pageChange));
-            round(g,cx+slide,cy,cardW,cardH,7,hovered?HOVER:CARD);
-            g.fill(cx+slide+1,cy+9,cx+slide+4,cy+cardH-9,enabled?accent():0xFF52516B);
-            textFit(g,m.title,cx+slide+13,cy+11,cardW-64,WHITE);
-            textFit(g,m.info,cx+slide+13,cy+30,cardW-23,MUTED);
-            g.fill(cx+slide+13,cy+45,cx+slide+cardW-13,cy+46,0xFF3C3954);
-            int binding=bindingId(m);
-            if(binding>=0)textFit(g,VisionHotkeys.label(binding),cx+slide+13,cy+51,
-                cardW-25,0xFF8988A6);
-            else g.drawString(font,"LMB toggle  /  RMB details",cx+slide+13,cy+51,0xFF8988A6);
-            round(g,cx+slide+cardW-40,cy+10,28,15,7,enabled?0xFF544679:0xFF44445B);
-            round(g,cx+slide+cardW-(enabled?27:37),cy+13,9,9,4,enabled?accent():0xFFBBB7CD);
-        }
-        if(modules.isEmpty())g.drawCenteredString(font,"Nothing found. Try another search.",contentX+contentW/2,top+164,MUTED);
-
-        // Lightweight paging controls; no scroll event mixins or large lists.
-        int navY=top+h-60;
-        round(g,contentX,navY,54,16,5,page>0?0xFF39334F:0xFF252637);
-        round(g,contentX+contentW-54,navY,54,16,5,page<maxPage?0xFF39334F:0xFF252637);
-        g.drawCenteredString(font,"PREV",contentX+27,navY+4,page>0?WHITE:MUTED);
-        g.drawCenteredString(font,"NEXT",contentX+contentW-27,navY+4,page<maxPage?WHITE:MUTED);
-        g.drawCenteredString(font,(page+1)+" / "+(maxPage+1),contentX+contentW/2,navY+4,MUTED);
-
-        // Distinct controls to reach existing rich editors, without removing them.
-        int advX=left+w-101;
-        round(g,advX,top+h-34,85,23,6,0xFF403552);
-        g.drawCenteredString(font,"ADVANCED",advX+42,top+h-26,WHITE);
-
+        if(modules.isEmpty())textFit(g,"Ничего не найдено. Попробуй другое название.",contentX,top+110,contentW,MUTED);
+        int ny=top+h-48;
+        button(g,contentX,ny,54,19,"<",page>0,mx,my);
+        button(g,contentX+contentW-54,ny,54,19,">",page<maxPage(modules),mx,my);
+        g.drawCenteredString(font,(page+1)+" / "+(maxPage(modules)+1),contentX+contentW/2,ny+5,MUTED);
+        int bw=(contentW-10)/2;
+        button(g,contentX,top+h-24,bw,17,"Настройки",false,mx,my);
+        button(g,contentX+bw+10,top+h-24,bw,17,"Тема  •",false,mx,my);
+        search.visible=details==null&&modal==0&&captureBind<0;
+        search.active=search.visible;
         if(details!=null)renderDetails(g,mx,my);
-        if(modal!=0) renderModal(g,mx,my);
-        if(captureBind>=0) {
-            int ox=left+w/2-147,oy=top+h/2-44;
-            round(g,ox-3,oy-3,300,87,9,0xFF655383);
-            round(g,ox,oy,294,81,8,0xFF19182D);
-            g.drawCenteredString(font,"PRESS A KEY TO BIND",ox+147,oy+18,WHITE);
-            g.drawCenteredString(font,"ESC clears / Mouse buttons also work",ox+147,oy+40,MUTED);
+        if(modal!=0)renderModal(g,mx,my);
+        if(captureBind>=0){
+            overlay(g,"ГОРЯЧАЯ КЛАВИША");
+            textFit(g,"Нажми клавишу или кнопку мыши.",left+24,top+64,w-48,WHITE);
+            textFit(g,"Esc — убрать привязку",left+24,top+85,w-48,MUTED);
         }
         super.render(g,mx,my,delta);
     }
-
-    private void renderModal(GuiGraphics g,int mx,int my) {
-        int x=contentX-5,y=top+100,ww=contentW+10,hh=h-158;
-        round(g,x-3,y-3,ww+6,hh+6,10,0xFF655383);
-        round(g,x,y,ww,hh,8,0xFF17192B);
-        g.drawString(font,modal==1?"ORES / SELECT & EDIT":"ADVANCED TOOLS",x+13,y+13,accent());
-        g.drawString(font,"[x]",x+ww-25,y+13,MUTED);
-        int gridGap=10, cw=(ww-36-gridGap)/2;
-        if(modal==1) {
-            for(int i=0;i<ORE_NAMES.length;i++) {
-                int bx=x+13+(i%2)*(cw+gridGap), by=y+34+(i/2)*30;
-                round(g,bx,by,cw,25,5,OreSelection.enabled(i)?0xFF39344F:0xFF29283C);
-                textFit(g,ORE_NAMES[i],bx+8,by+8,cw-38,WHITE);
-                g.drawString(font,OreSelection.enabled(i)?"ON":"OFF",bx+cw-24,by+8,
-                    OreSelection.enabled(i)?GREEN:MUTED);
+    private void overlay(GuiGraphics g,String title){
+        round(g,left+8,top+8,w-16,h-16,8,0xFF181C2D);
+        g.drawString(font,title,left+24,top+25,accent());
+        g.drawString(font,"×",left+w-30,top+24,MUTED);
+        g.fill(left+24,top+44,left+w-24,top+45,0xFF36384F);
+    }
+    private void renderModal(GuiGraphics g,int mx,int my){
+        overlay(g,modal==1?"РУДЫ · ПКМ: ЦВЕТ":"НАСТРОЙКИ");
+        int gap=10,cw=(w-58)/2;
+        if(modal==1){
+            for(int i=0;i<ORE_NAMES.length;i++){
+                int x=left+24+(i%2)*(cw+gap),y=top+56+(i/2)*28;
+                button(g,x,y,cw,24,ORE_NAMES[i],OreSelection.enabled(i),mx,my);
+                g.fill(x+cw-16,y+8,x+cw-8,y+16,OreColors.getColor(i));
             }
-            if(hh>204)g.drawString(font,"LMB toggle  /  RMB color editor",x+13,y+hh-12,MUTED);
-        } else {
-            for(int i=0;i<ADVANCED_TOOLS.length;i++) {
-                int bx=x+13+(i%2)*(cw+gridGap),by=y+38+(i/2)*41;
-                round(g,bx,by,cw,33,6,inside(mx,my,bx,by,cw,33)?HOVER:0xFF2C2941);
-                textFit(g,ADVANCED_TOOLS[i],bx+10,by+12,cw-19,WHITE);
+        }else{
+            for(int i=0;i<ADVANCED_TOOLS.length;i++)button(g,left+24+(i%2)*(cw+gap),top+56+(i/2)*34,cw,28,ADVANCED_TOOLS[i],false,mx,my);
+            if(h>238){
+                button(g,left+24,top+168,w-48,24,"Вернуть позиции HUD",false,mx,my);
+                textFit(g,"Открой чат: ЛКМ — двигать, ПКМ — сбросить.",left+24,top+201,w-48,MUTED);
             }
         }
     }
-
-    private void openAdvancedTool(int index) {
-        switch(index) {
-            case 0 -> {modal=1;return;}
-            case 1 -> minecraft.setScreen(new ParticleSettingsScreen());
-            case 2 -> minecraft.setScreen(new VisionCrosshairEditorScreen());
-            case 3 -> minecraft.setScreen(new PerformanceScreen());
-            case 4 -> minecraft.setScreen(new ConfigsScreen());
-            default -> {}
-        }
+    private void openAdvancedTool(int i){
+        switch(i){case 0->modal=1;case 1->minecraft.setScreen(new ParticleSettingsScreen());
+            case 2->minecraft.setScreen(new VisionCrosshairEditorScreen());case 3->minecraft.setScreen(new PerformanceScreen());
+            case 4->minecraft.setScreen(new ConfigsScreen());default->{}}
     }
-
-    private void openDetails(Module module) {
-        details = module;
-        boolean text = module.title.equals("World Lyrics");
-        boolean friends = module.title.equals("Social Radar");
-        customText.visible = text || friends;
-        customText.active = text || friends;
-        if (customText.visible) {
-            customText.setResponder(v -> { });
-            customText.setValue(text ? VisionExtendedFeatures.customText()
-                : VisionExtendedFeatures.friendNames());
-            customText.setResponder(value -> {
-                if (details != null && details.title.equals("World Lyrics"))
-                    VisionExtendedFeatures.setCustomText(value);
-                else if (details != null && details.title.equals("Social Radar"))
-                    VisionExtendedFeatures.setFriendNames(value);
-            });
-            customText.setFocused(false);
-        }
+    private void openDetails(Module module){
+        details=module;search.setFocused(false);
+        customText.visible=module.title.equals("Social Radar");customText.active=customText.visible;
+        customText.setResponder(v->{});
+        if(customText.visible){customText.setValue(VisionExtendedFeatures.friendNames());customText.setResponder(VisionExtendedFeatures::setFriendNames);}
     }
-
-    private void closeDetails() {
-        details = null;
-        if (customText != null) {
-            customText.visible = false;
-            customText.active = false;
-            customText.setFocused(false);
+    private void closeDetails(){details=null;customText.visible=false;customText.active=false;customText.setFocused(false);}
+    private void renderDetails(GuiGraphics g,int mx,int my){
+        overlay(g,details.title.toUpperCase(Locale.ROOT));
+        int y=top+59;
+        String remaining=details.info;
+        for(int i=0;i<2&&!remaining.isEmpty();i++){
+            String part=font.plainSubstrByWidth(remaining,w-48);
+            if(part.isEmpty())break;
+            g.drawString(font,part,left+24,y+i*13,MUTED);remaining=remaining.substring(part.length());
         }
+        String value=switch(details.title){
+            case "Air Hearts","Snowflakes" -> "Режим: "+VisionExtras.ambientStyleLabel()+"  ·  Плотность: "+VisionExtras.ambientDensityLabel();
+            case "Free Look" -> "Сглаживание: "+(FreeLook.smooth?"ВКЛ":"ВЫКЛ");
+            case "Local Pet" -> VisionPetRenderer.suspended()?"Ошибка рендера · выключи и включи для повтора":"Цвет: "+VisionExtendedFeatures.petColorLabel();
+            case "Trails","China Hat","Jump Circles","Target ESP" -> VisionWorldEffects.suspended()?"Ошибка рендера · выключи и включи для повтора":"Эффект виден в мире · F5: третье лицо";
+            case "Custom Models" -> VisionCustomModels.suspended()?"Ошибка модели · включи заново для повтора":"config/visionmod/custom-model.json";
+            case "Custom Sound" -> "Звук: "+VisionExtendedFeatures.soundLabel();
+            case "World Color" -> "Палитра: "+VisionExtendedFeatures.colorLabel();
+            case "Hit Color" -> "Цвет: "+VisionTools2.hitColorName();
+            case "World Lyrics" -> VisionMediaSession.state();
+            case "Social Radar" -> "Друзья через запятую";
+            default -> details.enabled.getAsBoolean()?"Модуль включён":"Модуль выключен";
+        };
+        textFit(g,value,left+24,top+97,w-48,WHITE);
+        if(details.title.equals("Social Radar"))textFit(g,VisionExtendedFeatures.nearbyFriends(),left+24,top+142,w-48,accent());
+        int bw=(w-58)/2,by=top+h-72;
+        button(g,left+24,by,bw,26,details.enabled.getAsBoolean()?"Выключить":"Включить",details.enabled.getAsBoolean(),mx,my);
+        if(details.options!=null)button(g,left+34+bw,by,bw,26,"Настроить",false,mx,my);
+        if(details.title.equals("Air Hearts")||details.title.equals("Snowflakes"))button(g,left+24,top+h-39,w-48,22,"Изменить плотность",false,mx,my);
     }
-
-    private void renderDetails(GuiGraphics g,int mx,int my) {
-        int x=contentX-5,y=top+103,ww=contentW+10,hh=h-168;
-        round(g,x-3,y-3,ww+6,hh+6,9,0xFF58506F);
-        round(g,x,y,ww,hh,8,0xFF18182B);
-        g.drawString(font,"MODULE / DETAILS",x+16,y+16,accent());
-        textFit(g,details.title,x+16,y+36,ww-29,WHITE);
-        textFit(g,details.info,x+16,y+55,ww-28,MUTED);
-        g.drawString(font,details.enabled.getAsBoolean()?"STATUS: ENABLED":"STATUS: DISABLED",
-            x+16,y+78,details.enabled.getAsBoolean()?GREEN:MUTED);
-        if(details.title.equals("Air Hearts") || details.title.equals("Snowflakes")) {
-            g.drawString(font,"MODE: "+VisionExtras.ambientStyleLabel(),x+16,y+102,WHITE);
-            g.drawString(font,"DENSITY: "+VisionExtras.ambientDensityLabel(),x+16,y+116,WHITE);
-        } else if(details.title.equals("Free Look")) {
-            g.drawString(font,"SMOOTH CAMERA: "+(FreeLook.smooth?"ON":"OFF"),x+16,y+102,WHITE);
-        } else if(details.title.equals("World Color")) {
-            g.drawString(font,"PALETTE: "+VisionExtendedFeatures.colorLabel(),x+16,y+102,WHITE);
-        } else if(details.title.equals("Hit Color")) {
-            g.drawString(font,"PALETTE: "+VisionTools2.hitColorName(),x+16,y+102,WHITE);
-        } else if(details.title.equals("Local Pet")) {
-            g.drawString(font,"PET COLOR: "+VisionExtendedFeatures.petColorLabel(),x+16,y+102,WHITE);
-            g.drawString(font,"OPTIONS: next color",x+16,y+116,MUTED);
-        } else if(details.title.equals("World Lyrics") || details.title.equals("Social Radar")) {
-            g.drawString(font,details.title.equals("World Lyrics")?"LYRIC LINES: separate each with |":"FRIENDS (COMMA SEPARATED):",
-                x+16,y+103,MUTED);
-            if(details.title.equals("World Lyrics")) {
-                textFit(g,"SOURCE: "+VisionLyricsSource.status(),x+16,y+117,ww-30,WHITE);
-                textFit(g,"BROWSER: "+VisionBrowserMusicBridge.state(),x+16,y+131,ww-30,MUTED);
-                textFit(g,"PAIR: config/visionmod/browser-bridge.properties",x+16,y+145,ww-30,MUTED);
-            }
-            if(details.title.equals("Social Radar")) {
-                textFit(g,"NEARBY: "+VisionExtendedFeatures.nearbyFriends(),
-                    x+16,y+117,ww-32,WHITE);
-            }
-        }
-        int actionY=y+hh-37;
-        round(g,x+13,actionY,Math.min(115,(ww-45)/2),27,6,0xFF42345F);
-        g.drawString(font,"TOGGLE",x+28,actionY+10,WHITE);
-        if(details.options!=null && ww>280){
-            round(g,x+131,actionY,Math.min(118,ww-145),27,6,0xFF303950);
-            g.drawString(font,"OPTIONS",x+149,actionY+10,WHITE);
-        }
-        if((details.title.equals("Air Hearts") || details.title.equals("Snowflakes")) && ww>395) {
-            round(g,x+259,actionY,110,27,6,0xFF303950);
-            g.drawString(font,"DENSITY",x+276,actionY+10,WHITE);
-        }
-        g.drawString(font,"[x]",x+ww-24,y+16,MUTED);
-    }
-
-    private static boolean inside(double mx,double my,int x,int y,int w,int h) {
-        return mx>=x && my>=y && mx<x+w && my<y+h;
-    }
-    private static float ease(float p){
-        p=Math.min(1f,Math.max(0f,p));
-        return 1f-(1f-p)*(1f-p)*(1f-p);
-    }
-
-    @Override public boolean mouseClicked(MouseButtonEvent e,boolean doubled) {
-        double mx=e.x(),my=e.y();
-        int button=e.button();
-        if(captureBind>=0) {
-            VisionHotkeys.assign(captureBind,-button-1);
-            captureBind=-1;
-            return true;
-        }
-        // Modal has priority: no clicks leak into categories or the search.
-        if(modal!=0) {
-            int x=contentX-5,y=top+100,ww=contentW+10;
-            if(button==GLFW.GLFW_MOUSE_BUTTON_LEFT &&
-                inside(mx,my,x+ww-34,y+3,33,25)) {modal=0;return true;}
-            int gridGap=10,cw=(ww-36-gridGap)/2;
-            if(modal==1) {
-                for(int i=0;i<ORE_NAMES.length;i++) {
-                    int bx=x+13+(i%2)*(cw+gridGap),by=y+34+(i/2)*30;
-                    if(inside(mx,my,bx,by,cw,25)) {
-                        if(button==GLFW.GLFW_MOUSE_BUTTON_LEFT) OreSelection.toggle(i);
-                        if(button==GLFW.GLFW_MOUSE_BUTTON_RIGHT)
-                            minecraft.setScreen(new OreColorPickerScreen(i));
-                        return true;
-                    }
+    @Override public boolean mouseClicked(MouseButtonEvent e,boolean doubled){
+        double mx=e.x(),my=e.y();int b=e.button();
+        if(captureBind>=0){VisionHotkeys.assign(captureBind,-b-1);captureBind=-1;return true;}
+        if(details!=null||modal!=0){
+            if(b==0&&inside(mx,my,left+w-43,top+12,30,28)){modal=0;closeDetails();return true;}
+            if(details!=null){
+                if(customText.visible&&inside(mx,my,customText.getX(),customText.getY(),customText.getWidth(),20))return super.mouseClicked(e,doubled);
+                int bw=(w-58)/2;
+                if(b==0){
+                    if(inside(mx,my,left+24,top+h-72,bw,26))details.toggle.run();
+                    else if(details.options!=null&&inside(mx,my,left+34+bw,top+h-72,bw,26))details.options.run();
+                    else if((details.title.equals("Air Hearts")||details.title.equals("Snowflakes"))&&inside(mx,my,left+24,top+h-39,w-48,22))VisionExtras.cycleAmbientDensity();
                 }
-            } else if(button==GLFW.GLFW_MOUSE_BUTTON_LEFT) {
-                for(int i=0;i<ADVANCED_TOOLS.length;i++) {
-                    int bx=x+13+(i%2)*(cw+gridGap),by=y+38+(i/2)*41;
-                    if(inside(mx,my,bx,by,cw,33)){openAdvancedTool(i);return true;}
+            }else{
+                int cw=(w-58)/2;
+                for(int i=0;i<(modal==1?10:ADVANCED_TOOLS.length);i++){
+                    int x=left+24+(i%2)*(cw+10),y=top+56+(i/2)*(modal==1?28:34);
+                    if(!inside(mx,my,x,y,cw,modal==1?24:28))continue;
+                    if(modal==1){if(b==0)OreSelection.toggle(i);if(b==1)minecraft.setScreen(new OreColorPickerScreen(i));}
+                    else if(b==0)openAdvancedTool(i);
+                    return true;
                 }
+                if(modal==2&&h>238&&b==0&&inside(mx,my,left+24,top+168,w-48,24))VisionHudLayout.reset();
             }
             return true;
         }
-        // Let native EditBox claim search input first.
-        if(inside(mx,my,search.getX(),search.getY(),search.getWidth(),search.getHeight()))
-            return super.mouseClicked(e,doubled);
-        if(details!=null) {
-            int x=contentX-5,y=top+103,ww=contentW+10,hh=h-168;
-            if(customText.visible && inside(mx,my,customText.getX(),customText.getY(),
-                customText.getWidth(),customText.getHeight()))
-                return super.mouseClicked(e,doubled);
-            if(button==GLFW.GLFW_MOUSE_BUTTON_LEFT) {
-                if(inside(mx,my,x+ww-38,y+6,33,29)){closeDetails();return true;}
-                if(inside(mx,my,x+13,y+hh-37,Math.min(115,(ww-45)/2),27)){
-                    details.toggle.run();return true;
-                }
-                if(details.options!=null && ww>280 &&
-                    inside(mx,my,x+131,y+hh-37,Math.min(118,ww-145),27)){
-                    details.options.run();return true;
-                }
-                if((details.title.equals("Air Hearts") || details.title.equals("Snowflakes")) &&
-                    ww>395 && inside(mx,my,x+259,y+hh-37,110,27)){
-                    VisionExtras.cycleAmbientDensity();return true;
-                }
+        if(inside(mx,my,search.getX(),search.getY(),search.getWidth(),20))return super.mouseClicked(e,doubled);
+        if(b==0){
+            int step=Math.min(36,(h-108)/TABS.length);
+            for(int i=0;i<TABS.length;i++)if(inside(mx,my,left+12,top+73+i*step,sidebar-4,step-3)){
+                category=i;page=0;search.setValue("");search.setFocused(false);return true;
             }
-            return true;
-        }
-        if(button==GLFW.GLFW_MOUSE_BUTTON_LEFT &&
-            inside(mx,my,left+w-101,top+h-34,85,23)) {
-            modal = 2;return true;
-        }
-        int tabTop=top+76,tabStep=Math.max(23,Math.min(37,(h-138)/TABS.length));
-        if(button==GLFW.GLFW_MOUSE_BUTTON_LEFT) {
-            for(int i=0;i<TABS.length;i++){
-                if(inside(mx,my,left+17,tabTop+i*tabStep,sidebar-21,tabStep-4)){
-                    category=i;page=0;pageAt=System.nanoTime();search.setValue("");
-                    search.setFocused(false);return true;
-                }
-            }
+            if(inside(mx,my,left+12,top+h-29,sidebar-4,19)){VisionModClient.enabled=!VisionModClient.enabled;return true;}
+            int bw=(contentW-10)/2;
+            if(inside(mx,my,contentX,top+h-24,bw,17)){modal=2;search.setFocused(false);return true;}
+            if(inside(mx,my,contentX+bw+10,top+h-24,bw,17)){minecraft.setScreen(new VisionAppearanceScreen());return true;}
         }
         List<Module> modules=filtered();
-        int maxPage=Math.max(0,(modules.size()-1)/Math.max(1,cardsPerPage));
-        int navY=top+h-60;
-        if(button==GLFW.GLFW_MOUSE_BUTTON_LEFT){
-            if(page>0 && inside(mx,my,contentX,navY,54,16)){
-                page--;pageAt=System.nanoTime();return true;
-            }
-            if(page<maxPage && inside(mx,my,contentX+contentW-54,navY,54,16)){
-                page++;pageAt=System.nanoTime();return true;
-            }
+        if(b==0){
+            if(page>0&&inside(mx,my,contentX,top+h-48,54,19)){page--;return true;}
+            if(page<maxPage(modules)&&inside(mx,my,contentX+contentW-54,top+h-48,54,19)){page++;return true;}
         }
-        int first=page*cardsPerPage;
-        int gap=11,cardW=(contentW-(columns-1)*gap)/columns;
-        for(int i=0;i<cardsPerPage && first+i<modules.size();i++){
-            int x=contentX+(i%columns)*(cardW+gap);
-            int y=top+112+(i/columns)*71;
-            if(!inside(mx,my,x,y,cardW,63))continue;
-            Module m=modules.get(first+i);
-            if(button==GLFW.GLFW_MOUSE_BUTTON_LEFT) {
-                m.toggle.run();return true;
-            }
-            if(button==GLFW.GLFW_MOUSE_BUTTON_MIDDLE && bindingId(m)>=0) {
-                captureBind=bindingId(m);return true;
-            }
-            if(button==GLFW.GLFW_MOUSE_BUTTON_RIGHT) {
-                openDetails(m);return true;
-            }
+        for(int i=0;i<cardsPerPage&&page*cardsPerPage+i<modules.size();i++)if(inside(mx,my,cardX(i),cardY(i),cardWidth(),60)){
+            Module m=modules.get(page*cardsPerPage+i);
+            search.setFocused(false);
+            if(b==0)m.toggle.run();
+            else if(b==1)openDetails(m);
+            else if(b==2&&bindingId(m)>=0)captureBind=bindingId(m);
+            return true;
         }
         return super.mouseClicked(e,doubled);
     }
-
-    @Override public boolean keyPressed(KeyEvent e) {
-        if(captureBind>=0) {
-            VisionHotkeys.assign(captureBind,e.key()==GLFW.GLFW_KEY_ESCAPE?0:e.key());
-            captureBind=-1;
+    @Override public boolean keyPressed(KeyEvent e){
+        if(captureBind>=0){VisionHotkeys.assign(captureBind,e.key()==GLFW.GLFW_KEY_ESCAPE?0:e.key());captureBind=-1;return true;}
+        if(e.key()==GLFW.GLFW_KEY_ESCAPE&&(details!=null||modal!=0)){modal=0;closeDetails();return true;}
+        if(details!=null||modal!=0){
+            if(customText.visible)return super.keyPressed(e);
             return true;
         }
-        if(modal!=0 && e.key()==GLFW.GLFW_KEY_ESCAPE){modal=0;return true;}
-        if(details!=null && e.key()==GLFW.GLFW_KEY_ESCAPE){closeDetails();return true;}
         return super.keyPressed(e);
     }
     @Override public boolean isPauseScreen(){return false;}

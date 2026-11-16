@@ -1,3 +1,17 @@
+## 2026-11-16 — Визуальная доработка (ветка codex/visual-refresh)
+- Общий стиль HUD; иконки брони, плавный Target HUD, кольцо TNT, Social Radar, уведомления.
+- Мягкие Trails/Jump Circles, градиентная China Hat, углы Target ESP; округлая анимированная модель Pet.
+- Настоящая форма Block Overlay, улучшения частиц/моделей/Camera Streaks, звуковые пресеты.
+- Адаптивные редакторы, рисование прицела с перетаскиванием, настройки оформления.
+- Локально 267 core + 12 source checks PASS. CI готов к запуску на рабочей ветке; игровой результат до проверки не подтверждён.
+
+## 2026-11-16 — GUI и нативные World Lyrics (рабочая копия, не релиз)
+- Удалены расширение браузера и локальный HTTP bridge; системные медиасессии Windows/Linux.
+- Компактные lyrics, ограниченный LRCLIB lookup с повтором/кэшем, исправлен разбор LRC.
+- Адаптивный dashboard и полноразмерные окна деталей/руд, доступные опции и смена темы.
+- Сохранение основных флагов и новых групп в профилях, сброс HUD, интерполяция рендера, правильный NO_OVERLAY.
+- Core 126 PASS, MPRIS fixture 129 PASS. Полная сборка и игровой QA заблокированы сетевым доступом к Fabric. Подробности NATIVE_LYRICS_QA_RU.md.
+
 # 2.0.0 — Pet crash hardening + visible China Hat/Trails + Web Music Bridge (2026-11-15)
 
 - Pet rendering now uses one entity-translucent buffer and a guaranteed finally-pop; on render exception it suspends itself instead of repeatedly crashing. Imported Custom Models get a 64-KiB JSON limit and render-fault protection.

@@ -17,7 +17,7 @@ public final class VisionGeometry {
     public static final Identifier PET_FUR =
         Identifier.fromNamespaceAndPath("visionmod", "textures/entity/pet_fur.png");
     public static final int FULL_BRIGHT = 0xF000F0;
-    public static final int NO_OVERLAY = 0;
+    public static final int NO_OVERLAY = net.minecraft.client.renderer.texture.OverlayTexture.NO_OVERLAY;
 
     private VisionGeometry() {}
 
@@ -63,6 +63,40 @@ public final class VisionGeometry {
             .setColor(color).setNormal(pose.last(),dx,dy,dz).setLineWidth(width);
         out.addVertex(pose.last(),(float)bx,(float)by,(float)bz)
             .setColor(color).setNormal(pose.last(),dx,dy,dz).setLineWidth(width);
+    }
+
+    public static void band(VertexConsumer out,PoseStack pose,double x,double y,double z,
+                            double radius,double width,int innerColor,int outerColor,int steps){
+        for(int i=0;i<steps;i++){
+            double a=i*Math.PI*2/steps,b=(i+1)*Math.PI*2/steps;
+            double inner=Math.max(.001,radius-width);
+            vertex(out,pose,(float)(x+Math.cos(a)*inner),(float)y,(float)(z+Math.sin(a)*inner),0,0,innerColor,0,1,0);
+            vertex(out,pose,(float)(x+Math.cos(b)*inner),(float)y,(float)(z+Math.sin(b)*inner),1,0,innerColor,0,1,0);
+            vertex(out,pose,(float)(x+Math.cos(b)*radius),(float)y,(float)(z+Math.sin(b)*radius),1,1,outerColor,0,1,0);
+            vertex(out,pose,(float)(x+Math.cos(a)*radius),(float)y,(float)(z+Math.sin(a)*radius),0,1,outerColor,0,1,0);
+            // Reverse face: the effect stays visible when viewed from below.
+            vertex(out,pose,(float)(x+Math.cos(a)*radius),(float)y,(float)(z+Math.sin(a)*radius),0,1,outerColor,0,-1,0);
+            vertex(out,pose,(float)(x+Math.cos(b)*radius),(float)y,(float)(z+Math.sin(b)*radius),1,1,outerColor,0,-1,0);
+            vertex(out,pose,(float)(x+Math.cos(b)*inner),(float)y,(float)(z+Math.sin(b)*inner),1,0,innerColor,0,-1,0);
+            vertex(out,pose,(float)(x+Math.cos(a)*inner),(float)y,(float)(z+Math.sin(a)*inner),0,0,innerColor,0,-1,0);
+        }
+    }
+    public static void ellipsoid(VertexConsumer out,PoseStack pose,float x,float y,float z,
+                                 float rx,float ry,float rz,int color,int slices,int rings){
+        // Quad latitude strips; shared texture/consumer for the whole companion.
+        for(int row=0;row<rings;row++)for(int col=0;col<slices;col++){
+            double a=-Math.PI/2+row*Math.PI/rings,b=-Math.PI/2+(row+1)*Math.PI/rings;
+            double c=col*Math.PI*2/slices,d=(col+1)*Math.PI*2/slices;
+            sphereVertex(out,pose,x,y,z,rx,ry,rz,a,c,color);
+            sphereVertex(out,pose,x,y,z,rx,ry,rz,b,c,color);
+            sphereVertex(out,pose,x,y,z,rx,ry,rz,b,d,color);
+            sphereVertex(out,pose,x,y,z,rx,ry,rz,a,d,color);
+        }
+    }
+    private static void sphereVertex(VertexConsumer out,PoseStack pose,float x,float y,float z,
+                                      float rx,float ry,float rz,double latitude,double longitude,int color){
+        float nx=(float)(Math.cos(latitude)*Math.cos(longitude)),ny=(float)Math.sin(latitude),nz=(float)(Math.cos(latitude)*Math.sin(longitude));
+        vertex(out,pose,x+rx*nx,y+ry*ny,z+rz*nz,(float)(longitude/(Math.PI*2)),(float)(.5-latitude/Math.PI),color,nx,ny,nz);
     }
 
     public static int withAlpha(int rgb, int alpha) {

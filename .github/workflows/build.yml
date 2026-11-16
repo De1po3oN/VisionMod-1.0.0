@@ -3,7 +3,7 @@ name: Build Vision Mod 2.0.0
 
 on:
   push:
-    branches: [main]
+    branches: [main, 'codex/**']
   workflow_dispatch:
 
 permissions:
@@ -30,6 +30,9 @@ jobs:
 
       - name: Verify Gradle version
         run: gradle --version
+
+      - name: Core regressions (lyrics, system media and menu geometry)
+        run: bash tests/run-core.sh
 
       - name: Build
         run: gradle clean build --no-daemon --stacktrace
@@ -71,27 +74,5 @@ jobs:
         with:
           name: VisionMod-2.0.0
           path: build/libs/visionmod-2.0.0.jar
-          if-no-files-found: error
-          retention-days: 30
-
-      - name: Check Browser Music Extension scripts and manifest
-        run: |
-          node --check browser-extension/background.js
-          node --check browser-extension/content.js
-          node --check browser-extension/options.js
-          python3 - <<'PY'
-          import json
-          manifest=json.load(open("browser-extension/manifest.json", encoding="utf8"))
-          assert manifest["manifest_version"]==3
-          assert "http://127.0.0.1:38567/*" in manifest["host_permissions"]
-          print("Browser extension syntax and manifest PASS")
-          PY
-
-      - name: Upload Browser Music Extension
-        if: success()
-        uses: actions/upload-artifact@v4
-        with:
-          name: VisionMod-Browser-Music-Extension
-          path: browser-extension/
           if-no-files-found: error
           retention-days: 30

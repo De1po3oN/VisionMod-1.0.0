@@ -33,7 +33,8 @@ public abstract class CompactHandMixin {
         if (!shouldShrink(stack)) return;
         pose.pushPose();
         pose.translate(0.0f, -0.10f, 0.0f);
-        pose.scale(0.72f, 0.72f, 0.72f);
+        float scale=com.visionmod.VisionAppearance.handScale;
+        pose.scale(scale,scale,scale);
     }
 
     @Inject(method = "renderArmWithItem", at = @At("RETURN"), require = 0)

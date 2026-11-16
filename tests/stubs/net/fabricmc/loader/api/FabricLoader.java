@@ -1,0 +1,6 @@
+package net.fabricmc.loader.api;
+public final class FabricLoader {
+    private static final FabricLoader INSTANCE=new FabricLoader();
+    public static FabricLoader getInstance(){return INSTANCE;}
+    public java.nio.file.Path getConfigDir(){return java.nio.file.Path.of(System.getProperty("visionmod.test.config"));}
+}

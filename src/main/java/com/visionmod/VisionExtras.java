@@ -58,6 +58,7 @@ public final class VisionExtras {
     private static final EquipmentSlot[] ARMOR_SLOTS = {
         EquipmentSlot.HEAD, EquipmentSlot.CHEST, EquipmentSlot.LEGS, EquipmentSlot.FEET
     };
+    private static final ItemStack FOOD_ICON=new ItemStack(net.minecraft.world.item.Items.COOKED_BEEF);
     private static final Deque<Long> CLICKS = new ArrayDeque<>();
     private VisionExtras() { }
 
@@ -77,12 +78,12 @@ public final class VisionExtras {
     public static boolean pixel(int x, int y) {
         return x >= 0 && x < crosshairGrid && y >= 0 && y < crosshairGrid && CUSTOM_PIXELS[y * crosshairGrid + x];
     }
-    public static void togglePixel(int x, int y) {
-        if (x < 0 || x >= crosshairGrid || y < 0 || y >= crosshairGrid) return;
-        CUSTOM_PIXELS[y * crosshairGrid + x] = !CUSTOM_PIXELS[y * crosshairGrid + x];
-        runs = buildRuns();
-        save();
+    public static void togglePixel(int x,int y){setPixel(x,y,!pixel(x,y));commitPixels();}
+    public static void setPixel(int x,int y,boolean on){
+        if(x<0||x>=crosshairGrid||y<0||y>=crosshairGrid)return;
+        CUSTOM_PIXELS[y*crosshairGrid+x]=on;
     }
+    public static void commitPixels(){runs=buildRuns();save();}
     public static void resetPixels() {
         CUSTOM_PIXELS = defaultPixels(crosshairGrid);
         runs = buildRuns();
@@ -173,57 +174,48 @@ public final class VisionExtras {
             Minecraft mc = Minecraft.getInstance();
             if (!VisionModClient.enabled || mc.player == null || mc.level == null ||
                 !VisionHudLayout.hudVisible(mc)) return;
-            int y = 8;
-            if (cps) {
-                String label="CPS: "+clickRate();
-                var pos=VisionHudLayout.place(VisionHudLayout.Widget.CPS,8,y,
-                    Math.max(72,mc.font.width(label)+8),12);
-                graphics.drawString(mc.font,label,pos.x(),pos.y(),0xFFF2F7FF);
-                y+=13;
+            int y=12;
+            if(cps){
+                var b=VisionHudLayout.place(VisionHudLayout.Widget.CPS,12,y,90,31);
+                VisionHudTheme.panel(graphics,b.x(),b.y(),b.width(),b.height(),VisionMenuTheme.CYAN);
+                graphics.drawString(mc.font,"CPS",b.x()+10,b.y()+11,VisionMenuTheme.MUTED);
+                String value=Integer.toString(clickRate());
+                graphics.drawString(mc.font,value,b.x()+b.width()-mc.font.width(value)-10,b.y()+11,VisionMenuTheme.WHITE);
+                y+=38;
             }
-            if (hungerHud) {
-                var food = mc.player.getFoodData();
-                String label="Food "+food.getFoodLevel()+"/20  Sat "+
-                    Math.round(food.getSaturationLevel()*10f)/10f;
-                var pos=VisionHudLayout.place(VisionHudLayout.Widget.FOOD,8,y,
-                    Math.max(135,mc.font.width(label)+8),12);
-                graphics.drawString(mc.font,label,pos.x(),pos.y(),0xFFFFD166);
-                y+=13;
+            if(hungerHud){
+                var food=mc.player.getFoodData();
+                var b=VisionHudLayout.place(VisionHudLayout.Widget.FOOD,12,y,146,39);
+                VisionHudTheme.panel(graphics,b.x(),b.y(),b.width(),b.height(),0xFFF1CA90);
+                graphics.renderItem(FOOD_ICON,b.x()+8,b.y()+10);
+                graphics.drawString(mc.font,"Еда "+food.getFoodLevel()+" / 20",b.x()+31,b.y()+8,0xFFF4D6A4);
+                graphics.drawString(mc.font,"Насыщение "+Math.round(food.getSaturationLevel()*10)/10f,b.x()+31,b.y()+22,VisionMenuTheme.MUTED);
+                y+=46;
             }
-            if (armorHud) {
-                int pieces = 0, worn = 0, total = 0;
-                for (EquipmentSlot slot : ARMOR_SLOTS) {
-                    ItemStack stack = mc.player.getItemBySlot(slot);
-                    if (!stack.isEmpty()) {
-                        pieces++;
-                        if (stack.isDamageableItem()) {
-                            worn += Math.max(0, stack.getMaxDamage() - stack.getDamageValue());
-                            total += stack.getMaxDamage();
-                        }
-                    }
+            if(armorHud){
+                var b=VisionHudLayout.place(VisionHudLayout.Widget.ARMOR,12,y,112,37);
+                VisionHudTheme.panel(graphics,b.x(),b.y(),b.width(),b.height(),0xFF8FE2CA);
+                for(int i=0;i<ARMOR_SLOTS.length;i++){
+                    ItemStack item=mc.player.getItemBySlot(ARMOR_SLOTS[i]);int xx=b.x()+10+i*24;
+                    if(item.isEmpty()){VisionHudTheme.round(graphics,xx,b.y()+9,17,17,3,0xFF30364A);continue;}
+                    graphics.renderItem(item,xx,b.y()+7);
+                    float wear=item.isDamageableItem()?1-item.getDamageValue()/(float)Math.max(1,item.getMaxDamage()):1;
+                    VisionHudTheme.meter(graphics,xx,b.y()+27,16,3,wear,EffectMath.blend(0xFFFF829B,0xFF8FE2CA,wear));
                 }
-                String label = "Armor " + pieces + "/4";
-                if (total > 0) label += "  Dur " + Math.round(100f * worn / total) + "%";
-                var pos=VisionHudLayout.place(VisionHudLayout.Widget.ARMOR,8,y,
-                    Math.max(112,mc.font.width(label)+8),12);
-                graphics.drawString(mc.font,label,pos.x(),pos.y(),0xFF65F0B2);
-                y+=13;
+                y+=44;
             }
-            if (shulkerHud) {
-                ItemStack held = mc.player.getMainHandItem();
-                if (held.getItem() instanceof BlockItem block && block.getBlock() instanceof ShulkerBoxBlock) {
-                    ItemContainerContents stored = held.get(DataComponents.CONTAINER);
-                    int distinct = 0, totalItems = 0;
-                    if (stored != null) {
-                        for (ItemStack content : stored.nonEmptyItems()) {
-                            distinct++;
-                            totalItems += content.getCount();
-                        }
-                    }
-                    String label="Shulker: "+distinct+" stacks / "+totalItems+" items";
-                    var pos=VisionHudLayout.place(VisionHudLayout.Widget.SHULKER,8,y,
-                        Math.max(145,mc.font.width(label)+8),12);
-                    graphics.drawString(mc.font,label,pos.x(),pos.y(),0xFFAC79FF);
+            if(shulkerHud){
+                ItemStack held=mc.player.getMainHandItem();
+                if(held.getItem() instanceof BlockItem block&&block.getBlock() instanceof ShulkerBoxBlock){
+                    ItemContainerContents stored=held.get(DataComponents.CONTAINER);int stacks=0,total=0;
+                    if(stored!=null)for(ItemStack item:stored.nonEmptyItems()){stacks++;total+=item.getCount();}
+                    var b=VisionHudLayout.place(VisionHudLayout.Widget.SHULKER,12,y,170,55);
+                    VisionHudTheme.panel(graphics,b.x(),b.y(),b.width(),b.height(),VisionMenuTheme.PURPLE);
+                    graphics.drawString(mc.font,"Шалькер · "+stacks+" / 27",b.x()+10,b.y()+8,0xFFD9C7FF);
+                    if(stored!=null){int n=0;for(ItemStack item:stored.nonEmptyItems()){
+                        if(n==7)break;graphics.renderItem(item,b.x()+10+n*21,b.y()+25);n++;
+                    }}
+                    if(stacks==0)graphics.drawString(mc.font,"Пусто",b.x()+10,b.y()+28,VisionMenuTheme.MUTED);
                 }
             }
         });
@@ -236,9 +228,10 @@ public final class VisionExtras {
         int left = cx - (crosshairGrid/2)*step;
         int top = cy - (crosshairGrid/2)*step;
         int[] snapshot = runs;
-        for (int i=0; i<snapshot.length; i+=3) {
-            int x = left+snapshot[i]*step, y = top+snapshot[i+1]*step;
-            g.fill(x, y, x+snapshot[i+2]*step, y+step, crosshairColor);
+        for(int pass=0;pass<2;pass++)for(int i=0;i<snapshot.length;i+=3){
+            int x=left+snapshot[i]*step,y=top+snapshot[i+1]*step;
+            if(pass==0)g.fill(x-1,y-1,x+snapshot[i+2]*step+1,y+step+1,0x95070A15);
+            else g.fill(x,y,x+snapshot[i+2]*step,y+step,crosshairColor);
         }
     }
 

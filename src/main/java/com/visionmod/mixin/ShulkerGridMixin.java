@@ -1,6 +1,8 @@
 package com.visionmod.mixin;
 
 import com.visionmod.VisionAdvanced;
+import com.visionmod.VisionHudTheme;
+import com.visionmod.VisionMenuTheme;
 import com.visionmod.VisionModClient;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
@@ -43,12 +45,11 @@ public abstract class ShulkerGridMixin {
         if (x + w > graphics.guiWidth()) x = mouseX - w - 17;
         x = Math.max(4, Math.min(x, graphics.guiWidth() - w - 4));
         y = Math.max(4, Math.min(y, graphics.guiHeight() - h - 4));
-        graphics.fill(x - 2, y - 2, x + w + 2, y + h + 2, 0xFF4B7790);
-        graphics.fill(x, y, x + w, y + h, 0xFA142033);
-        graphics.drawString(Minecraft.getInstance().font, "SHULKER  9x3", x + 7, y + 6, 0xFF67E8F9);
+        VisionHudTheme.panel(graphics,x,y,w,h,VisionMenuTheme.PURPLE);
+        graphics.drawString(Minecraft.getInstance().font, "ШАЛЬКЕР  9 × 3", x + 7, y + 6, 0xFF67E8F9);
         for (int i = 0; i < 27; i++) {
             int bx = x + 6 + (i % 9) * 18, by = y + 19 + (i / 9) * 18;
-            graphics.fill(bx, by, bx + 17, by + 17, 0xFF26364D);
+            VisionHudTheme.round(graphics,bx,by,17,17,3,0xFF293147);
             ItemStack item = slots.get(i);
             if (!item.isEmpty()) {
                 graphics.renderItem(item, bx, by);

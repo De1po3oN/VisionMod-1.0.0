@@ -47,6 +47,10 @@ public final class VisionFeaturePack {
     private static int nearestArrow = -1;
     private static int hitPulse;
     private static int lastHitSequence;
+    private static LivingEntity viewed;
+    private static int targetGrace,viewedId=-1;
+    private static float shownHealth,damageHealth;
+    private static long lastFrame;
 
     private VisionFeaturePack() { }
 
@@ -66,6 +70,7 @@ public final class VisionFeaturePack {
 
     private static void tick(Minecraft mc) {
         if (mc.level == null || mc.player == null) {
+            viewed=null;targetGrace=0;viewedId=-1;
             ticks = 0;
             nearestTnt = -1;
             nearestArrow = -1;
@@ -73,7 +78,13 @@ public final class VisionFeaturePack {
             hitPulse = 0;
             return;
         }
-        if (!VisionModClient.enabled) return;
+        if (!VisionModClient.enabled) {
+            viewed=null;targetGrace=0;nearestTnt=nearestArrow=-1;hitPulse=0;
+            lastHitSequence=VisionCombatTracker.hitSequence();return;
+        }
+        if(mc.hitResult instanceof EntityHitResult result&&result.getEntity() instanceof LivingEntity living&&living.isAlive()){
+            viewed=living;targetGrace=12;
+        }else if(targetGrace>0)targetGrace--;else viewed=null;
         if (hitPulse > 0) hitPulse--;
         // Fire exactly once per client-observed hurt event after our own attack,
         // even when crosshair has moved away by the time the target reacts.
@@ -110,143 +121,102 @@ public final class VisionFeaturePack {
     }
 
     private static void render(GuiGraphics g) {
-        Minecraft mc = Minecraft.getInstance();
-        if (!VisionModClient.enabled || mc.level == null || mc.player == null ||
-            !VisionHudLayout.hudVisible(mc)) return;
-        int w = g.guiWidth(), h = g.guiHeight();
-        if (ENABLED[0]) {
-            int bar = Math.max(0, (int)Math.round((h - w / 2.39) / 2.0));
-            if (bar > 0) {
-                g.fill(0, 0, w, bar, 0xF0000000);
-                g.fill(0, h - bar, w, h, 0xF0000000);
+        Minecraft mc=Minecraft.getInstance();
+        if(!VisionModClient.enabled||mc.level==null||mc.player==null||!VisionHudLayout.hudVisible(mc))return;
+        int w=g.guiWidth(),h=g.guiHeight();
+        long now=System.nanoTime();float seconds=lastFrame==0?.016f:(now-lastFrame)/1_000_000_000f;lastFrame=now;
+        if(ENABLED[0]){
+            int bar=Math.max(0,(int)Math.round((h-w/2.39)/2));
+            if(bar>0){g.fill(0,0,w,bar,0xF0000000);g.fill(0,h-bar,w,h,0xF0000000);
+                g.fill(0,bar-1,w,bar,0xFF242536);g.fill(0,h-bar,w,h-bar+1,0xFF242536);}
+        }
+        if(ENABLED[1]){
+            var b=VisionHudLayout.place(VisionHudLayout.Widget.ARMOR_COLOR,w-156,18,144,110);
+            VisionHudTheme.panel(g,b.x(),b.y(),b.width(),b.height(),VisionMenuTheme.CYAN);
+            g.drawString(mc.font,"БРОНЯ",b.x()+10,b.y()+8,VisionMenuTheme.MUTED);
+            for(int i=0;i<4;i++){
+                ItemStack item=mc.player.getItemBySlot(ARMOR[i]);int y=b.y()+23+i*20;
+                if(item.isEmpty()){g.drawString(mc.font,"—",b.x()+12,y+4,0xFF666C83);continue;}
+                g.renderItem(item,b.x()+8,y);float value=item.isDamageableItem()?Math.max(0,1-item.getDamageValue()/(float)Math.max(1,item.getMaxDamage())):1;
+                int color=EffectMath.blend(0xFFFF758F,0xFF8CE8C7,value);
+                g.drawString(mc.font,Math.round(value*100)+"%",b.x()+29,y+1,color);
+                VisionHudTheme.meter(g,b.x()+29,y+12,Math.max(10,b.width()-40),3,value,color);
             }
         }
-        if (ENABLED[1]) {
-            var bounds=VisionHudLayout.place(VisionHudLayout.Widget.ARMOR_COLOR,
-                w-132,18,127,68);
-            int x=bounds.x()+6,y=bounds.y()+6;
-            g.fill(bounds.x(),bounds.y(),bounds.x()+bounds.width(),
-                bounds.y()+bounds.height(),0xBA151324);
-            g.drawString(mc.font, "ARMOR COLORFUL", x, y, VisionMenuTheme.CYAN);
-            int line = 0;
-            for (int i = 0; i < ARMOR.length; i++) {
-                ItemStack item = mc.player.getItemBySlot(ARMOR[i]);
-                if (item.isEmpty()) continue;
-                int value = !item.isDamageableItem() ? 100 :
-                    (int)Math.round(100.0 * Math.max(0, item.getMaxDamage() - item.getDamageValue())
-                        / Math.max(1, item.getMaxDamage()));
-                int color = value > 65 ? 0xFF7CECC1 : value > 30 ? 0xFFFFD487 : 0xFFFF758F;
-                g.drawString(mc.font, ARMOR_NAMES[i] + ": " + value + "%", x, y + 12 + 11 * line++, color);
+        LivingEntity selected=viewed;
+        if(selected!=null&&selected.isAlive()&&(ENABLED[2]||ENABLED[3])){
+            var b=VisionHudLayout.place(VisionHudLayout.Widget.TARGET,w/2-91,h/2+36,182,60);
+            int x=b.x(),y=b.y(),ww=b.width();
+            float hp=Math.max(0,selected.getHealth()),max=Math.max(1,selected.getMaxHealth());
+            if(viewedId!=selected.getId()){viewedId=selected.getId();shownHealth=damageHealth=hp;}
+            shownHealth=VisionAppearance.animations?EffectMath.smooth(shownHealth,hp,seconds):hp;
+            damageHealth=VisionAppearance.animations?EffectMath.smooth(damageHealth,hp,seconds*.3f):hp;
+            VisionHudTheme.panel(g,x,y,ww,b.height(),VisionTools2.hitColor());
+            VisionHudTheme.round(g,x+9,y+11,28,29,6,VisionGeometry.withAlpha(VisionTools2.hitColor(),45));
+            String name=selected.getName().getString();String initial=name.isEmpty()?"?":name.substring(0,1).toUpperCase(java.util.Locale.ROOT);
+            g.drawCenteredString(mc.font,initial,x+23,y+21,VisionMenuTheme.WHITE);
+            VisionHudTheme.text(g,mc.font,name,x+46,y+10,ww-55,VisionMenuTheme.WHITE);
+            if(ENABLED[2]){
+                int mw=Math.max(12,ww-56);
+                VisionHudTheme.meter(g,x+46,y+27,mw,5,damageHealth/max,0xFF977AA2);
+                VisionHudTheme.round(g,x+46,y+27,Math.round(mw*EffectMath.unit(shownHealth/max)),5,2,0xFF88E4C0);
+                g.drawString(mc.font,Math.round(hp*10)/10f+" / "+Math.round(max)+" HP",x+46,y+40,0xFFB4DDCF);
+            }
+            if(ENABLED[3]){
+                String range=Math.round(Math.sqrt(selected.distanceToSqr(mc.player))*10)/10.0+" m";
+                g.drawString(mc.font,range,x+ww-mc.font.width(range)-10,y+40,0xFFCCB5FF);
             }
         }
-
-        LivingEntity selected = mc.hitResult instanceof EntityHitResult result &&
-            result.getEntity() instanceof LivingEntity living ? living : null;
-        if (selected != null && (ENABLED[2] || ENABLED[3])) {
-            var bounds=VisionHudLayout.place(VisionHudLayout.Widget.TARGET,
-                w/2-75,h/2+30,150,44);
-            int x=bounds.x()+5,y=bounds.y()+5;
-            g.fill(bounds.x(),bounds.y(),bounds.x()+bounds.width(),
-                bounds.y()+bounds.height(),0xB8141426);
-            g.drawString(mc.font, selected.getName(), x, y, VisionMenuTheme.WHITE);
-            if (ENABLED[2]) {
-                float hp = Math.max(0, selected.getHealth());
-                float max = Math.max(1, selected.getMaxHealth());
-                g.fill(x, y + 13, x + 138, y + 19, 0xFF423A53);
-                g.fill(x, y + 13, x + (int)(138 * Math.min(1, hp / max)), y + 19, 0xFF87E8BE);
-                g.drawString(mc.font, Math.round(hp * 10f) / 10f + " / " +
-                    Math.round(max * 10f) / 10f + " HP", x, y + 22, 0xFFADDFD2);
-            }
-            if (ENABLED[3]) {
-                double meters = Math.sqrt(selected.distanceToSqr(mc.player));
-                g.drawString(mc.font, "Range: " + Math.round(meters * 10.0) / 10.0 + "m",
-                    x + 79, y + 22, 0xFFFFCD8A);
+        if(ENABLED[4]&&nearestTnt>=0){
+            Entity e=mc.level.getEntity(nearestTnt);
+            if(e instanceof PrimedTnt tnt&&e.isAlive()){
+                float fuse=Math.max(0,tnt.getFuse()-mc.getDeltaTracker().getGameTimeDeltaPartialTick(false));
+                int color=fuse<20?0xFFFF788A:0xFFFFC884;
+                var b=VisionHudLayout.place(VisionHudLayout.Widget.TNT,w/2-65,20,130,45);
+                VisionHudTheme.panel(g,b.x(),b.y(),b.width(),b.height(),color);
+                VisionHudTheme.ring(g,b.x()+21,b.y()+22,13,fuse/80,color);
+                g.drawCenteredString(mc.font,String.format(java.util.Locale.ROOT,"%.1f",fuse/20),b.x()+22,b.y()+19,color);
+                g.drawString(mc.font,"TNT",b.x()+44,b.y()+10,color);
+                g.drawString(mc.font,Math.round(Math.sqrt(e.distanceToSqr(mc.player))*10)/10.0+" m",b.x()+44,b.y()+26,VisionMenuTheme.MUTED);
             }
         }
-        if (ENABLED[4] && nearestTnt >= 0) {
-            Entity e = mc.level.getEntity(nearestTnt);
-            if (e != null && e.isAlive()) {
-                double dist = Math.sqrt(e.distanceToSqr(mc.player));
-                String label = "TNT: " + Math.round(dist * 10.0) / 10.0 + "m";
-                if (e instanceof PrimedTnt primed) {
-                    label += "  " + Math.max(0, primed.getFuse() / 20.0f) + "s";
-                }
-                int width=Math.max(110,mc.font.width(label)+12);
-                var bounds=VisionHudLayout.place(VisionHudLayout.Widget.TNT,
-                    w/2-width/2,22,width,13);
-                g.drawCenteredString(mc.font,label,bounds.x()+bounds.width()/2,bounds.y(),
-                    e instanceof PrimedTnt primed && primed.getFuse() < 20 ? 0xFFFF5B67 : 0xFFFFA177);
-            }
-        }
-        if (ENABLED[5] && nearestArrow >= 0) {
-            Entity e = mc.level.getEntity(nearestArrow);
-            if (e != null && e.isAlive()) {
-                // Project the real arrow position into the GUI. The text stays
-                // above the arrow as the camera or Free Look orientation moves.
-                // One cached nearest arrow is rendered; no per-frame entity scan.
-                var camera = mc.gameRenderer.getMainCamera();
-                if (camera.isInitialized()) {
-                    Vec3 forward = Vec3.directionFromRotation(camera.xRot(), camera.yRot());
-                    Vec3 right = forward.cross(new Vec3(0, 1, 0));
-                    if (right.lengthSqr() > 0.00001) {
-                        right = right.normalize();
-                        Vec3 up = right.cross(forward).normalize();
-                        Vec3 toward = e.position().add(0, e.getBbHeight() + 0.20, 0)
-                            .subtract(camera.position());
-                        double depth = toward.dot(forward);
-                        if (depth > .3 && depth < 32) {
-                            double factor = h / (2.0 * Math.tan(Math.toRadians(
-                                mc.options.fov().get() * .5)));
-                            int sx = (int) Math.round(w / 2.0 + toward.dot(right) * factor / depth);
-                            int sy = (int) Math.round(h / 2.0 - toward.dot(up) * factor / depth);
-                            String label = e.getName().getString();
-                            int width = mc.font.width(label);
-                            if (sx > width / 2 + 5 && sx < w - width / 2 - 5 &&
-                                sy > 20 && sy < h - 25) {
-                                var bounds=VisionHudLayout.place(VisionHudLayout.Widget.ARROW,
-                                    sx-width/2-4,sy-14,width+8,14);
-                                g.fill(bounds.x(),bounds.y(),
-                                    bounds.x()+bounds.width(),bounds.y()+bounds.height(),
-                                    0xB5171529);
-                                g.drawCenteredString(mc.font,label,
-                                    bounds.x()+bounds.width()/2,bounds.y()+3,0xFFBFC4FF);
-                            }
+        if(ENABLED[5]&&nearestArrow>=0){
+            Entity e=mc.level.getEntity(nearestArrow);
+            if(e!=null&&e.isAlive()){
+                var camera=mc.gameRenderer.getMainCamera();Vec3 forward=Vec3.directionFromRotation(camera.xRot(),camera.yRot());
+                Vec3 right=forward.cross(new Vec3(0,1,0));
+                if(camera.isInitialized()&&right.lengthSqr()>1e-5){
+                    right=right.normalize();Vec3 up=right.cross(forward).normalize();
+                    Vec3 toward=e.getPosition(mc.getDeltaTracker().getGameTimeDeltaPartialTick(false)).add(0,.45,0).subtract(camera.position());
+                    double depth=toward.dot(forward);
+                    if(depth>.3&&depth<32){
+                        double factor=h/(2*Math.tan(Math.toRadians(mc.options.fov().get()*.5)));
+                        int sx=(int)(w*.5+toward.dot(right)*factor/depth),sy=(int)(h*.5-toward.dot(up)*factor/depth);
+                        String label="➜ "+e.getName().getString();int bw=mc.font.width(label)+18;
+                        if(sx>bw/2&&sx<w-bw/2&&sy>15&&sy<h-25){
+                            var b=VisionHudLayout.place(VisionHudLayout.Widget.ARROW,sx-bw/2,sy-20,bw,20);
+                            VisionHudTheme.panel(g,b.x(),b.y(),b.width(),b.height(),VisionMenuTheme.CYAN);
+                            VisionHudTheme.text(g,mc.font,label,b.x()+9,b.y()+6,b.width()-18,0xFFD4CEFF);
                         }
                     }
                 }
             }
         }
-        if (hitPulse > 0 && (ENABLED[6] || ENABLED[7])) {
-            float phase=(8-hitPulse)/8f;
-            int x=w/2,y=h/2;
-            int radius=9+(int)(15*phase);
-            int alpha=Math.min(235,(int)(205*(1-phase)+28));
-            if(ENABLED[6]) {
-                int color=VisionGeometry.withAlpha(VisionTools2.hitColor(),alpha);
-                int hlen=5+(int)(4*phase);
-                // Animated outward-moving corner brackets, never a fat static square.
-                for(int signX=-1;signX<=1;signX+=2)
-                    for(int signY=-1;signY<=1;signY+=2) {
-                        int px=x+signX*radius,py=y+signY*radius;
-                        g.fill(Math.min(px,px-signX*hlen),py,
-                            Math.max(px,px-signX*hlen)+1,py+2,color);
-                        g.fill(px,Math.min(py,py-signY*hlen),
-                            px+2,Math.max(py,py-signY*hlen)+1,color);
-                    }
-                g.fill(x-1,y-1,x+2,y+2,VisionGeometry.withAlpha(0xFFFFFFFF,alpha/2));
-            }
-            if(ENABLED[7]) {
-                // Bounded 7-step transparent red edge vignette.
-                // No shader, framebuffer copy, or persistent GPU resources.
-                for(int layer=0;layer<7;layer++) {
-                    int opacity=Math.max(0,(int)((7-layer)*3.3*hitPulse/8f));
-                    int tint=VisionGeometry.withAlpha(0xFFE73561,opacity);
-                    int edge=2+layer*4;
-                    g.fill(0,layer*4,w,edge,tint);
-                    g.fill(0,h-edge,w,h-layer*4,tint);
-                    g.fill(layer*4,0,edge,h,tint);
-                    g.fill(w-edge,0,w-layer*4,h,tint);
+        if(hitPulse>0&&(ENABLED[6]||ENABLED[7])){
+            float progress=EffectMath.unit((8-hitPulse+mc.getDeltaTracker().getGameTimeDeltaPartialTick(false))/8f);
+            int alpha=(int)(220*EffectMath.fade(progress));
+            if(ENABLED[6]){
+                int radius=6+(int)(EffectMath.ease(progress)*10),color=VisionGeometry.withAlpha(VisionTools2.hitColor(),alpha);
+                for(int sx=-1;sx<=1;sx+=2)for(int sy=-1;sy<=1;sy+=2)for(int k=0;k<5;k++){
+                    int xx=w/2+sx*(radius+k),yy=h/2+sy*(radius+k);
+                    g.fill(xx,yy,xx+2,yy+2,color);
                 }
+            }
+            if(ENABLED[7])for(int layer=0;layer<10;layer++){
+                int edge=layer*4,opacity=(int)((10-layer)*2.1*EffectMath.fade(progress));
+                int c=VisionGeometry.withAlpha(0xFFD83870,opacity);
+                g.fill(edge,edge,w-edge,edge+4,c);g.fill(edge,h-edge-4,w-edge,h-edge,c);
+                g.fill(edge,edge+4,edge+4,h-edge-4,c);g.fill(w-edge-4,edge+4,w-edge,h-edge-4,c);
             }
         }
     }

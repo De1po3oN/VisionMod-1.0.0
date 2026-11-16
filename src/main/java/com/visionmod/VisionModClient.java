@@ -24,6 +24,7 @@ public final class VisionModClient implements ClientModInitializer {
         VisionPerformance.load();
         VisionAdvanced.load();
         VisionMenuTheme.load();
+        VisionAppearance.load();
         VisionHudLayout.init();
         VisionRenderBoost.init();
         VisionHotkeys.init();
@@ -37,12 +38,13 @@ public final class VisionModClient implements ClientModInitializer {
         VisionExtendedFeatures.init();
         VisionPetRenderer.init();
         VisionWorldLyrics.init();
-        VisionBrowserMusicBridge.init();
+        VisionMediaSession.init();
         VisionMotionEffects.init();
         VisionCustomModels.init();
         VisionTools2.init();
         if ("1".equals(System.getenv("VISIONMOD_SELFTEST"))) VisionSelfTest.run();
         TargetOutline.init();
+        VisionVisualCapture.init();
         KeyMapping.Category category=KeyMapping.Category.register(Identifier.fromNamespaceAndPath("visionmod","general"));
         KeyMapping toggleAll=KeyBindingHelper.registerKeyBinding(new KeyMapping("key.visionmod.toggle",InputConstants.Type.KEYSYM,InputConstants.KEY_END,category));
         KeyMapping openMenu=KeyBindingHelper.registerKeyBinding(new KeyMapping("key.visionmod.menu",InputConstants.Type.KEYSYM,GLFW.GLFW_KEY_RIGHT_SHIFT,category));

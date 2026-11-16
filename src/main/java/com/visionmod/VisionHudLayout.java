@@ -35,7 +35,8 @@ public final class VisionHudLayout {
         ARROW("Arrow Names"),
         LYRICS("World Lyrics"),
         KILL("Kill Effect"),
-        TAB("TAB Heads");
+        TAB("TAB Heads"),
+        SOCIAL("Social Radar");
 
         public final String label;
         private boolean moved;
@@ -94,7 +95,7 @@ public final class VisionHudLayout {
     public static Bounds get(Widget id,int w,int h) {
         if (id.w<=0 || id.h<=0) {
             int xx=switch(id) {
-                case ARMOR_COLOR, LYRICS -> w-160;
+                case ARMOR_COLOR, LYRICS, SOCIAL -> w-160;
                 case TARGET, KILL -> w/2-75;
                 case ARROW -> w/2+65;
                 case TNT -> w/2-62;
@@ -105,6 +106,7 @@ public final class VisionHudLayout {
                 case KILL -> h/2-38;
                 case ARMOR_COLOR -> 18;
                 case LYRICS -> 22;
+                case SOCIAL -> Math.max(12,h-90);
                 case TNT -> 17;
                 case TAB -> 26;
                 case SHULKER -> 47;
@@ -142,6 +144,7 @@ public final class VisionHudLayout {
             case LYRICS -> VisionExtendedFeatures.enabled(3);
             case KILL -> VisionExtendedFeatures.enabled(1);
             case TAB -> VisionTabHeads.enabled;
+            case SOCIAL -> VisionExtendedFeatures.enabled(5);
         };
     }
 
@@ -186,6 +189,7 @@ public final class VisionHudLayout {
             if(b.contains(e.x(),e.y())){
                 if(e.button()==GLFW.GLFW_MOUSE_BUTTON_RIGHT) {
                     id.moved=false;
+                    id.w=id.h=0;
                     save();
                     return true;
                 }

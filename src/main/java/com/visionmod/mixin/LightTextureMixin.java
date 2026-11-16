@@ -24,7 +24,7 @@ public abstract class LightTextureMixin {
         // The ordinal is Minecraft-version-specific. Never return a Double
         // for another option type: doing so can crash on a changed render path.
         if (VisionModClient.isFullBrightEnabled() && original instanceof Double) {
-            return 16.0D;
+            return (double)com.visionmod.VisionAppearance.brightness;
         }
 
         return original;

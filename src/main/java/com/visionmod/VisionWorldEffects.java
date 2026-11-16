@@ -111,8 +111,10 @@ public final class VisionWorldEffects {
     private static Vec3 landingPos;
     private static int landingAge;
     private static boolean grounded;
+    private static int airborneTicks;
     private static int tick;
     private static boolean renderFaulted;
+    public static boolean suspended(){return renderFaulted;}
 
     private VisionWorldEffects() {}
     public static int count() { return NAMES.length; }
@@ -131,179 +133,96 @@ public final class VisionWorldEffects {
     public static void init() {
         load();
         ClientTickEvents.END_CLIENT_TICK.register(VisionWorldEffects::tick);
-        WorldRenderEvents.BEFORE_DEBUG_RENDER.register(ctx -> {
-            if (renderFaulted || !VisionModClient.enabled || ctx.consumers()==null || ctx.matrices()==null)
-                return;
+        WorldRenderEvents.BEFORE_DEBUG_RENDER.register(ctx->{
             Minecraft mc=Minecraft.getInstance();
-            if(mc.level==null || mc.player==null ||
-                (!ENABLED[0] && !ENABLED[1] && !ENABLED[2] && !ENABLED[3])) return;
-            Vec3 cam=mc.gameRenderer.getMainCamera().position();
-            PoseStack pose=ctx.matrices();
-            try {
-            // IMPORTANT: a shared ImmediateBufferSource finalizes the previous
-            // draw buffer whenever its render type changes. Never retain and
-            // write to a line consumer after obtaining the fill consumer.
-            // Render ALL translucent geometry first, ALL outlines second.
-            // One shared original texture, no extra GPU resources.
-            VertexConsumer fill=ctx.consumers().getBuffer(
-                RenderTypes.entityTranslucent(VisionGeometry.WHITE_TEXTURE));
-            double t=System.nanoTime()*1.0e-9;
-
-            if(ENABLED[1] && TRAIL.size()>=2) {
-                TrailPoint last=null;
-                long worldTime=mc.level.getGameTime();
-                int idx=0, samples=TRAIL.size();
-                for(TrailPoint current:TRAIL) {
-                    if(last!=null) {
-                        Vec3 a=last.position(),b=current.position();
-                        double dx=b.x-a.x,dz=b.z-a.z;
-                        double length=Math.sqrt(dx*dx+dz*dz);
-                        // Never join teleportations, world transitions or server corrections.
-                        if(length>.025 && length<2.5 && Math.abs(b.y-a.y)<1.7) {
-                            float strength=(float)Math.max(0,1.0-
-                                (worldTime-current.time())/(double)TRAIL_LIFETIME);
-                            float width=trailWidth*(.35f+.65f*strength);
-                            double px=-dz/length*width,pz=dx/length*width;
-                            int alpha=(int)(strength*trailOpacity);
-                            int colorA=VisionGeometry.withAlpha(
-                                trailSampleColor((idx-1f)/(samples-1f),worldTime),
-                                Math.max(0,alpha-18));
-                            int colorB=VisionGeometry.withAlpha(
-                                trailSampleColor(idx/(float)(samples-1),worldTime),alpha);
-                            float ax=(float)(a.x-cam.x),az=(float)(a.z-cam.z);
-                            float bx=(float)(b.x-cam.x),bz=(float)(b.z-cam.z);
-                            float ay=(float)(a.y-cam.y+.15),by=(float)(b.y-cam.y+.15);
-                            VisionGeometry.vertex(fill,pose,(float)(ax+px),ay,(float)(az+pz),0,0,colorA,0,1,0);
-                            VisionGeometry.vertex(fill,pose,(float)(ax-px),ay,(float)(az-pz),1,0,colorA,0,1,0);
-                            VisionGeometry.vertex(fill,pose,(float)(bx-px),by,(float)(bz-pz),1,1,colorB,0,1,0);
-                            VisionGeometry.vertex(fill,pose,(float)(bx+px),by,(float)(bz+pz),0,1,colorB,0,1,0);
+            if(renderFaulted||!VisionModClient.enabled||mc.player==null||mc.level==null||ctx.consumers()==null||ctx.matrices()==null)return;
+            if(!ENABLED[0]&&!ENABLED[1]&&!ENABLED[2]&&!ENABLED[3])return;
+            Vec3 cam=mc.gameRenderer.getMainCamera().position();PoseStack pose=ctx.matrices();
+            float partial=mc.getDeltaTracker().getGameTimeDeltaPartialTick(false);
+            double time=mc.level.getGameTime()+partial;
+            int steps=VisionAppearance.segments();
+            LivingEntity target=ENABLED[0]&&mc.hitResult instanceof EntityHitResult hit&&hit.getEntity() instanceof LivingEntity living&&living.isAlive()?living:null;
+            try{
+                // Finish every translucent vertex before acquiring the line consumer.
+                VertexConsumer fill=ctx.consumers().getBuffer(RenderTypes.entityTranslucent(VisionGeometry.WHITE_TEXTURE));
+                if(ENABLED[1]&&TRAIL.size()>=2){
+                    TrailPoint last=null;int i=0,size=TRAIL.size();
+                    for(TrailPoint point:TRAIL){
+                        if(last!=null){
+                            Vec3 aa=last.position(),bb=point.position();
+                            double dx=bb.x-aa.x,dz=bb.z-aa.z,length=Math.sqrt(dx*dx+dz*dz);
+                            if(length>.025&&length<2.5&&Math.abs(bb.y-aa.y)<1.7){
+                                float fade=EffectMath.fade((float)((time-point.time())/TRAIL_LIFETIME));
+                                double width=trailWidth*(.3+.7*fade),px=-dz/length*width,pz=dx/length*width;
+                                int colorA=trailSampleColor((i-1f)/(size-1),(long)time),colorB=trailSampleColor(i/(float)(size-1),(long)time);
+                                for(int strip=0;strip<3;strip++){
+                                    double left=strip==0?-1:strip==1?-.26:.26,right=strip==0?-.26:strip==1?.26:1;
+                                    int alphaL=strip==0?0:(int)(trailOpacity*fade),alphaR=strip==2?0:(int)(trailOpacity*fade);
+                                    ribbon(fill,pose,aa.subtract(cam),bb.subtract(cam),px,pz,left,right,colorA,colorB,alphaL,alphaR);
+                                }
+                            }
                         }
+                        last=point;i++;
                     }
-                    last=current;
-                    idx++;
                 }
-            }
-
-            if(ENABLED[2] && landingAge>0 && landingPos!=null) {
-                float progress=(20-landingAge)/20.0f;
-                float eased=1-(1-progress)*(1-progress);
-                double cy=landingPos.y-cam.y+.045;
-                double cx=landingPos.x-cam.x,cz=landingPos.z-cam.z;
-                int alpha=(int)(190*(1-progress));
-                drawBand(fill,pose,cx,cy,cz,.22+eased*1.05,
-                    .065*(1-progress)+.018,
-                    VisionGeometry.withAlpha(VisionMenuTheme.CYAN,alpha),SEGMENTS);
-            }
-
-            if(ENABLED[3] && mc.options.getCameraType()!=CameraType.FIRST_PERSON) {
-                // Form a genuine non-degenerate 36-sector mesh. The old
-                // primitive repeated its apex as the fourth vertex and
-                // produced zero-area geometry, invisible on many GPUs.
-                // Each section has a small raised inner rim and wide brim.
-                Vec3 p=mc.player.position();
-                double cx=p.x-cam.x,cy=p.y+mc.player.getBbHeight()+.09-cam.y
-                    +Math.sin(t*2.0)*.013,cz=p.z-cam.z;
-                int tintA=VisionGeometry.withAlpha(VisionMenuTheme.PURPLE,185);
-                int tintB=VisionGeometry.withAlpha(VisionMenuTheme.CYAN,180);
-                for(int i=0;i<SEGMENTS;i++) {
-                    double angle=i*2*Math.PI/SEGMENTS;
-                    double next=(i+1)*2*Math.PI/SEGMENTS;
-                    float x1=(float)(cx+Math.cos(angle)*.56);
-                    float z1=(float)(cz+Math.sin(angle)*.56);
-                    float x2=(float)(cx+Math.cos(next)*.56);
-                    float z2=(float)(cz+Math.sin(next)*.56);
-                    float ix1=(float)(cx+Math.cos(angle)*.012);
-                    float iz1=(float)(cz+Math.sin(angle)*.012);
-                    float ix2=(float)(cx+Math.cos(next)*.012);
-                    float iz2=(float)(cz+Math.sin(next)*.012);
-                    int color=i%2==0?tintA:tintB;
-                    VisionGeometry.quad(fill,pose,
-                        ix1,(float)(cy+.34),iz1,
-                        x1,(float)cy,z1,
-                        x2,(float)cy,z2,
-                        ix2,(float)(cy+.34),iz2,
-                        color,0,1,0);
-                    // Also emit the reverse face for mods/shaders that cull
-                    // transparent triangles. No extra render type switches.
-                    VisionGeometry.quad(fill,pose,
-                        ix2,(float)(cy+.34),iz2,
-                        x2,(float)cy,z2,
-                        x1,(float)cy,z1,
-                        ix1,(float)(cy+.34),iz1,
-                        color,0,-1,0);
+                if(ENABLED[2]&&landingAge>0&&landingPos!=null){
+                    float progress=EffectMath.unit((20-landingAge+partial)/20f);
+                    for(int layer=0;layer<(VisionAppearance.detail==0?2:3);layer++){
+                        float local=EffectMath.unit(progress-layer*.10f);
+                        if(local<=0)continue;
+                        double radius=EffectMath.ringRadius(local,1.05f-layer*.13f);
+                        int color=EffectMath.blend(VisionMenuTheme.CYAN,VisionMenuTheme.PURPLE,layer*.45f);
+                        int alpha=(int)(165*EffectMath.fade(local));
+                        VisionGeometry.band(fill,pose,landingPos.x-cam.x,landingPos.y-cam.y+.045+layer*.006,
+                            landingPos.z-cam.z,radius,.055+local*.03,VisionGeometry.withAlpha(color,alpha),VisionGeometry.withAlpha(color,0),steps);
+                    }
                 }
-                drawBand(fill,pose,cx,cy-.008,cz,.555,.075,
-                    VisionGeometry.withAlpha(VisionMenuTheme.CYAN,145),SEGMENTS);
-            }
-
-            // LAST render pass: acquire the lines buffer only once after all
-            // translucent vertices have been submitted. No more fill writes
-            // may follow, otherwise Minecraft throws "Not building!".
-            if(ENABLED[0] || ENABLED[2] || ENABLED[3]) {
-                VertexConsumer line=ctx.consumers().getBuffer(RenderTypes.lines());
-                if(ENABLED[0] && mc.hitResult instanceof EntityHitResult hit &&
-                    hit.getEntity() instanceof LivingEntity living &&
-                    living!=mc.player && living.isAlive() &&
-                    living.distanceToSqr(mc.player)<24*24) {
+                if(ENABLED[3]&&mc.options.getCameraType()!=CameraType.FIRST_PERSON){
+                    Vec3 pos=mc.player.getPosition(partial).subtract(cam);
+                    double yy=pos.y+mc.player.getBbHeight()+.08;
+                    for(int i=0;i<steps;i++){
+                        double aa=i*Math.PI*2/steps,bb=(i+1)*Math.PI*2/steps;
+                        int color=VisionGeometry.withAlpha(EffectMath.blend(VisionMenuTheme.CYAN,VisionMenuTheme.PURPLE,(float)(.5+.5*Math.sin(aa))),160);
+                        float ix=(float)(pos.x+Math.cos(aa)*.012),iz=(float)(pos.z+Math.sin(aa)*.012);
+                        float jx=(float)(pos.x+Math.cos(bb)*.012),jz=(float)(pos.z+Math.sin(bb)*.012);
+                        float ax=(float)(pos.x+Math.cos(aa)*.56),az=(float)(pos.z+Math.sin(aa)*.56);
+                        float bx=(float)(pos.x+Math.cos(bb)*.56),bz=(float)(pos.z+Math.sin(bb)*.56);
+                        VisionGeometry.quad(fill,pose,ix,(float)yy+.34f,iz,ax,(float)yy,az,bx,(float)yy,bz,jx,(float)yy+.34f,jz,color,0,1,0);
+                        VisionGeometry.quad(fill,pose,jx,(float)yy+.34f,jz,bx,(float)yy,bz,ax,(float)yy,az,ix,(float)yy+.34f,iz,color,0,-1,0);
+                    }
+                    VisionGeometry.band(fill,pose,pos.x,yy-.006,pos.z,.585,.045,VisionGeometry.withAlpha(VisionMenuTheme.CYAN,170),VisionGeometry.withAlpha(VisionMenuTheme.PURPLE,0),steps);
+                }
+                if(target!=null&&target.distanceToSqr(mc.player)<24*24){
+                    Vec3 tp=target.getPosition(partial).subtract(cam);
+                    float pulse=VisionAppearance.animations?(float)Math.sin(time*.12)*.025f:0;
                     int c=VisionTools2.hitColor();
-                    AABB box=living.getBoundingBox().inflate(.035);
-                    ShapeRenderer.renderShape(pose,line,Shapes.create(box),
-                        -cam.x,-cam.y,-cam.z,VisionGeometry.withAlpha(c,210),2f);
-                    double radius=living.getBbWidth()*.64+.12;
-                    drawRing(pose,line,living.getX()-cam.x,box.minY-cam.y+.035,
-                        living.getZ()-cam.z,radius,VisionGeometry.withAlpha(c,160),1.5f,SEGMENTS);
+                    VisionGeometry.band(fill,pose,tp.x,tp.y+.025,tp.z,target.getBbWidth()*.65+.18+pulse,.085,
+                        VisionGeometry.withAlpha(c,110),VisionGeometry.withAlpha(c,0),steps);
+                    // No translucent writes after this point.
+                    VertexConsumer lines=ctx.consumers().getBuffer(RenderTypes.lines());
+                    AABB box=target.getBoundingBox().move(target.getPosition(partial).subtract(target.position())).inflate(.045);
+                    corners(lines,pose,box.move(-cam.x,-cam.y,-cam.z),VisionGeometry.withAlpha(c,210));
                 }
-                if(ENABLED[2] && landingAge>0 && landingPos!=null) {
-                    float progress=(20-landingAge)/20f;
-                    float eased=1-(1-progress)*(1-progress);
-                    double cx=landingPos.x-cam.x,cy=landingPos.y-cam.y+.045,cz=landingPos.z-cam.z;
-                    int alpha=(int)(190*(1-progress));
-                    drawRing(pose,line,cx,cy+.012,cz,.22+eased*1.05,
-                        VisionGeometry.withAlpha(VisionMenuTheme.PURPLE,alpha),1.8f,SEGMENTS);
-                    if(progress<.7f)drawRing(pose,line,cx,cy+.025,cz,
-                        .12+eased*.67,VisionGeometry.withAlpha(VisionMenuTheme.CYAN,
-                        (int)(80*(1-progress))),1.1f,SEGMENTS);
-                }
-                if(ENABLED[3] && mc.options.getCameraType()!=CameraType.FIRST_PERSON) {
-                    Vec3 p=mc.player.position();
-                    double cx=p.x-cam.x,cy=p.y+mc.player.getBbHeight()+.09-cam.y
-                        +Math.sin(t*2)*.013,cz=p.z-cam.z;
-                    drawRing(pose,line,cx,cy+.003,cz,.565,
-                        VisionGeometry.withAlpha(VisionMenuTheme.PURPLE,210),1.8f,SEGMENTS);
-                }
-            }
-            } catch (RuntimeException ex) {
-                // Do not crash the entire server session if a custom renderer
-                // rejects this pass. Log once and stop risky geometry.
-                renderFaulted=true;
-                System.err.println("[VisionMod][WORLD FX] Suspended after render error: "+ex);
-                ex.printStackTrace();
-            }
+            }catch(RuntimeException ex){renderFaulted=true;System.err.println("[VisionMod][WORLD FX] Renderer suspended: "+ex);}
         });
     }
-
-    private static void drawRing(PoseStack pose,VertexConsumer line,
-        double cx,double cy,double cz,double radius,int color,float width,int steps) {
-        for(int i=0;i<steps;i++) {
-            double a=i*Math.PI*2/steps,b=(i+1)*Math.PI*2/steps;
-            VisionGeometry.line(line,pose,
-                cx+Math.cos(a)*radius,cy,cz+Math.sin(a)*radius,
-                cx+Math.cos(b)*radius,cy,cz+Math.sin(b)*radius,
-                color,width);
+    private static void ribbon(VertexConsumer out,PoseStack pose,Vec3 a,Vec3 b,double px,double pz,double left,double right,int ca,int cb,int al,int ar){
+        for(int face=0;face<2;face++){
+            double l=face==0?left:right,r=face==0?right:left;
+            int alphaL=face==0?al:ar,alphaR=face==0?ar:al;
+            VisionGeometry.vertex(out,pose,(float)(a.x+px*l),(float)a.y+.09f,(float)(a.z+pz*l),0,0,VisionGeometry.withAlpha(ca,alphaL),0,1,0);
+            VisionGeometry.vertex(out,pose,(float)(b.x+px*l),(float)b.y+.09f,(float)(b.z+pz*l),1,0,VisionGeometry.withAlpha(cb,alphaL),0,1,0);
+            VisionGeometry.vertex(out,pose,(float)(b.x+px*r),(float)b.y+.09f,(float)(b.z+pz*r),1,1,VisionGeometry.withAlpha(cb,alphaR),0,1,0);
+            VisionGeometry.vertex(out,pose,(float)(a.x+px*r),(float)a.y+.09f,(float)(a.z+pz*r),0,1,VisionGeometry.withAlpha(ca,alphaR),0,1,0);
         }
     }
-
-    private static void drawBand(VertexConsumer fill,PoseStack pose,
-        double cx,double cy,double cz,double outer,double width,int color,int steps) {
-        double inner=Math.max(0.001,outer-width);
-        for(int i=0;i<steps;i++) {
-            double a=i*Math.PI*2/steps,b=(i+1)*Math.PI*2/steps;
-            VisionGeometry.quad(fill,pose,
-                (float)(cx+Math.cos(a)*outer),(float)cy,(float)(cz+Math.sin(a)*outer),
-                (float)(cx+Math.cos(a)*inner),(float)cy,(float)(cz+Math.sin(a)*inner),
-                (float)(cx+Math.cos(b)*inner),(float)cy,(float)(cz+Math.sin(b)*inner),
-                (float)(cx+Math.cos(b)*outer),(float)cy,(float)(cz+Math.sin(b)*outer),
-                color,0,1,0);
+    private static void corners(VertexConsumer line,PoseStack pose,AABB b,int color){
+        double len=Math.min(.22,Math.min(b.getXsize(),b.getZsize())*.35);
+        for(int sx=0;sx<2;sx++)for(int sy=0;sy<2;sy++)for(int sz=0;sz<2;sz++){
+            double x=sx==0?b.minX:b.maxX,y=sy==0?b.minY:b.maxY,z=sz==0?b.minZ:b.maxZ;
+            VisionGeometry.line(line,pose,x,y,z,x+(sx==0?len:-len),y,z,color,1.6f);
+            VisionGeometry.line(line,pose,x,y,z,x,y+(sy==0?len:-len),z,color,1.6f);
+            VisionGeometry.line(line,pose,x,y,z,x,y,z+(sz==0?len:-len),color,1.6f);
         }
     }
 
@@ -313,7 +232,7 @@ public final class VisionWorldEffects {
         }
         if(previousWorld!=mc.level) reset(mc.level);
         if(!VisionModClient.enabled) {
-            TRAIL.clear();landingAge=0;return;
+            TRAIL.clear();landingAge=airborneTicks=0;grounded=mc.player.onGround();return;
         }
         long now=mc.level.getGameTime();
         if(ENABLED[1]) {
@@ -334,9 +253,11 @@ public final class VisionWorldEffects {
             TRAIL.clear();
         }
         boolean onGround=mc.player.onGround();
-        if(ENABLED[2] && onGround && !grounded && !mc.player.isPassenger()){
+        if(!onGround)airborneTicks=Math.min(100,airborneTicks+1);
+        if(ENABLED[2]&&onGround&&!grounded&&airborneTicks>=2&&!mc.player.isPassenger()){
             landingPos=mc.player.position();landingAge=20;
         }
+        if(onGround)airborneTicks=0;
         grounded=onGround;
         if(landingAge>0) landingAge--;
     }
@@ -345,7 +266,7 @@ public final class VisionWorldEffects {
         previousWorld=level;
         renderFaulted=false;
         TRAIL.clear();landingPos=null;
-        landingAge=tick=0;grounded=false;
+        landingAge=tick=airborneTicks=0;grounded=false;
     }
 
     private static void load() {

@@ -22,8 +22,8 @@ public abstract class VisionSwingAnimationMixin {
         at = @At("HEAD"), require = 1)
     private void visionmod$customSwing(PoseStack pose, HumanoidArm arm, float progress,
         CallbackInfo ci) {
-        if (!VisionMotionEffects.enabled(0)) return;
-        float amount = Mth.sin(progress * (float)Math.PI);
+        if (!VisionMotionEffects.enabled(0)||!com.visionmod.VisionAppearance.animations) return;
+        float amount = Mth.sin(com.visionmod.EffectMath.ease(progress) * (float)Math.PI);
         float side = arm == HumanoidArm.RIGHT ? 1.0f : -1.0f;
         pose.translate(side * amount * 0.07f, -amount * .035f, -amount * .12f);
         pose.mulPose(Axis.ZP.rotationDegrees(side * amount * 18.0f));

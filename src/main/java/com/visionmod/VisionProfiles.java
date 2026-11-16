@@ -54,6 +54,22 @@ public final class VisionProfiles {
         if (Files.isSymbolicLink(target)) throw new IllegalArgumentException("Symlinks are not supported");
         JsonObject data = new JsonObject();
         data.addProperty("format", 1);
+        saveFlags(data,"hud2",VisionFeaturePack.count(),VisionFeaturePack::enabled);
+        saveFlags(data,"world2",VisionWorldEffects.count(),VisionWorldEffects::enabled);
+        saveFlags(data,"extended2",VisionExtendedFeatures.count(),VisionExtendedFeatures::enabled);
+        saveFlags(data,"motion2",VisionMotionEffects.count(),VisionMotionEffects::selected);
+        saveFlags(data,"tools2",VisionTools2.count(),VisionTools2::selected);
+        data.addProperty("tabHeads",VisionTabHeads.enabled);
+        data.addProperty("freeLookSmooth",FreeLook.smooth);
+        data.addProperty("ownLyric",VisionExtendedFeatures.customText());
+        data.addProperty("friends",VisionExtendedFeatures.friendNames());
+        data.addProperty("trailStart",VisionWorldEffects.trailColorHex(VisionWorldEffects.trailStartColor()));
+        data.addProperty("trailEnd",VisionWorldEffects.trailColorHex(VisionWorldEffects.trailEndColor()));
+        data.addProperty("trailMode",VisionWorldEffects.trailMode());
+        data.addProperty("appearanceDetail",VisionAppearance.detail);
+        data.addProperty("appearanceOpacity",VisionAppearance.opacity);
+        data.addProperty("appearanceAnimations",VisionAppearance.animations);
+        data.addProperty("soundPreset",VisionExtendedFeatures.soundPreset());
         data.addProperty("fullBright", VisionModClient.fullBright);
         data.addProperty("oreHighlight", VisionModClient.oreHighlight);
         data.addProperty("clearWater", VisionModClient.clearWater);
@@ -129,6 +145,22 @@ public final class VisionProfiles {
         if (Files.size(file) > 16384L) throw new IllegalArgumentException("Profile is too large");
         JsonObject data = JsonParser.parseString(Files.readString(file, StandardCharsets.UTF_8)).getAsJsonObject();
         if (!data.has("format") || data.get("format").getAsInt() != 1) throw new IllegalArgumentException("Unsupported profile format");
+        boolean[] hud2=readFlags(data,"hud2",VisionFeaturePack.count());
+        boolean[] world2=readFlags(data,"world2",VisionWorldEffects.count());
+        boolean[] extended2=readFlags(data,"extended2",VisionExtendedFeatures.count());
+        boolean[] motion2=readFlags(data,"motion2",VisionMotionEffects.count());
+        boolean[] tools2=readFlags(data,"tools2",VisionTools2.count());
+        boolean tabHeads=optionalFlag(data,"tabHeads",VisionTabHeads.enabled);
+        boolean smooth=optionalFlag(data,"freeLookSmooth",FreeLook.smooth);
+        String ownLyric=optionalText(data,"ownLyric",VisionExtendedFeatures.customText());
+        String friends=optionalText(data,"friends",VisionExtendedFeatures.friendNames());
+        int trailStart=optionalHex(data,"trailStart",VisionWorldEffects.trailStartColor());
+        int trailEnd=optionalHex(data,"trailEnd",VisionWorldEffects.trailEndColor());
+        int trailMode=optionalChoice(data,"trailMode",VisionWorldEffects.trailMode(),0,1,2);
+        int appearanceDetail=optionalChoice(data,"appearanceDetail",VisionAppearance.detail,0,1,2);
+        int appearanceOpacity=optionalChoice(data,"appearanceOpacity",VisionAppearance.opacity,100,150,190,225,240);
+        boolean appearanceAnimations=optionalFlag(data,"appearanceAnimations",VisionAppearance.animations);
+        int soundPreset=optionalChoice(data,"soundPreset",VisionExtendedFeatures.soundPreset(),0,1,2);
         // Validate every field before changing any mod settings.
         boolean[] switches = new boolean[] {
             flag(data, "fullBright"), flag(data, "oreHighlight"), flag(data, "clearWater"),
@@ -212,6 +244,20 @@ public final class VisionProfiles {
             if (exZoomFactor != .2f && exZoomFactor != .35f && exZoomFactor != .5f)
                 throw new IllegalArgumentException("Unsupported zoom factor");
         }
+        VisionAppearance.detail=appearanceDetail;VisionAppearance.opacity=appearanceOpacity;VisionAppearance.animations=appearanceAnimations;VisionAppearance.save();
+        for(int i=0;i<3&&VisionExtendedFeatures.soundPreset()!=soundPreset;i++)VisionExtendedFeatures.cycleSound();
+        applyFlags(hud2,VisionFeaturePack::enabled,VisionFeaturePack::toggle);
+        applyFlags(world2,VisionWorldEffects::enabled,VisionWorldEffects::toggle);
+        applyFlags(extended2,VisionExtendedFeatures::enabled,VisionExtendedFeatures::toggle);
+        applyFlags(motion2,VisionMotionEffects::selected,VisionMotionEffects::toggle);
+        applyFlags(tools2,VisionTools2::selected,VisionTools2::toggle);
+        if(VisionTabHeads.enabled!=tabHeads)VisionTabHeads.toggle();
+        FreeLook.smooth=smooth;
+        VisionExtendedFeatures.setCustomText(ownLyric);
+        VisionExtendedFeatures.setFriendNames(friends);
+        VisionWorldEffects.setTrailColor(0,trailStart);
+        VisionWorldEffects.setTrailColor(1,trailEnd);
+        VisionWorldEffects.setTrailMode(trailMode);
         VisionModClient.fullBright = switches[0];
         VisionModClient.oreHighlight = switches[1];
         VisionModClient.clearWater = switches[2];
@@ -268,6 +314,34 @@ public final class VisionProfiles {
             OreColors.setColor(i, validatedColors[i]);
             OreSelection.setEnabled(i, validatedOres[i]);
         }
+    }
+
+    private static void saveFlags(JsonObject data,String key,int count,java.util.function.IntPredicate selected) {
+        var values=new com.google.gson.JsonArray();
+        for(int i=0;i<count;i++)values.add(selected.test(i));
+        data.add(key,values);
+    }
+    private static boolean[] readFlags(JsonObject data,String key,int count) {
+        if(!data.has(key))return null;
+        var values=data.getAsJsonArray(key);
+        if(values==null || values.size()!=count)throw new IllegalArgumentException("Invalid module list: "+key);
+        boolean[] flags=new boolean[count];
+        for(int i=0;i<count;i++){
+            var v=values.get(i);
+            if(!v.isJsonPrimitive()||!v.getAsJsonPrimitive().isBoolean())throw new IllegalArgumentException("Invalid toggle: "+key);
+            flags[i]=v.getAsBoolean();
+        }
+        return flags;
+    }
+    private static void applyFlags(boolean[] values,java.util.function.IntPredicate selected,java.util.function.IntConsumer toggle) {
+        if(values!=null)for(int i=0;i<values.length;i++)if(values[i]!=selected.test(i))toggle.accept(i);
+    }
+    private static String optionalText(JsonObject data,String key,String fallback) {
+        if(!data.has(key))return fallback;
+        var v=data.get(key);
+        if(!v.isJsonPrimitive()||!v.getAsJsonPrimitive().isString()||v.getAsString().length()>120)
+            throw new IllegalArgumentException("Invalid text: "+key);
+        return v.getAsString();
     }
 
     private static boolean flag(JsonObject data, String key) {

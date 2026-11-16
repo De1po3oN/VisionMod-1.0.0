@@ -1,73 +1,51 @@
 package com.visionmod;
 
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.input.MouseButtonEvent;
-import net.minecraft.network.chat.Component;
-import org.lwjgl.glfw.GLFW;
 
-/** Custom 16/32/64 editor with a fixed 128px canvas and independent reticle size. */
-public final class VisionCrosshairEditorScreen extends Screen {
-    private static final int CANVAS = 128;
-    public VisionCrosshairEditorScreen() { super(Component.literal("Vision / Crosshair Studio")); }
-    @Override public void renderBackground(GuiGraphics g,int mx,int my,float delta) { }
-    @Override public void render(GuiGraphics g,int mx,int my,float delta) {
-        super.render(g,mx,my,delta);
-        VisionMenuTheme.panel(g,font,width,height,"CROSSHAIR STUDIO","DESIGN  /  SCALE  /  COLOR");
-        int x=VisionMenuTheme.x(width), y=VisionMenuTheme.y(height);
-        int grid=VisionExtras.crosshairGrid, cell=CANVAS/grid;
-        int gx=x+142,gy=y+81;
-        g.fill(gx-3,gy-3,gx+CANVAS+3,gy+CANVAS+3,VisionMenuTheme.CYAN);
-        g.fill(gx,gy,gx+CANVAS,gy+CANVAS,0xFF101824);
-        for(int row=0;row<grid;row++) for(int col=0;col<grid;col++) {
-            if (!VisionExtras.pixel(col,row)) continue;
-            int xx=gx+col*cell, yy=gy+row*cell;
-            g.fill(xx,yy,xx+cell,yy+cell,VisionExtras.crosshairColor);
-        }
-        int line=grid==64?8:grid==32?4:2;
-        for(int j=0;j<=grid;j+=line) {
-            int coord=j*cell;
-            g.fill(gx+coord,gy,gx+coord+1,gy+CANVAS,0x335B789C);
-            g.fill(gx,gy+coord,gx+CANVAS,gy+coord+1,0x335B789C);
-        }
-        g.drawString(font, "GRID",x+278,y+75,VisionMenuTheme.MUTED);
-        for(int i=0;i<3;i++){
-            int n=16<<i;
-            VisionMenuTheme.option(g,font,x+280,y+90+i*25,146,21,n+" x "+n,
-                VisionExtras.crosshairGrid==n,inside(mx,my,x+280,y+90+i*25,146,21));
-        }
-        g.drawString(font,"SIZE",x+278,y+176,VisionMenuTheme.MUTED);
-        for(int i=0;i<4;i++){
-            VisionMenuTheme.option(g,font,x+280+i*38,y+189,34,23,""+(i+1),
-                VisionExtras.crosshairSize==i+1,inside(mx,my,x+280+i*38,y+189,34,23));
-        }
-        VisionMenuTheme.option(g,font,x+142,y+224,135,23,"COLOR  >",false,
-            inside(mx,my,x+142,y+224,135,23));
-        VisionMenuTheme.button(g,font,x+282,y+224,144,23,"RESET",inside(mx,my,x+282,y+224,144,23));
-        VisionMenuTheme.button(g,font,x+142,y+251,284,17,"BACK TO EXTRAS",inside(mx,my,x+142,y+251,284,17));
+/** Pixel painting with drag, right-button erase and an actual reticle preview. */
+public final class VisionCrosshairEditorScreen extends VisionPanelScreen {
+    private int canvas,cx,cy,cell,lastX=-1,lastY=-1;
+    private boolean painting,erase;
+    public VisionCrosshairEditorScreen(){super("ПРИЦЕЛ");}
+    @Override protected void build(){
+        int max=Math.min(192,layout.bodyBottom()-layout.bodyTop()-14);
+        cell=Math.max(1,max/VisionExtras.crosshairGrid);canvas=cell*VisionExtras.crosshairGrid;
+        cx=x+16;cy=layout.bodyTop();
     }
-    private static boolean inside(double mx,double my,int x,int y,int w,int h){return VisionMenuTheme.inside(mx,my,x,y,w,h);}
-    @Override public boolean mouseClicked(MouseButtonEvent click, boolean doubled) {
-        if(click.button()!=GLFW.GLFW_MOUSE_BUTTON_LEFT && click.button()!=GLFW.GLFW_MOUSE_BUTTON_RIGHT)
-            return super.mouseClicked(click,doubled);
-        int x=VisionMenuTheme.x(width), y=VisionMenuTheme.y(height);
-        double mx=click.x(),my=click.y();
-        int grid=VisionExtras.crosshairGrid, cell=CANVAS/grid;
-        if(inside(mx,my,x+142,y+81,CANVAS,CANVAS)) {
-            int col=(int)(mx-(x+142))/cell,row=(int)(my-(y+81))/cell;
-            VisionExtras.togglePixel(col,row);return true;
-        }
-        for(int i=0;i<3;i++) if(inside(mx,my,x+280,y+90+i*25,146,21)){
-            VisionExtras.setCrosshairGrid(16<<i);return true;
-        }
-        for(int i=0;i<4;i++)if(inside(mx,my,x+280+i*38,y+189,34,23)){
-            VisionExtras.setCrosshairSize(i+1);return true;
-        }
-        if(inside(mx,my,x+142,y+224,135,23)){VisionExtras.cycleCrosshairColor();return true;}
-        if(inside(mx,my,x+282,y+224,144,23)){VisionExtras.resetPixels();return true;}
-        if(inside(mx,my,x+142,y+251,284,17)){minecraft.setScreen(new VisionDashboardScreen());return true;}
-        return super.mouseClicked(click,doubled);
+    @Override protected void draw(GuiGraphics g,int mx,int my,float delta){
+        VisionHudTheme.round(g,cx-3,cy-3,canvas+6,canvas+6,4,0xFF363D55);g.fill(cx,cy,cx+canvas,cy+canvas,0xFF101626);
+        int grid=VisionExtras.crosshairGrid;
+        for(int row=0;row<grid;row++)for(int col=0;col<grid;col++)if(VisionExtras.pixel(col,row))g.fill(cx+col*cell,cy+row*cell,cx+(col+1)*cell,cy+(row+1)*cell,VisionExtras.crosshairColor);
+        for(int i=0;i<=grid;i+=Math.max(1,grid/8)){int d=i*cell;g.fill(cx+d,cy,cx+d+1,cy+canvas,0x244E5A79);g.fill(cx,cy+d,cx+canvas,cy+d+1,0x244E5A79);}
+        int bx=cx+canvas+14,bw=x+w-16-bx;
+        for(int i=0;i<3;i++)button(g,bx,cy+i*25,bw,21,(16<<i)+" × "+(16<<i),grid==(16<<i),mx,my);
+        button(g,bx,cy+80,bw,21,"Размер: "+VisionExtras.crosshairSize,false,mx,my);
+        button(g,bx,cy+106,bw,21,"Цвет",false,mx,my);
+        if(cy+155<layout.bodyBottom())button(g,bx,cy+132,bw,21,"Сбросить",false,mx,my);
+        else button(g,x+16,y+h-29,80,20,"Сбросить",false,mx,my);
     }
-    @Override public void onClose(){minecraft.setScreen(new VisionDashboardScreen());}
-    @Override public boolean isPauseScreen(){return false;}
+    private void paint(MouseButtonEvent e){
+        int col=(int)(e.x()-cx)/cell,row=(int)(e.y()-cy)/cell;
+        if(!hit(e.x(),e.y(),cx,cy,canvas,canvas)||(col==lastX&&row==lastY))return;
+        lastX=col;lastY=row;
+        VisionExtras.setPixel(col,row,!erase);
+    }
+    @Override public boolean mouseClicked(MouseButtonEvent e,boolean doubled){
+        if((e.button()==0||e.button()==1)&&hit(e.x(),e.y(),cx,cy,canvas,canvas)){
+            painting=true;erase=e.button()==1;lastX=lastY=-1;paint(e);return true;
+        }
+        if(e.button()==0){
+            int bx=cx+canvas+14,bw=x+w-16-bx;
+            for(int i=0;i<3;i++)if(hit(e.x(),e.y(),bx,cy+i*25,bw,21)){VisionExtras.setCrosshairGrid(16<<i);build();return true;}
+            if(hit(e.x(),e.y(),bx,cy+80,bw,21)){VisionExtras.setCrosshairSize(VisionExtras.crosshairSize%4+1);return true;}
+            if(hit(e.x(),e.y(),bx,cy+106,bw,21)){VisionExtras.cycleCrosshairColor();return true;}
+            if((cy+155<layout.bodyBottom()&&hit(e.x(),e.y(),bx,cy+132,bw,21))||
+                (cy+155>=layout.bodyBottom()&&hit(e.x(),e.y(),x+16,y+h-29,80,20))){VisionExtras.resetPixels();return true;}
+        }
+        return super.mouseClicked(e,doubled);
+    }
+    @Override public boolean mouseDragged(MouseButtonEvent e,double dx,double dy){if(painting){paint(e);return true;}return super.mouseDragged(e,dx,dy);}
+    @Override public void onClose(){if(painting)VisionExtras.commitPixels();super.onClose();}
+    @Override public boolean mouseReleased(MouseButtonEvent e){if(painting){painting=false;VisionExtras.commitPixels();return true;}return super.mouseReleased(e);}
 }

@@ -1,132 +1,48 @@
-## Пет / трейл / шляпа / Browser World Lyrics — 2026-11-15
+# Vision Mod 2.0.0 · Open Beta
 
-- **Pet и Custom Models:** устранены переключения графических буферов внутри Pet, добавлено гарантированное восстановление матриц и защитное отключение после ошибки рендера; для пользовательского JSON ограничен размер до 64 KiB. Это защищает от повторного срыва, но конкретный новый crash пользователя НЕ воспроизведён — потребуется свежий latest.log/crash report.
-- **China Hat / Trails:** вместо вырожденной конической сетки — двусторонний 36-сегментный заполненный конус, Trails поднят над terrain на 0.15 блока. Существующая настройка RGB/HEX/градиентов сохранена.
-- **World Lyrics в браузере:** отдельно устанавливаемое Chromium MV3 расширение для Spotify Web, SoundCloud и YouTube Music; локальная связка через 127.0.0.1:38567, случайный пароль сопряжения из `config/visionmod/browser-bridge.properties`, LRCLIB для поиска synced lyrics. Если слов нет, заголовок песни, а не пустой экран.
-- Скачать 2 отдельных артефакта из [Build #257](https://github.com/De1po3oN/VisionMod-1.0.0/actions/runs/43726155375): `VisionMod-2.0.0` (JAR) и `VisionMod-Browser-Music-Extension` (ZIP). [Инструкция и проверки](PET_TRAILS_BROWSER_LYRICS_QA_RU.md).
-- [Client startup smoke #122](https://github.com/De1po3oN/VisionMod-1.0.0/actions/runs/43726136874) SUCCESS. **Реальный игровой мир с Pet, Iris/Sodium и живым браузером пока не тестировался.** Это тестовый билд 2.0.0, не гарантия полного качества всех 35 функций.
+[Визуальная доработка 16.11.2026: HUD, эффекты, питомец и редакторы](VISUAL_REFRESH_RU.md).
 
----
+Клиентский мод для Minecraft Java **1.21.11**, Fabric Loader **0.19.3+**, Java **21**.
+Репозиторий исторически называется `VisionMod-1.0.0`; версия сборки — `2.0.0`.
 
-## HUD Dragging through Chat / World Lyrics (2026-11-15)
-- HUD можно перемещать без отдельного меню: **T → ЛКМ+перетаскивание**, **ПКМ** на рамке — сброс, **Esc** — сохранить и закрыть чат. 11 панелей поддерживают сохранение координат относительно масштаба экрана. Прицел, ванильный чат и 3D-эффекты не перемещаются — это не HUD-панели.
-- **World Lyrics:** показ введённых собственных строк через `|` и опциональный таймкодированный файл `config/visionmod/lyrics.lrc`. Файл загружается при изменении и отображает `[00:02.50]Мой текст` по времени; отсчёт начинается при обновлении файла. **Нет автоматического подключения к играющей музыке**. Для определения треков/таймкода Spotify, Яндекс Музыки или другого плеера необходим отдельный адаптер.
-- [Инструкция HUD + World Lyrics](HUD_DRAG_AND_LYRICS_RU.md).
-- КОД SHA `584e93aa`: [Build #228](https://github.com/De1po3oN/VisionMod-1.0.0/actions/runs/43724039224) SUCCESS; [Client smoke #109](https://github.com/De1po3oN/VisionMod-1.0.0/actions/runs/43724039269) SUCCESS. Извлечённый JAR SHA256 `9fdb5c61292ac0733173efc3171922d1a7af0fafc598c2ea943267936fdb0512`. Реальный чат/курсор и синхронизация с живой музыкой НЕ проверены.
+- **Right Shift** — меню с поиском, категориями и настройками по ПКМ. СКМ назначает горячую клавишу доступным модулям.
+- **End** — глобальное отключение; FPS Boost возвращает сохранённые видеонастройки.
+- **Left Alt** — Free Look на время удержания. **C** — Zoom (назначения можно изменить).
+- **T / чат** — перетаскивание HUD левой кнопкой; правая кнопка возвращает позицию.
 
----
+## World Lyrics — только мод
 
+Включи **МИР → World Lyrics**, затем запусти музыку. Расширение браузера, ключ сопряжения и локальный сервер больше не нужны. Старое расширение можно удалить.
 
-## 15 ноября 2026 — Trail RGB/Gradient и исправления тестера
+Мод получает название, исполнителя, паузу и позицию из системной медиасессии:
 
-Добавлен полноценный **редактор трейла**: Right Shift → WORLD FX → Trails → ПКМ → OPTIONS. Два HEX/RGB цвета, режимы SOLID/GRADIENT/RAINBOW, палитры, ширина, прозрачность, мгновенное сохранение. Устранены цветовые скачки и гигантские сегменты после телепортации.
+- Windows 10/11 — Windows Media Control через встроенный Windows PowerShell. Один фоновый процесс только на время работы функции.
+- Linux — MPRIS через системный `gdbus`, в пользовательской D-Bus-сессии. `gdbus` обычно входит в GLib рабочего стола.
+- macOS — автоматическое чтение пока не поддерживается; остаются локальный LRC и свои строки.
 
-Исправлена ориентация собственных Air Hearts/Snowflakes (верх/низ UV). Добавлен необязательный HUD-модуль **Tab Heads**, показывающий до 12 настоящих аватаров игроков при удержании TAB, не заменяющий ванильный таб-лист. Питомец получил собственную 64×64 текстуру звёзд/лапок. Item Physics учитывает положение предмета на земле и скорость в воздухе без изменения сетевой/серверной физики.
+Браузер/плеер должен публиковать системные медиаданные. Если он их не отдаёт, название и позиция не могут быть получены этим способом. В **ПКМ → Настроить** виден статус.
 
-Исправлен опасный краш `Not building!` на смешивании буферов рендера Target ESP/Trails/Air Hearts/Pet: заполненные геометрии и линии отрисовываются отдельно по RenderType. Подробнее — `TRAIL_CUSTOMIZATION_QA_RU.md`.
+Текст запрашивается асинхронно из `https://lrclib.net` по названию и исполнителю. Аудио, cookies, пароли и микрофон не используются. Нет текста в каталоге — отображается название трека. Ошибки сети повторяются с интервалом; до 24 результатов остаются в памяти. Прогресс отображается только для строки с известным временем окончания.
 
-**Проверено:** Build [#213](https://github.com/De1po3oN/VisionMod-1.0.0/actions/runs/43722520223) SUCCESS, [Client startup smoke #97](https://github.com/De1po3oN/VisionMod-1.0.0/actions/runs/43722520246) SUCCESS на кодовом SHA `7da75fe7`; дополнительно: проверка RGB/HEX/градиента/сохранения настроек, Tab Heads toggle, texture PNG, item render-state accessor, 54 существующих toggle. В реальном игровом мире с Sodium/Iris, большим количеством игроков и нестандартными предметами — **нужна отдельная проверка**.
+Сохранена необязательная работа офлайн: `config/visionmod/lyrics.lrc` или свои строки через `|` в настройках. В первом лице текст — компактный HUD, в третьем — над игроком; перемещение через чат закрепляет его на экране.
 
-Финальный JAR кандидат `visionmod-2.0.0.jar` (build #213) имеет SHA256 `ecc69f12ec0e96a6d37fbe8320493f402e6f7c0748fae0f05a178ce9ff0a3cfe`.
+## Остальные функции
 
----
+FullBright, видимость в воде/лаве, подсветка выбранных открытых руд, фильтр частиц, HUD, редактор прицела, шалькер-подсказки, Trails / Jump Circles / China Hat, локальный питомец, простые JSON-модели, боевые визуальные эффекты, профили и обратимый FPS Boost. JEI и MezzConfig вкладываются в итоговый JAR.
 
-## Air Hearts / Snowflakes — собственные мягкие частицы (2026-11-14)
+Часть эффектов остаётся упрощённой реализацией. Camera Streaks не является настоящим Motion Blur; клиентские эффекты копья не меняют серверную механику. [Матрица 35 требований](FEATURE_REQUESTS_2_0_0.md) — исторический план, не подтверждение завершения.
 
-**Изменено:** ранее использовались стандартные `ParticleTypes.HEART` и `ParticleTypes.SNOWFLAKE`. Теперь обе функции используют общую собственную систему `VisionAmbientParticles` и авторские 64×64 RGBA текстуры `soft_heart.png` / `soft_snow.png`. Сердечки нежно-розовые, слегка вращаются, падают и плавно затухают, как снег. Это не ванильные Minecraft hearts.
+## Сборка и проверки
 
-**Производительность и настройки:** максимум 96 совместно живущих спрайтов, нет поисков сущностей, два слоя текстур, лимит частоты при загруженном спавне. Старые настройки плотности LOW/MEDIUM/HIGH и расположения WORLD/CAMERA сохранены. Включённые пользователем сердечки и снег остаются видимыми в MAX FPS; End, выключение модуля и смена мира очищают частицы.
+Java **JDK 21** (нужен `javac`), Gradle **9.7.1**:
 
-**Проверено:** [Build #186](https://github.com/De1po3oN/VisionMod-1.0.0/actions/runs/43639725724) SUCCESS и [Minecraft startup smoke #76](https://github.com/De1po3oN/VisionMod-1.0.0/actions/runs/43639725726) SUCCESS на кодовом SHA `2fb73ac4`. JAR содержит два корректных RGBA PNG; Client Smoke проверяет загрузку PNG, прозрачность, лимит 96 и удаление. **Реальное отображение в мире, шейдеры и FPS НЕ тестировались**. См. [AMBIENT_HEARTS_QA_RU.md](AMBIENT_HEARTS_QA_RU.md).
+```sh
+gradle build --no-daemon --max-workers=2
+bash tests/run-core.sh
+```
 
----
+JAR: `build/libs/visionmod-2.0.0.jar`. Тесты ядра могут запускаться отдельно от Fabric: скрипт скачивает Gson 2.11.0 из Maven Central и проверяет его опубликованную контрольную сумму. Можно передать `GSON_JAR` с этим артефактом.
 
-## Visuals Rework 2.0.0 — кандидат после жалоб на визуалы и Pet (2026-11-14)
+Linux-интеграция: `bash tests/run-mpris.sh` (нужны `dbus-next` для Python, `gdbus`, `dbus-run-session`). Проверка запускается на отдельной тестовой D-Bus-шине, не трогая настоящий плеер.
 
-Главные визуальные изменения:
-- **Pet**: новый закрашенный 3D питомец с лицом, ушами, лапами, крыльями и анимированным хвостом; самостоятельная мягкая 32×32 текстура, 6 цветов через RMB → OPTIONS в карточке Local Pet.
-- **World Lyrics**: видимый текст уже при первом включении, собственные строки через `|` (пример: `Привет | Мир | Vision Mod`), смена каждые 70 тиков. В третьем лице реальная 3D-надпись над персонажем, в первом — HUD панель с прогрессом. НЕ Spotify/YouTube интеграция; вводить текст через RMB World Lyrics.
-- **Trails/Jump Circles/China Hat**: плавные заполненные цветные ленты, увеличивающееся кольцо, заполненный конус вместо доточных/каркасных эффектов.
-- **Custom Models/Block Overlay/Hit FX**: закрашенная 3D геометрия, полная полупрозрачная подсветка блока, обновлённые hit brackets и Blood Hit vignette; World Customizer теперь использует атмосферный градиент.
-
-Проверено: [Build Actions #171](https://github.com/De1po3oN/VisionMod-1.0.0/actions/runs/43614077239) SUCCESS, [Client Smoke #66](https://github.com/De1po3oN/VisionMod-1.0.0/actions/runs/43614077274) SUCCESS. На входе без реального мира проверяются 54 переключателя/сохранение, line playback и наличие пакованного PNG. JAR SHA256 `f4c483760fb64a16a030b2dbb419f2849653a1d7ef8c51d5e94b430dd24ed7e4`.
-**Визуальное тестирование в Minecraft, совместимость с шейдерами, FPS и паритет 35 функций не подтверждены.** См. [VISUALS_REWORK_QA_RU.md](VISUALS_REWORK_QA_RU.md), [FEATURE_REQUESTS_2_0_0.md](FEATURE_REQUESTS_2_0_0.md).
-
----
-
-## Важное обновление 2.0.0 / критические исправления (2026-11-14)
-**Free Look:** удерживать Left Alt => камера вращается отдельно от игрока, отпускание => автоматический возврат предыдущей перспективы и сброс угла. Удержание орбиты после отпускания отменено по прямому требованию пользователя; F5 для сброса не нужен.
-
-**Реальные баги исправлены в исходниках:** в MC 1.21.11 метод ParticleEngine называется `createParticle` / `add`, а не `addParticle`; прежний particle filter мог вообще не применяться. Исправлены точки внедрения Mixin и включено требование успешной инъекции. Система MAX FPS/Hide All теперь должна пропускать явно включённые частицы Vision. Hit/Blood/Kill/Sound FX наблюдают событие нашей атаки, а не потерянную после удара цель под прицелом; исправлены пороги и позиционирование spear particles. Убран переход `ADVANCED` в старое главное GUI; текст World Lyrics и имена Social Radar вводятся в новом интерфейсе.
-
-**Проверки:** Actions Build #146 SUCCESS, Minecraft startup smoke #45 SUCCESS, `VISIONMOD_SELFTEST` проверил **54 переключателя и сохранение их конфигураций**. Это **НЕ** равно 54 успешно работающим визуальным функциям. Реальная приемка 35 требований 2.0.0, FPS и визуальные тесты всё ещё не завершены — `QA_35_QUALITY_GATE_RU.md`. До этого нельзя обещать 80% уверенности по каждому модулю. Скачать тестовый JAR из [GitHub Actions #146](https://github.com/De1po3oN/VisionMod-1.0.0/actions/runs/43595887218).
-
----
-## Обновление GUI и исправление запуска (2026-11-14)
-
-**Новый главный экран:** Right Shift теперь открывает `VisionDashboardScreen` с категоризированными карточками, поиском, подробностями по ПКМ, биндами старых модулей по СКМ, настройками Air Hearts и Snowflakes. Старый `VisionScreen` сохранён в **Advanced** для сложных редакторов.
-
-**Критичный фикс запуска:** JEI 27.54.0.113 требует `mezz_config` >=0.6.3,<1.0.0. Теперь внутрь JAR вложен **MezzConfig 0.6.11 Fabric 1.21.11** с MIT уведомлением. Startup smoke #1/#2 обнаружили отсутствие зависимости; smoke #3/#4 после исправления достиг загрузки Minecraft ResourceManager. При отсутствии звуковой карты на runner Minecraft отключает звук, но продолжает выполнение.
-
-Проверенная сборка: [Actions #98](https://github.com/De1po3oN/VisionMod-1.0.0/actions/runs/43584531967), SHA исходников `d5a1c941`; артефакт `VisionMod-2.0.0`. SHA256 JAR `b0dd9a7e2f0e4840ccaca2d981f7c0627ed89f93d46d742179f198924b340bc0`. Инструкция установки: [GUI_2_0_TEST_GUIDE_RU.md](GUI_2_0_TEST_GUIDE_RU.md). **Игровой визуальный QA, все 35 функций и FPS замеры ещё не подтверждены.**
-
----
-
-## VisionMod 2.0.0 — актуальная проверенная сборка кода
-
-Последний проверенный **кодовый** коммит: `19c713cd`. [GitHub Actions #80](https://github.com/De1po3oN/VisionMod-1.0.0/actions/runs/43579928856) — SUCCESS; артефакт VisionMod-2.0.0 содержит `visionmod-2.0.0.jar` и вложенный JEI 27.54.0.113. Это CI-подтверждение, **не игровой QA**.
-
-EXTRAS содержит 8 страниц. 2.0 группы:
-- **HUD & COMBAT:** Aspect Bars, colored armor durability, Target Health, Hit Range, TNT distance, nearest Arrow Name, Hit Pulse, Blood Hit.
-- **WORLD FX:** Target ESP outline, Trail dots, Jump Circle dots, wireframe China Hat.
-- **EXTRA FX:** Block Overlay, target death notice, screen color grading, own-text lyrics HUD, local wire pet, friend name radar, vanilla hit sound, rain/snow particle suppression.
-- **MOTION FX:** optional first-person Swing Animation, dropped-item pose tilt/spin, visual spear lunge/pierce particle feedback, Camera Streaks (not actual motion blur).
-- **TOOLS:** Fast Use (bounded normal vanilla use action), original JSON custom box models in `config/visionmod/custom-model.json`, selectable Hit Color (RMB changes color).
-
-All new options are OFF by default; toggles are in Extras with persistent local .properties settings. Some features are prototypes or only partial equivalents. **Motion Blur itself, source-accurate UI/animations and full behavior of all 35 features are not finished.** See `FEATURE_REQUESTS_2_0_0.md`. Avoid marketing this as a complete recreation of any proprietary visual mod.
-
-
----
-
-# Vision Mod 2.0.0 — Open Beta development
-
-Minecraft Java 1.21.11 / Fabric Loader >=0.19.3 / Java 21.
-
-## What's new in 2.0.0 (work in progress)
-- Added eight optional HUD/combat modules in **EXTRAS / 2.0 HUD & COMBAT**: Aspect Bars, Armor Colorful (durability HUD), Target Health, Hit Range, TNT Indicator (distance), Arrow Names (nearest arrow HUD), Hit Pulse, Blood Hit (edge tint).
-- Added four optional original world-space effects in **EXTRAS / 2.0 WORLD FX**: Target ESP outline, capped Trails, ring of Jump Circles dots, low-poly third-person China Hat. No external cosmetics networking.
-- All new effects are OFF by default. Settings persist in config/visionmod/features-2.properties and world-effects-2.properties.
-- The user supplied a third-party 2.0 JAR for reference, but its All-Rights-Reserved code/assets/fonts/sounds have not been copied.
-- **Incomplete:** Many requested modules remain pending; see FEATURE_REQUESTS_2_0_0.md for full status. CI build is not an in-game runtime test.
-
-## What's new in 1.1.0 (source/CI candidate; runtime not yet tested)
-- Free Look: smoothed, independent third-person camera orbit; camera perspective cleanup and configurable smoothing. Hold Left Alt, release to restore the previous perspective immediately.
-- Atmospheric Air Hearts / Snowflakes: configurable density (1–3) and placement (near player in world space or distributed in the viewing direction). Effects remain explicitly enabled in MAX FPS.
-- GUI refresh: original graphite/lavender design, refined module switches and navigation; no copied reference-mod files or assets.
-- Extras page 3 contains Heart FX mode, Ambient density and Smooth Free Look settings. These three settings are mouse-controlled and have no new hotkey IDs.
-- This is **not** an in-game verified build. Test camera and visual behavior before calling it fixed.
-
-## Core features
-- Reworked Vision Mod UI (Right Shift), adjustable module hotkeys (MMB), ore highlighting/color editor and Free Look.
-- Crosshair editor, CPS/HUD, Zoom, HUD and block highlighting, particle filters.
-- Snowflakes / Air Hearts rendered by Vision Mod's own client-side particle spawn and permitted through its filter, even when HIDE ALL is selected.
-- Opt-in actual rendering workload reduction: 4/6/8 render-chunk cap, 50% entity distance scale, minimal vanilla particles, cloud removal, disabled entity shadows and biome blending; original settings backed up and restored.
-- Optional FPS-adaptive chunk cap (checks at most once per 10 seconds), target FPS 40/50/60/75; no changes to server TPS.
-- JEI 27.54.0.113 bundled in the final remapped Vision Mod JAR through Fabric Loom `include`, MIT license in THIRD_PARTY_LICENSES/JEI_MIT.txt. JEI is an independent nested mod, not rewritten.
-
-## Removed
-All project cosmetics renderer/menus, bundled textures, cloud service/worker, assets, imports/exports and settings. Previously shared profiles are still accepted, but old cosmetics fields are ignored. Existing local files in the user's config directory are **not** deleted automatically.
-
-## Build
-`gradle clean build --no-daemon --stacktrace` (Java 21, Gradle 9.2.1). The nested JEI JAR will be downloaded on the build runner from Modrinth Maven. Build result: `build/libs/visionmod-2.0.0.jar`.
-
-Status: 1.1.0 source update. GitHub Actions compilation is checked separately; in-game performance and visual behavior are **not yet verified**. Exact FPS gains depend on CPU/GPU, entity count, shaders and baseline draw distance.
-
-**JEI server caveat**: on Minecraft 1.21.11, certain server-provided/custom recipes may require JEI or recipe synchronization installed server-side to appear in the client.
-
-
-## 1.1.0 GUI and ambient options
-- New graphite/lavender Vision theme with original geometry, muted contrast and clearer module switches. Does not contain Fading Light code or assets.
-- Extras → Settings (page 3) lets users choose Ambient Mode (WORLD/CAMERA), Ambient Density (LOW/MEDIUM/HIGH), Smooth Free Look (ON/OFF). Right-click Air Hearts or Snowflakes to jump to this page; right-click Free Look for quick smooth toggle.
-- Free Look controls the independent third-person camera on Left Alt; release resets the orbit and restores the previous camera perspective. Smooth interpolation can be disabled.
-- AIR HEARTS and Snowflakes are still vanilla particle types, but emit across a world-space area or an optional camera-space halo. No custom heart texture was copied. Visual correctness requires a client test.
+**Проверки текущих изменений:** 267 проверок ядра и 12 проверок источника текста PASS; адаптер Linux ранее проверен на настоящей тестовой D-Bus-сессии. Полная Fabric-сборка остановилась на разрешении Loom из-за HTTP 403 сетевого прокси. Новый JAR, Windows runtime, графический Minecraft и FPS здесь пока не проверены. Подробности: [изменения и приёмка](NATIVE_LYRICS_QA_RU.md).

@@ -1,109 +1,67 @@
 package com.visionmod;
 
-import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
+import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 import net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderEvents;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.world.phys.Vec3;
 
-/**
- * Original animated, solid-color miniature companion.
- *
- * A small floating pastel fox/cat with visible eyes, contrasting face,
- * ears, belly, feet and animated tail/wings. It is local/client-only and
- * does not spawn entities, send packets, or modify the player's model.
- */
+/** Rounded, animated local companion. One texture and consumer for every part. */
 public final class VisionPetRenderer {
-    // If a conflicting renderer/shader throws, stop this visual rather than
-    // crashing the Minecraft client on every subsequent frame.
     private static boolean renderFaulted;
+    public static boolean suspended(){return renderFaulted;}
     public static void retryAfterToggle(){renderFaulted=false;}
-    private VisionPetRenderer() {}
-
-    public static void init() {
-        WorldRenderEvents.BEFORE_DEBUG_RENDER.register(ctx -> {
-            if (renderFaulted || !VisionModClient.enabled || !VisionExtendedFeatures.enabled(4)
-                || ctx.matrices() == null || ctx.consumers() == null) return;
-            Minecraft mc = Minecraft.getInstance();
-            if (mc.level == null || mc.player == null) return;
-            Vec3 cam = mc.gameRenderer.getMainCamera().position();
-            double t = System.nanoTime() * 1.0e-9;
-            double playerYaw = Math.toRadians(mc.player.getYRot());
-            double sideX = Math.cos(playerYaw) * 0.85;
-            double sideZ = Math.sin(playerYaw) * 0.85;
-            // Slow, restrained hovering without rotating around the player's head.
-            double bob = Math.sin(t * 2.4) * .075;
-            Vec3 p = mc.player.position().add(sideX, 1.45 + bob, sideZ);
-            PoseStack pose = ctx.matrices();
-            pose.pushPose();
-            try {
-            pose.translate(p.x-cam.x,p.y-cam.y,p.z-cam.z);
-            // Always show the face toward the local camera, independent of Free Look.
-            pose.mulPose(Axis.YP.rotationDegrees(180f - mc.gameRenderer.getMainCamera().yRot()));
-            float pitch = (float)Math.sin(t*1.7)*3.3f;
-            pose.mulPose(Axis.ZP.rotationDegrees(pitch));
-            // A shared ImmediateBufferSource finalizes a buffer after switching
-            // texture/render type. Draw ALL fur surfaces before ALL face details,
-            // then the line aura LAST. Never hold old consumers across getBuffer.
-            final int fur=VisionExtendedFeatures.petColor();
-            final int shadow=VisionGeometry.blendRgb(fur,0xFF655187,.36f);
-            final int face=VisionGeometry.blendRgb(fur,0xFFFFFFFF,.68f);
-            final int eye=0xFF21263D,shine=0xFFFFFFFF,blush=0xFFFFA7C3;
-            final int belly=0xFFFEF4FF,foot=0xFFBCA0E5;
-            float tail=(float)Math.sin(t*2.8)*.075f;
-            float flap=(float)Math.sin(t*5.0)*.08f;
-            // ONE render type for the whole pet. Switching fur→face→lines
-            // used to close the shared ImmediateBufferSource and could throw
-            // IllegalStateException("Not building!") mid-frame on modded renderers.
-            VertexConsumer furTexture=ctx.consumers().getBuffer(
-                RenderTypes.entityTranslucent(VisionGeometry.PET_FUR));
-            VisionGeometry.cube(furTexture,pose,-.17f,-.24f,-.13f,.17f,.10f,.13f,shadow);
-            VisionGeometry.cube(furTexture,pose,-.215f,.005f,-.19f,.215f,.315f,.19f,fur);
-            VisionGeometry.cube(furTexture,pose,-.19f,.25f,-.10f,-.105f,.43f,.085f,fur);
-            VisionGeometry.cube(furTexture,pose,.105f,.25f,-.10f,.19f,.43f,.085f,fur);
-            VisionGeometry.cube(furTexture,pose,.10f+tail,-.16f,.11f,.26f+tail,-.095f,.33f,fur);
-            VisionGeometry.cube(furTexture,pose,.235f+tail,-.10f,.295f,.325f+tail,.075f,.39f,face);
-
-            VertexConsumer solid=furTexture;
-            VisionGeometry.cube(solid,pose,-.15f,.04f,-.198f,.15f,.225f,-.187f,face);
-            VisionGeometry.cube(solid,pose,-.105f,-.20f,-.142f,.105f,.015f,-.131f,belly);
-            VisionGeometry.cube(solid,pose,-.16f,.30f,-.105f,-.123f,.403f,-.09f,blush);
-            VisionGeometry.cube(solid,pose,.123f,.30f,-.105f,.16f,.403f,-.09f,blush);
-            VisionGeometry.cube(solid,pose,-.137f,.154f,-.212f,-.085f,.21f,-.195f,eye);
-            VisionGeometry.cube(solid,pose,.085f,.154f,-.212f,.137f,.21f,-.195f,eye);
-            VisionGeometry.cube(solid,pose,-.124f,.188f,-.217f,-.107f,.209f,-.207f,shine);
-            VisionGeometry.cube(solid,pose,.107f,.188f,-.217f,.124f,.209f,-.207f,shine);
-            VisionGeometry.cube(solid,pose,-.022f,.107f,-.218f,.022f,.146f,-.199f,blush);
-            VisionGeometry.cube(solid,pose,-.178f,.105f,-.201f,-.139f,.132f,-.191f,blush);
-            VisionGeometry.cube(solid,pose,.139f,.105f,-.201f,.178f,.132f,-.191f,blush);
-            VisionGeometry.cube(solid,pose,-.14f,-.297f,-.13f,-.034f,-.218f,-.05f,foot);
-            VisionGeometry.cube(solid,pose,.034f,-.297f,-.13f,.14f,-.218f,-.05f,foot);
-            VisionGeometry.cube(solid,pose,-.335f-flap,-.025f,.045f,-.175f,.145f,.095f,0xBDAED5FF);
-            VisionGeometry.cube(solid,pose,.175f,-.025f,.045f,.335f+flap,.145f,.095f,0xBDAED5FF);
-
-            // The previous outline aura changed render type and could
-            // invalidate an outstanding pet consumer on Sodium/Iris.
-            // Use a small filled halo with the same texture/buffer instead.
-            final int segments=20;
-            for(int i=0;i<segments;i++){
-                double a=i*2*Math.PI/segments,b=(i+1)*2*Math.PI/segments;
-                float ro=.33f,ri=.305f;
-                VisionGeometry.quad(solid,pose,
-                    (float)(Math.cos(a)*ro),-.335f,(float)(Math.sin(a)*ro),
-                    (float)(Math.cos(a)*ri),-.335f,(float)(Math.sin(a)*ri),
-                    (float)(Math.cos(b)*ri),-.335f,(float)(Math.sin(b)*ri),
-                    (float)(Math.cos(b)*ro),-.335f,(float)(Math.sin(b)*ro),
-                    VisionGeometry.withAlpha(fur,160),0,1,0);
-            }
-            } catch (RuntimeException ex) {
-                renderFaulted=true;
-                System.err.println("[VisionMod][PET] Disabled after render error to prevent repeated client crash: "+ex);
-                ex.printStackTrace();
-            } finally {
-                pose.popPose();
-            }
+    private VisionPetRenderer(){}
+    public static void init(){
+        WorldRenderEvents.BEFORE_DEBUG_RENDER.register(ctx->{
+            Minecraft mc=Minecraft.getInstance();
+            if(renderFaulted||!VisionModClient.enabled||!VisionExtendedFeatures.enabled(4)||
+                mc.player==null||mc.level==null||ctx.matrices()==null||ctx.consumers()==null)return;
+            float partial=mc.getDeltaTracker().getGameTimeDeltaPartialTick(false);
+            double t=VisionAppearance.animations?(mc.player.tickCount+partial)*.05:0;
+            float yaw=net.minecraft.util.Mth.rotLerp(partial,mc.player.yRotO,mc.player.getYRot());
+            double a=Math.toRadians(yaw);
+            Vec3 pos=mc.player.getPosition(partial).add(Math.cos(a)*.92,1.40+Math.sin(t*2.2)*.055,Math.sin(a)*.92);
+            Vec3 cam=mc.gameRenderer.getMainCamera().position();
+            PoseStack pose=ctx.matrices();pose.pushPose();
+            try{
+                pose.translate(pos.x-cam.x,pos.y-cam.y,pos.z-cam.z);
+                pose.mulPose(Axis.YP.rotationDegrees(180-mc.gameRenderer.getMainCamera().yRot()));
+                pose.mulPose(Axis.ZP.rotationDegrees((float)Math.sin(t*1.6)*3));
+                VertexConsumer out=ctx.consumers().getBuffer(RenderTypes.entityTranslucent(VisionGeometry.WHITE_TEXTURE));
+                int fur=VisionExtendedFeatures.petColor(),light=EffectMath.blend(fur,0xFFFFFFFF,.62f);
+                int shadow=EffectMath.blend(fur,0xFF65568C,.25f),eye=0xFF202138;
+                int slices=VisionAppearance.detail==0?10:14,rings=VisionAppearance.detail==0?6:8;
+                ball(out,pose,0,-.10f,.015f,.17f,.21f,.14f,shadow,slices,rings);
+                ball(out,pose,0,.16f,0,.235f,.205f,.19f,fur,slices,rings);
+                ball(out,pose,-.15f,.34f,.015f,.070f,.14f,.068f,fur,8,5);
+                ball(out,pose,.15f,.34f,.015f,.070f,.14f,.068f,fur,8,5);
+                ball(out,pose,-.15f,.345f,-.048f,.033f,.082f,.018f,0xFFFFBFDA,6,4);
+                ball(out,pose,.15f,.345f,-.048f,.033f,.082f,.018f,0xFFFFBFDA,6,4);
+                ball(out,pose,0,.11f,-.151f,.165f,.115f,.051f,light,10,5);
+                ball(out,pose,-.088f,.18f,-.181f,.030f,.042f,.014f,eye,6,5);
+                ball(out,pose,.088f,.18f,-.181f,.030f,.042f,.014f,eye,6,5);
+                ball(out,pose,-.079f,.195f,-.194f,.009f,.012f,.006f,0xFFFFFFFF,5,3);
+                ball(out,pose,.097f,.195f,-.194f,.009f,.012f,.006f,0xFFFFFFFF,5,3);
+                ball(out,pose,0,.10f,-.204f,.019f,.014f,.009f,0xFFD67AAB,6,4);
+                ball(out,pose,-.148f,.105f,-.176f,.030f,.018f,.007f,0xFFFFBEDB,6,4);
+                ball(out,pose,.148f,.105f,-.176f,.030f,.018f,.007f,0xFFFFBEDB,6,4);
+                ball(out,pose,0,-.10f,-.111f,.105f,.123f,.032f,light,8,5);
+                ball(out,pose,-.09f,-.285f,-.04f,.066f,.045f,.078f,fur,8,4);
+                ball(out,pose,.09f,-.285f,-.04f,.066f,.045f,.078f,fur,8,4);
+                float tail=(float)Math.sin(t*2.7)*.065f;
+                ball(out,pose,.18f+tail,-.07f,.15f,.075f,.15f,.065f,light,8,5);
+                float flutter=(float)Math.sin(t*4)*.025f;
+                ball(out,pose,-.235f-flutter,-.025f,.065f,.115f,.055f,.022f,0xC3D8C9FF,8,4);
+                ball(out,pose,.235f+flutter,-.025f,.065f,.115f,.055f,.022f,0xC3D8C9FF,8,4);
+                VisionGeometry.band(out,pose,0,-.35,0,.30,.028,VisionGeometry.withAlpha(fur,85),VisionGeometry.withAlpha(fur,0),20);
+            }catch(RuntimeException e){renderFaulted=true;System.err.println("[VisionMod][PET] Renderer suspended: "+e);}
+            finally{pose.popPose();}
         });
+    }
+    private static void ball(VertexConsumer out,PoseStack pose,float x,float y,float z,float rx,float ry,float rz,int color,int slices,int rings){
+        VisionGeometry.ellipsoid(out,pose,x,y,z,rx,ry,rz,color,slices,rings);
     }
 }

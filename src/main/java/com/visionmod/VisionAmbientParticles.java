@@ -76,12 +76,13 @@ public final class VisionAmbientParticles {
                 double y = p.prevY + (p.y - p.prevY) * partial - camera.y;
                 double z = p.prevZ + (p.z - p.prevZ) * partial - camera.z;
                 double distanceSq = x*x + y*y + z*z;
-                if (distanceSq > 32 * 32 || distanceSq < 0.20) continue;
+                if (distanceSq > 32 * 32 || distanceSq < 0.08) continue;
 
                 float life = (p.age + partial) / (float)p.lifetime;
                 float fadeIn = Math.min(1.0f, (p.age + partial + 1.0f) / 8.0f);
                 float fadeOut = Math.min(1.0f, (p.lifetime - p.age - partial) / 17.0f);
-                float opacity = Math.min(fadeIn, fadeOut);
+                float depth=(float)Math.sqrt(distanceSq);
+                float opacity=Math.min(fadeIn,fadeOut)*EffectMath.unit((depth-.28f)/.9f)*EffectMath.unit((32-depth)/6);
                 if (opacity <= 0.0f) continue;
                 float shimmer = 0.88f + 0.12f * (float)Math.sin(p.phase + (p.age + partial)*0.16);
                 int alpha = Math.min(208, Math.max(0, Math.round(196f * opacity * shimmer)));
@@ -223,8 +224,8 @@ public final class VisionAmbientParticles {
             .075f + RANDOM.nextFloat()*.040f;
         p.spin = (RANDOM.nextFloat()-.5f) * .8f;
         p.color = kind == HEART_KIND
-            ? (RANDOM.nextBoolean() ? 0xFFF5C4EF : 0xFFFFD7E6)
-            : 0xFFF2F8FF;
+            ? EffectMath.blend(RANDOM.nextBoolean()?VisionMenuTheme.PURPLE:0xFFFFB2D2,0xFFFFEDF6,.65f)
+            : EffectMath.blend(VisionMenuTheme.CYAN,0xFFFFFFFF,.84f);
         ACTIVE[count++] = p;
     }
 

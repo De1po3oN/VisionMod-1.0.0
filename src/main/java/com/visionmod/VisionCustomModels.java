@@ -38,6 +38,7 @@ public final class VisionCustomModels {
     private static List<Box> boxes = List.of();
     public static boolean enabled;
     private static boolean renderFaulted;
+    public static boolean suspended(){return renderFaulted;}
 
     private VisionCustomModels() {}
 
@@ -51,7 +52,7 @@ public final class VisionCustomModels {
                 mc.options.getCameraType() == CameraType.FIRST_PERSON) return;
 
             Vec3 camera = mc.gameRenderer.getMainCamera().position();
-            Vec3 player = mc.player.position();
+            Vec3 player = mc.player.getPosition(mc.getDeltaTracker().getGameTimeDeltaPartialTick(false));
             var pose = context.matrices();
             pose.pushPose();
             try {
@@ -66,6 +67,10 @@ public final class VisionCustomModels {
                 VisionGeometry.cube(fill,pose,
                     (float)a.minX,(float)a.minY,(float)a.minZ,
                     (float)a.maxX,(float)a.maxY,(float)a.maxZ,b.color());
+            }
+            if(VisionAppearance.detail>0){
+                VertexConsumer lines=context.consumers().getBuffer(RenderTypes.lines());
+                for(Box b:boxes)ShapeRenderer.renderShape(pose,lines,Shapes.create(b.geometry()),0,0,0,VisionGeometry.withAlpha(b.color(),65),1f);
             }
             } catch (RuntimeException ex) {
                 renderFaulted=true;

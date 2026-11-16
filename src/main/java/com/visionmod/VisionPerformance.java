@@ -70,6 +70,12 @@ public final class VisionPerformance {
             reduceAmbientOnBusySpawn = flag(p,"reduceAmbientOnBusy",true);
             String value = p.getProperty("preset","CUSTOM");
             preset = value.matches("MAX_FPS|BALANCED|VISUAL|CUSTOM") ? value : "CUSTOM";
+            VisionModClient.fullBright = flag(p,"fullBright",true);
+            VisionModClient.clearWater = flag(p,"clearWater",true);
+            VisionModClient.clearLava = flag(p,"clearLava",true);
+            VisionModClient.hideBlockParticles = flag(p,"hideBlockParticles",true);
+            VisionModClient.hideSprintParticles = flag(p,"hideSprintParticles",true);
+            VisionModClient.hideEnderChestParticles = flag(p,"hideEnderChestParticles",true);
             VisionModClient.oreHighlight = flag(p,"oreHighlight",false);
             VisionModClient.playerHearts = flag(p,"playerHearts",false);
             VisionModClient.particles = flag(p,"particleFilter",true);
@@ -123,6 +129,12 @@ public final class VisionPerformance {
         try {
             Files.createDirectories(FILE.getParent());
             Properties p = new Properties();
+            p.setProperty("fullBright",Boolean.toString(VisionModClient.fullBright));
+            p.setProperty("clearWater",Boolean.toString(VisionModClient.clearWater));
+            p.setProperty("clearLava",Boolean.toString(VisionModClient.clearLava));
+            p.setProperty("hideBlockParticles",Boolean.toString(VisionModClient.hideBlockParticles));
+            p.setProperty("hideSprintParticles",Boolean.toString(VisionModClient.hideSprintParticles));
+            p.setProperty("hideEnderChestParticles",Boolean.toString(VisionModClient.hideEnderChestParticles));
             p.setProperty("preset",preset);
             p.setProperty("oreRadius",Integer.toString(oreRadius));
             p.setProperty("checksPerTick",Integer.toString(checksPerTick));
