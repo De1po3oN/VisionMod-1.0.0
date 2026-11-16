@@ -158,7 +158,7 @@ public final class VisionHudLayout {
             case TARGET -> VisionFeaturePack.enabled(2) || VisionFeaturePack.enabled(3);
             case TNT -> VisionFeaturePack.enabled(4);
             case ARROW -> VisionFeaturePack.enabled(5);
-            case LYRICS -> VisionExtendedFeatures.enabled(3);
+            case LYRICS -> false; // Kept as a config key; lyrics now live in the world.
             case KILL -> VisionExtendedFeatures.enabled(1);
             case TAB -> VisionTabHeads.enabled;
             case SOCIAL -> VisionExtendedFeatures.enabled(5);

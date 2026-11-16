@@ -7,5 +7,6 @@ public final class VisionMod implements ModInitializer {
     @Override
     public void onInitialize() {
         VisionSounds.init();
+        VisionPresence.init();
     }
 }

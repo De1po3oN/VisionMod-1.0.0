@@ -4,7 +4,7 @@
   "version": "${version}",
   "name": "Vision Mod",
   "description": "Vision Mod 2.0.0 Open Beta: configurable visuals, client FPS limits, and bundled Just Enough Items.",
-  "environment": "client",
+  "environment": "*",
   "entrypoints": {
     "client": [
       "com.visionmod.VisionModClient"

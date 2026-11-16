@@ -11,6 +11,7 @@ public final class VisionAppearance {
     public static float handScale=.72f;
     public static boolean animations=true;
     public static boolean smoothHotbar=true;
+    public static boolean playerBadge=true;
     private VisionAppearance(){}
     public static int segments(){return switch(detail){case 0->20;case 2->40;default->28;};}
     public static String quality(){return switch(detail){case 0->"ЛАКОНИЧНО";case 2->"ДЕТАЛЬНО";default->"МЯГКО";};}
@@ -29,6 +30,7 @@ public final class VisionAppearance {
             float scale=Float.parseFloat(p.getProperty("handScale",".72"));handScale=Float.isFinite(scale)?Math.clamp(scale,.5f,.9f):.72f;
             animations=Boolean.parseBoolean(p.getProperty("animations","true"));
             smoothHotbar=Boolean.parseBoolean(p.getProperty("smoothHotbar","true"));
+            playerBadge=Boolean.parseBoolean(p.getProperty("playerBadge","true"));
         }catch(Exception e){System.err.println("[VisionMod] Appearance config: "+e.getMessage());}
     }
     public static void save(){
@@ -38,6 +40,7 @@ public final class VisionAppearance {
             p.setProperty("brightness",Integer.toString(brightness));p.setProperty("handScale",Float.toString(handScale));
             p.setProperty("animations",Boolean.toString(animations));
             p.setProperty("smoothHotbar",Boolean.toString(smoothHotbar));
+            p.setProperty("playerBadge",Boolean.toString(playerBadge));
             try(var out=Files.newOutputStream(FILE)){p.store(out,"Vision visual appearance");}
         }catch(Exception e){System.err.println("[VisionMod] Appearance save: "+e.getMessage());}
     }
