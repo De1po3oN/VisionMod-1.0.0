@@ -19,7 +19,9 @@
 - [Windows API abad564](https://github.com/De1po3oN/VisionMod-1.0.0/actions/runs/43940033959): PASS, ответ системного API и завершение процесса; это не проигрывание настоящей песни.
 - [Игровой тест abad564](https://github.com/De1po3oN/VisionMod-1.0.0/actions/runs/43940033956): PASS. Реальные Alt + mouse, угол настоящей Camera, неизменность yaw/pitch игрока, орбита, отпускание, восстановление THIRD_PERSON_FRONT, F5 без повторного захвата, меню и привязка на K. Проверены рендер-хук хотбара, выбор клавишей 7, конечная позиция и OFF. Кадры 07–09 просмотрены.
 
-Отдельный verifyLiveLyrics вызывает настоящий публичный LRCLIB через production lookup и требует минимум 10 строк с таймкодами. Его результат сохраняется в lyrics-live.log ветки codex/visual-evidence; смотреть SHA из source.json.
+Проверка настоящего публичного LRCLIB через production lookup: **58 строк с таймкодами, PASS**. Повторный игровой тест управления тоже PASS, SHA `38e243d`, [run 43940888313](https://github.com/De1po3oN/VisionMod-1.0.0/actions/runs/43940888313). Это проверка получения таймкодов от настоящего сервиса, не проигрывание аудио. Результат — lyrics-live.log в codex/visual-evidence/world; SHA записан в source.json.
+
+Настоящий Linux MPRIS-адаптер повторно проверен через отдельную D-Bus-сессию и gdbus: **283 core assertions**, ещё **16 source + 8 HTTP fixture** и mesh checks PASS.
 
 ## Пределы
 
