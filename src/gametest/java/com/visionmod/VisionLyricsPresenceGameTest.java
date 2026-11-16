@@ -33,6 +33,16 @@ final class VisionLyricsPresenceGameTest {
             check(VisionWorldLyrics.lastRenderedText().contains("перед камерой"),"Manual text did not appear immediately");
         });
         assertAnchor(context);VisualWorldGameTest.capture(context,"19-lyrics-world-first-person");
+        // This fixture has no HUD and a green ground behind the line: count the pale
+        // glyph pixels so a successful vertex submission cannot hide an empty frame.
+        var screenshot=javax.imageio.ImageIO.read(java.nio.file.Path.of("vision-world-captures/19-lyrics-world-first-person.png").toFile());
+        int glyphPixels=0;
+        for(int y=screenshot.getHeight()*51/100;y<screenshot.getHeight()*83/100;y++)
+            for(int x=screenshot.getWidth()/8;x<screenshot.getWidth()*7/8;x++){
+                int pixel=screenshot.getRGB(x,y),r=(pixel>>>16)&255,g=(pixel>>>8)&255,b=pixel&255;
+                if(r>225&&g>225&&b>235&&b-r>=4)glyphPixels++;
+            }
+        check(glyphPixels>100,"World lyrics submitted vertices but produced no visible glyphs: "+glyphPixels);
         for(CameraType type:new CameraType[]{CameraType.THIRD_PERSON_FRONT,CameraType.THIRD_PERSON_BACK}){
             context.runOnClient(mc->mc.options.setCameraType(type));context.waitTicks(2);assertAnchor(context);
             VisualWorldGameTest.capture(context,type==CameraType.THIRD_PERSON_FRONT?"20-lyrics-world-f5-front":"21-lyrics-world-f5-back");
