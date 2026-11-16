@@ -118,6 +118,7 @@ public final class VisionWorldEffects {
     private static boolean renderFaulted;
     private static long renderedFrames;
     static long renderedFrames(){return renderedFrames;}
+    static boolean landingActive(){return landingAge>0;}
     public static boolean suspended(){return renderFaulted;}
 
     private VisionWorldEffects() {}

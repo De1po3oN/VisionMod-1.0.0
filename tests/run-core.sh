@@ -13,7 +13,7 @@ else
 fi
 printf '527175ca6d81050b53bdd4c457a6d6e017626b0e  %s\n' "$gson" | sha1sum -c -
 "$javac_bin" -encoding UTF-8 --release 21 -cp "$gson" -d "$work/classes" \
-  src/main/java/com/visionmod/{LrcTimeline,SystemMediaTrack,SystemMediaReader,BoundedLyricsBody,DashboardLayout,PanelLayout,EffectMath}.java tests/CoreRegressionTest.java
+  src/main/java/com/visionmod/{LrcTimeline,SystemMediaTrack,SystemMediaReader,BoundedLyricsBody,DashboardLayout,PanelLayout,EffectMath,HudPacking}.java tests/CoreRegressionTest.java
 "$java_bin" -ea -cp "$work/classes:$gson" CoreRegressionTest "$@"
 
 "$javac_bin" -encoding UTF-8 --release 21 -cp "$gson:$work/classes" -d "$work/classes" \

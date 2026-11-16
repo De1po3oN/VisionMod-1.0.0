@@ -2,11 +2,13 @@ package com.visionmod;
 
 import net.fabricmc.fabric.api.client.screen.v1.ScreenEvents;
 import net.fabricmc.fabric.api.client.screen.v1.ScreenMouseEvents;
+import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.ChatScreen;
 import net.minecraft.client.input.MouseButtonEvent;
+import net.minecraft.resources.Identifier;
 import org.lwjgl.glfw.GLFW;
 
 import java.io.InputStream;
@@ -54,10 +56,19 @@ public final class VisionHudLayout {
     private static Widget dragging;
     private static double gripX,gripY;
     private static boolean initiated;
+    private static final java.util.EnumMap<Widget,HudPacking.Rect> occupied=new java.util.EnumMap<>(Widget.class);
     private VisionHudLayout(){}
 
     public static void init() {
         load();
+        HudElementRegistry.addLast(Identifier.fromNamespaceAndPath("visionmod","hud_layout_frame"),(g,t)->{
+            occupied.clear();
+            for(Widget id:Widget.values())if(id.moved&&id.w>0&&shown(id)){
+                int px=Math.round(id.xRatio*Math.max(0,g.guiWidth()-id.w));
+                int py=Math.round(id.yRatio*Math.max(0,g.guiHeight()-id.h));
+                occupied.put(id,new HudPacking.Rect(px,py,id.w,id.h));
+            }
+        });
         ScreenEvents.AFTER_INIT.register((client, screen, width, height) -> {
             if (!(screen instanceof ChatScreen)) return;
             ScreenEvents.afterRender(screen).register((scr,g,mx,my,delta) -> renderEditor(g,mx,my));
@@ -89,6 +100,12 @@ public final class VisionHudLayout {
         int y=widget.moved ? Math.round(widget.yRatio*Math.max(0,screenH-hh)):defaultY;
         x=Math.max(0,Math.min(Math.max(0,screenW-ww),x));
         y=Math.max(0,Math.min(Math.max(0,screenH-hh),y));
+        occupied.remove(widget);
+        if(!widget.moved){
+            var packed=HudPacking.find(x,y,ww,hh,screenW,screenH,occupied.values());
+            x=packed.x();y=packed.y();
+        }
+        occupied.put(widget,new HudPacking.Rect(x,y,ww,hh));
         widget.x=x;widget.y=y;widget.w=ww;widget.h=hh;
         return new Bounds(x,y,ww,hh);
     }

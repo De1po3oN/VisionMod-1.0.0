@@ -5,6 +5,7 @@ import com.visionmod.DashboardLayout;
 import com.visionmod.PanelLayout;
 import com.visionmod.EffectMath;
 import com.visionmod.BoundedLyricsBody;
+import com.visionmod.HudPacking;
 
 public class CoreRegressionTest {
     private static int checks;
@@ -68,6 +69,14 @@ public class CoreRegressionTest {
                 check(panel.rowX(i)+panel.rowWidth()<=panel.x()+panel.width()-16,"editor cards inside panel");
             }
         }
+        var armor=new HudPacking.Rect(271,18,144,110);
+        var lyric=HudPacking.find(280,25,130,27,427,240,java.util.List.of(armor));
+        check(!lyric.overlaps(armor),"lyrics avoid armor panel at small GUI size");
+        check(lyric.x()>=0&&lyric.y()>=0&&lyric.x()+130<=427&&lyric.y()+27<=240,"packed panel stays reachable");
+        var alone=HudPacking.find(17,23,80,30,427,240,java.util.List.of());
+        check(alone.x()==17&&alone.y()==23,"free preferred position remains stable");
+        var crowded=HudPacking.find(5,5,80,30,100,50,java.util.List.of(new HudPacking.Rect(0,0,100,50)));
+        check(crowded.x()>=0&&crowded.y()>=0&&crowded.x()+80<=100&&crowded.y()+30<=50,"impossible packing still stays on screen");
         if(args.length>0&&args[0].equals("--mpris")){
             final boolean[] observed={false};
             try(var reader=new SystemMediaReader()){

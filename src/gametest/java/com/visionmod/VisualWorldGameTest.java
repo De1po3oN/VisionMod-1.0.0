@@ -54,11 +54,14 @@ public final class VisualWorldGameTest implements FabricClientGameTest {
             context.waitTicks(3);
             context.getInput().holdKey(options->options.keyUp);
             context.getInput().holdKey(options->options.keyJump);
-            context.waitTicks(18);
+            context.waitTicks(2);
             context.getInput().releaseKey(options->options.keyJump);
             context.waitTicks(6);assertRenderers(context);capture(context,"03-trail-and-particles");
             context.getInput().releaseKey(options->options.keyUp);
-            context.waitTicks(25);assertRenderers(context);capture(context,"04-landing-and-pet");
+            context.waitFor(mc->mc.player.onGround(),100);
+            context.waitTicks(2);assertRenderers(context);
+            context.runOnClient(mc->{if(!VisionWorldEffects.landingActive())throw new AssertionError("Landing did not trigger jump rings");});
+            capture(context,"04-landing-and-pet");
             context.runOnClient(mc->mc.options.hideGui=false);
             context.setScreen(VisionDashboardScreen::new);
             context.waitTicks(3);capture(context,"05-dashboard-in-world");
