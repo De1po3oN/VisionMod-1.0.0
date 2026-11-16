@@ -194,9 +194,57 @@ Note: Recompile with -Xlint:deprecation for details.
   call net/minecraft/client/gui/GuiGraphics.blitSprite(Lcom/mojang/blaze3d/pipeline/RenderPipeline;Lnet/minecraft/resources/Identifier;IIII)V
   field HOTBAR_ATTACK_INDICATOR_PROGRESS_SPRITE Lnet/minecraft/resources/Identifier;
   call net/minecraft/client/gui/GuiGraphics.blitSprite(Lcom/mojang/blaze3d/pipeline/RenderPipeline;Lnet/minecraft/resources/Identifier;IIIIIIII)V
+[HOOKS] net/minecraft/client/gui/screens/inventory/AbstractContainerScreen.checkHotbarMouseClicked(Lnet/minecraft/client/input/MouseButtonEvent;)V
+  field hoveredSlot Lnet/minecraft/world/inventory/Slot;
+  field menu Lnet/minecraft/world/inventory/AbstractContainerMenu;
+  call net/minecraft/world/inventory/AbstractContainerMenu.getCarried()Lnet/minecraft/world/item/ItemStack;
+  call net/minecraft/world/item/ItemStack.isEmpty()Z
+  field minecraft Lnet/minecraft/client/Minecraft;
+  call net/minecraft/client/KeyMapping.matchesMouse(Lnet/minecraft/client/input/MouseButtonEvent;)Z
+  field hoveredSlot Lnet/minecraft/world/inventory/Slot;
+  field hoveredSlot Lnet/minecraft/world/inventory/Slot;
+  call net/minecraft/client/gui/screens/inventory/AbstractContainerScreen.slotClicked(Lnet/minecraft/world/inventory/Slot;IILnet/minecraft/world/inventory/ClickType;)V
+  field minecraft Lnet/minecraft/client/Minecraft;
+  call net/minecraft/client/KeyMapping.matchesMouse(Lnet/minecraft/client/input/MouseButtonEvent;)Z
+  field hoveredSlot Lnet/minecraft/world/inventory/Slot;
+  field hoveredSlot Lnet/minecraft/world/inventory/Slot;
+  call net/minecraft/client/gui/screens/inventory/AbstractContainerScreen.slotClicked(Lnet/minecraft/world/inventory/Slot;IILnet/minecraft/world/inventory/ClickType;)V
+[HOOKS] net/minecraft/client/gui/screens/inventory/AbstractContainerScreen.isHovering(Lnet/minecraft/world/inventory/Slot;DD)Z
+  call net/minecraft/client/gui/screens/inventory/AbstractContainerScreen.isHovering(IIIIDD)Z
+[HOOKS] net/minecraft/client/gui/screens/inventory/AbstractContainerScreen.isHovering(IIIIDD)Z
+  field leftPos I
+  field topPos I
+[HOOKS] net/minecraft/client/gui/screens/inventory/AbstractContainerScreen.checkHotbarKeyPressed(Lnet/minecraft/client/input/KeyEvent;)Z
+  field menu Lnet/minecraft/world/inventory/AbstractContainerMenu;
+  call net/minecraft/world/inventory/AbstractContainerMenu.getCarried()Lnet/minecraft/world/item/ItemStack;
+  call net/minecraft/world/item/ItemStack.isEmpty()Z
+  field hoveredSlot Lnet/minecraft/world/inventory/Slot;
+  field minecraft Lnet/minecraft/client/Minecraft;
+  call net/minecraft/client/KeyMapping.matches(Lnet/minecraft/client/input/KeyEvent;)Z
+  field hoveredSlot Lnet/minecraft/world/inventory/Slot;
+  field hoveredSlot Lnet/minecraft/world/inventory/Slot;
+  call net/minecraft/client/gui/screens/inventory/AbstractContainerScreen.slotClicked(Lnet/minecraft/world/inventory/Slot;IILnet/minecraft/world/inventory/ClickType;)V
+  field minecraft Lnet/minecraft/client/Minecraft;
+  call net/minecraft/client/KeyMapping.matches(Lnet/minecraft/client/input/KeyEvent;)Z
+  field hoveredSlot Lnet/minecraft/world/inventory/Slot;
+  field hoveredSlot Lnet/minecraft/world/inventory/Slot;
+  call net/minecraft/client/gui/screens/inventory/AbstractContainerScreen.slotClicked(Lnet/minecraft/world/inventory/Slot;IILnet/minecraft/world/inventory/ClickType;)V
+[HOOKS] net/minecraft/client/KeyMapping.matches(Lnet/minecraft/client/input/KeyEvent;)Z
+  call net/minecraft/client/input/KeyEvent.key()I
+  call com/mojang/blaze3d/platform/InputConstants$Key.getValue()I
+  field key Lcom/mojang/blaze3d/platform/InputConstants$Key;
+  call com/mojang/blaze3d/platform/InputConstants$Key.getType()Lcom/mojang/blaze3d/platform/InputConstants$Type;
+  field key Lcom/mojang/blaze3d/platform/InputConstants$Key;
+  call com/mojang/blaze3d/platform/InputConstants$Key.getValue()I
+  call net/minecraft/client/input/KeyEvent.scancode()I
+  field key Lcom/mojang/blaze3d/platform/InputConstants$Key;
+  call com/mojang/blaze3d/platform/InputConstants$Key.getType()Lcom/mojang/blaze3d/platform/InputConstants$Type;
+  field key Lcom/mojang/blaze3d/platform/InputConstants$Key;
+  call com/mojang/blaze3d/platform/InputConstants$Key.getValue()I
+  call net/minecraft/client/input/KeyEvent.key()I
 
 > Task :downloadAssets
-gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run-1794857740692.json
+gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run-1794860981134.json
 
 [Incubating] Problems report is available at: file:///home/runner/work/VisionMod-1.0.0/VisionMod-1.0.0/build/reports/problems/problems-report.html
 
@@ -206,5 +254,5 @@ You can use '--warning-mode all' to show the individual deprecation warnings and
 
 For more on this, please refer to https://docs.gradle.org/9.7.1/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
 
-BUILD SUCCESSFUL in 34s
+BUILD SUCCESSFUL in 36s
 6 actionable tasks: 6 executed
