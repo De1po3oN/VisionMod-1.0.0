@@ -21,7 +21,7 @@ public final class VisionWorldLyrics {
     private static final MultiBufferSource.BufferSource TEXT_BUFFERS=MultiBufferSource.immediate(new com.mojang.blaze3d.vertex.ByteBufferBuilder(8192));
     private VisionWorldLyrics() {}
     public static void init() {
-        WorldRenderEvents.AFTER_ENTITIES.register(VisionWorldLyrics::renderInWorld);
+        WorldRenderEvents.END_MAIN.register(VisionWorldLyrics::renderInWorld);
     }
     public static String previewLine(String text, long ticks) {
         text = text == null ? "" : text;
