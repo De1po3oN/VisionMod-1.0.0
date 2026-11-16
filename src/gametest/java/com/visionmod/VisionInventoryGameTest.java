@@ -25,6 +25,7 @@ final class VisionInventoryGameTest {
         context.waitFor(mc->mc.screen instanceof AbstractContainerScreen<?>,100);
         context.runOnClient(mc->{VisionExtras.fastScroll=true;VisionModClient.enabled=true;});
         context.getInput().holdShift();slot(context,0);context.getInput().scroll(-1);
+        context.waitTicks(2);
         context.waitFor(mc->mc.player.getInventory().countItem(Items.STONE)==32,100);
         serverCounts(world,32,0,0);
         // First stack uses vanilla shift-click; dragging onto the second invokes Fast Scroller.
@@ -38,6 +39,7 @@ final class VisionInventoryGameTest {
         int stone=find(context,Items.STONE),apple=find(context,Items.APPLE),dirt=find(context,Items.DIRT);
         context.getInput().releaseShift();slot(context,stone);context.getInput().scroll(1);context.waitTicks(2);serverCounts(world,32,16,8);
         context.getInput().holdShift();slot(context,stone);context.getInput().scroll(1);
+        context.waitTicks(2);
         context.waitFor(mc->mc.player.getInventory().countItem(Items.STONE)==0,100);serverCounts(world,0,16,8);
         context.runOnClient(mc->VisionExtras.fastScroll=false);slot(context,apple);context.getInput().scroll(1);context.waitTicks(2);serverCounts(world,0,16,8);
         context.runOnClient(mc->{VisionExtras.fastScroll=true;VisionModClient.enabled=false;});slot(context,dirt);context.getInput().scroll(1);context.waitTicks(2);serverCounts(world,0,16,8);

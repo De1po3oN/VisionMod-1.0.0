@@ -47,7 +47,9 @@ public final class VisionFastScroller {
             mc.screen==screen&&mc.hasShiftDown()&&mc.player.containerMenu==screen.getMenu()&&screen.getMenu().getCarried().isEmpty();
     }
     private static Slot slotAt(AbstractContainerScreen<?> screen,double x,double y){
-        return ((ContainerScreenAccess)screen).visionmod$slotAt(x,y);
+        var access=(ContainerScreenAccess)screen;
+        for(Slot slot:screen.getMenu().slots)if(slot.isActive()&&access.visionmod$hovering(slot,x,y))return slot;
+        return null;
     }
     private static boolean movable(Slot slot){
         Minecraft mc=Minecraft.getInstance();

@@ -9,7 +9,7 @@ import org.spongepowered.asm.mixin.gen.Invoker;
 /** Use vanilla's slot hit test, including active-slot rules. */
 @Mixin(AbstractContainerScreen.class)
 public interface ContainerScreenAccess {
-    @Invoker("getSlotAt") Slot visionmod$slotAt(double x,double y);
+    @Invoker("isHovering") boolean visionmod$hovering(Slot slot,double x,double y);
     @Accessor("leftPos") int visionmod$left();
     @Accessor("topPos") int visionmod$top();
 }

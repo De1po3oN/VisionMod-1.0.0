@@ -11,7 +11,7 @@ public final class InspectMinecraftHooks {
                 if(in==null)throw new IllegalStateException("Missing mapped class "+name);
                 ClassNode node=new ClassNode();new ClassReader(in).accept(node,ClassReader.SKIP_DEBUG);
                 for(MethodNode method:node.methods){
-                    if(!(method.name.equals("setup")||method.name.equals("turnPlayer")||method.name.equals("getSlotAt")||method.name.equals("isHovering")||method.name.equals("matches")||method.name.toLowerCase(java.util.Locale.ROOT).contains("hotbar")))continue;
+                    if(!(method.name.equals("setup")||method.name.equals("turnPlayer")||method.desc.equals("(DD)Lnet/minecraft/world/inventory/Slot;")||method.name.equals("isHovering")||method.name.equals("matches")||method.name.toLowerCase(java.util.Locale.ROOT).contains("hotbar")))continue;
                     System.out.println("[HOOKS] "+name+"."+method.name+method.desc);
                     for(AbstractInsnNode instruction:method.instructions){
                         if(instruction instanceof MethodInsnNode call)System.out.println("  call "+call.owner+"."+call.name+call.desc);
