@@ -1,2 +1,2 @@
 Game process status: 124
-Capture status: 0
+Capture status: 1
