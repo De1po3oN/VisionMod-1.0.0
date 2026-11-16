@@ -65,7 +65,9 @@ public final class VisualWorldGameTest implements FabricClientGameTest {
             capture(context,"04-landing-and-pet");
             context.runOnClient(mc->mc.options.hideGui=false);
             VisionControlsGameTest.run(context);
-            context.setScreen(VisionDashboardScreen::new);
+            VisionInventoryGameTest.run(context,world);
+            VisionMenuMemoryGameTest.run(context);
+            context.setScreen(VisionMenuSession::dashboard);
             context.waitTicks(3);capture(context,"05-dashboard-in-world");
             context.setScreen(()->null);
             long[] frames=context.computeOnClient(mc->new long[]{VisionPetRenderer.renderedFrames(),VisionWorldEffects.renderedFrames(),VisionCustomModels.renderedFrames()});

@@ -7,6 +7,7 @@ import com.visionmod.EffectMath;
 import com.visionmod.BoundedLyricsBody;
 import com.visionmod.HudPacking;
 import com.visionmod.HotbarTween;
+import com.visionmod.FastScrollGesture;
 
 public class CoreRegressionTest {
     private static int checks;
@@ -90,6 +91,16 @@ public class CoreRegressionTest {
         var speed=SystemMediaTrack.fromMpris("Test","{'xesam:title': <'Track'>, 'Position': <int64 1500000>, 'mpris:length': <int64 200000000>, 'Rate': <1.5>, 'PlaybackStatus': <'Playing'>}");
         check(speed.positionKnown()&&speed.durationMs()==200000&&speed.playbackRate()==1.5,"native duration and speed decoded");
         check(!SystemMediaTrack.fromMpris("Test","{}").positionKnown(),"missing native position is not invented");
+        var gesture=new FastScrollGesture();
+        gesture.beginDrag(1);
+        check(!gesture.visit(1),"drag does not repeat the initial vanilla shift-click");
+        check(gesture.visit(2)&&!gesture.visit(2),"one quick move per visited slot");
+        check(gesture.visit(3)&&!gesture.visit(2),"returning across a slot does not send duplicate transfers");
+        gesture.reset();check(gesture.visit(2),"new drag can revisit a previous slot");
+        check(!gesture.scroll(4,.4)&&!gesture.scroll(4,.4)&&gesture.scroll(4,.2),"fractional trackpad deltas accumulate on one slot");
+        check(!gesture.scroll(4,.6)&&!gesture.scroll(5,.5),"partial wheel motion cannot transfer a different slot");
+        check(!gesture.scroll(5,-.5)&&gesture.scroll(5,-.5),"wheel direction reversal discards old partial motion");
+        check(!gesture.scroll(5,Double.NaN)&&!gesture.scroll(-1,1),"invalid wheel input cannot trigger a transfer");
         if(args.length>0&&args[0].equals("--mpris")){
             final boolean[] observed={false};
             try(var reader=new SystemMediaReader()){

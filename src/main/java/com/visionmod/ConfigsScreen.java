@@ -15,8 +15,9 @@ public final class ConfigsScreen extends VisionPanelScreen {
     private String current(){return profiles.isEmpty()?"":profiles.get(Math.min(selected,profiles.size()-1));}
     private void refresh(){String before=current();profiles=VisionProfiles.list();selected=Math.max(0,profiles.indexOf(before));}
     @Override protected void build(){
+        String draft=name==null?"":name.getValue();
         name=new EditBox(font,x+16,layout.bodyTop(),w-32,20,Component.literal("Имя профиля"));
-        name.setMaxLength(40);name.setHint(Component.literal("Имя нового профиля"));addRenderableWidget(name);refresh();
+        name.setMaxLength(40);name.setValue(draft);name.setHint(Component.literal("Имя нового профиля"));addRenderableWidget(name);refresh();
     }
     @Override protected void draw(GuiGraphics g,int mx,int my,float delta){
         int top=layout.bodyTop(),bw=(w-42)/2;
