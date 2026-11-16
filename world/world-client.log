@@ -19,8 +19,8 @@ Fabric Loom: 1.17.20
 > Task :gametestClasses UP-TO-DATE
 
 > Task :runClientGameTest
-[20:30:21] [main/INFO] (FabricLoader/GameProvider) Loading Minecraft 1.21.11 with Fabric Loader 0.19.3
-[20:30:21] [main/INFO] (FabricLoader) Loading 54 mods:
+[20:32:47] [main/INFO] (FabricLoader/GameProvider) Loading Minecraft 1.21.11 with Fabric Loader 0.19.3
+[20:32:48] [main/INFO] (FabricLoader) Loading 54 mods:
 	- fabric-api 0.141.6+1.21.11
 	- fabric-api-base 1.0.5+4ebb5c083e
 	- fabric-api-lookup-api-v1 1.6.114+20dc27073e
@@ -75,13 +75,13 @@ Fabric Loom: 1.17.20
 	- mixinextras 0.5.4
 	- visionmod 2.0.0
 	- visionmod-visual-tests 1.0.0
-[20:30:21] [main/INFO] (FabricLoader/Mixin) SpongePowered MIXIN Subsystem Version=0.8.7 Source=file:/home/runner/.gradle/caches/modules-2/files-2.1/net.fabricmc/sponge-mixin/0.17.3+mixin.0.8.7/41c4a3984a80f4679e759fb9f495587acc5cdac7/sponge-mixin-0.17.3+mixin.0.8.7.jar Service=Knot/Fabric Env=CLIENT
-[20:30:22] [main/INFO] (FabricLoader/Mixin) Loaded Fabric development mappings for mixin remapper!
-[20:30:22] [main/INFO] (FabricLoader/Mixin) Compatibility level set to JAVA_21
-[20:30:22] [main/WARN] (FabricLoader/Mixin) Error loading class: de/siphalor/amecs/key_modifiers/impl/AmecsKeyModifiersEarlyInit (java.lang.ClassNotFoundException: de/siphalor/amecs/key_modifiers/impl/AmecsKeyModifiersEarlyInit)
-[20:30:23] [main/INFO] (FabricLoader/MixinExtras|Service) Initializing MixinExtras via com.llamalad7.mixinextras.service.MixinExtrasServiceImpl(version=0.5.4).
-[20:30:24] [Datafixer Bootstrap/INFO] (Minecraft) 287 Datafixer optimizations took 446 milliseconds
-[20:30:28] [Render thread/ERROR] (FabricLoader/Mixin) Mixin apply for mod visionmod failed visionmod.mixins.json:ContainerScreenAccess from mod visionmod -> net.minecraft.client.gui.screens.inventory.AbstractContainerScreen: org.spongepowered.asm.mixin.gen.throwables.InvalidAccessorException No candidates were found matching getSlotAt(DD)Lnet/minecraft/world/inventory/Slot; in net/minecraft/client/gui/screens/inventory/AbstractContainerScreen for visionmod.mixins.json:ContainerScreenAccess from mod visionmod->@Invoker[METHOD_PROXY]::visionmod$slotAt(DD)Lnet/minecraft/world/inventory/Slot; [ACCESSOR Applicator Phase -> visionmod.mixins.json:ContainerScreenAccess from mod visionmod -> Apply Accessors ->  -> Locate -> visionmod.mixins.json:ContainerScreenAccess from mod visionmod->@Invoker[METHOD_PROXY]::visionmod$slotAt(DD)Lnet/minecraft/world/inventory/Slot;]
+[20:32:48] [main/INFO] (FabricLoader/Mixin) SpongePowered MIXIN Subsystem Version=0.8.7 Source=file:/home/runner/.gradle/caches/modules-2/files-2.1/net.fabricmc/sponge-mixin/0.17.3+mixin.0.8.7/41c4a3984a80f4679e759fb9f495587acc5cdac7/sponge-mixin-0.17.3+mixin.0.8.7.jar Service=Knot/Fabric Env=CLIENT
+[20:32:48] [main/INFO] (FabricLoader/Mixin) Loaded Fabric development mappings for mixin remapper!
+[20:32:48] [main/INFO] (FabricLoader/Mixin) Compatibility level set to JAVA_21
+[20:32:48] [main/WARN] (FabricLoader/Mixin) Error loading class: de/siphalor/amecs/key_modifiers/impl/AmecsKeyModifiersEarlyInit (java.lang.ClassNotFoundException: de/siphalor/amecs/key_modifiers/impl/AmecsKeyModifiersEarlyInit)
+[20:32:49] [main/INFO] (FabricLoader/MixinExtras|Service) Initializing MixinExtras via com.llamalad7.mixinextras.service.MixinExtrasServiceImpl(version=0.5.4).
+[20:32:50] [Datafixer Bootstrap/INFO] (Minecraft) 287 Datafixer optimizations took 375 milliseconds
+[20:32:55] [Render thread/ERROR] (FabricLoader/Mixin) Mixin apply for mod visionmod failed visionmod.mixins.json:ContainerScreenAccess from mod visionmod -> net.minecraft.client.gui.screens.inventory.AbstractContainerScreen: org.spongepowered.asm.mixin.gen.throwables.InvalidAccessorException No candidates were found matching getSlotAt(DD)Lnet/minecraft/world/inventory/Slot; in net/minecraft/client/gui/screens/inventory/AbstractContainerScreen for visionmod.mixins.json:ContainerScreenAccess from mod visionmod->@Invoker[METHOD_PROXY]::visionmod$slotAt(DD)Lnet/minecraft/world/inventory/Slot; [ACCESSOR Applicator Phase -> visionmod.mixins.json:ContainerScreenAccess from mod visionmod -> Apply Accessors ->  -> Locate -> visionmod.mixins.json:ContainerScreenAccess from mod visionmod->@Invoker[METHOD_PROXY]::visionmod$slotAt(DD)Lnet/minecraft/world/inventory/Slot;]
 
 org.spongepowered.asm.mixin.gen.throwables.InvalidAccessorException: No candidates were found matching getSlotAt(DD)Lnet/minecraft/world/inventory/Slot; in net/minecraft/client/gui/screens/inventory/AbstractContainerScreen for visionmod.mixins.json:ContainerScreenAccess from mod visionmod->@Invoker[METHOD_PROXY]::visionmod$slotAt(DD)Lnet/minecraft/world/inventory/Slot; [ACCESSOR Applicator Phase -> visionmod.mixins.json:ContainerScreenAccess from mod visionmod -> Apply Accessors ->  -> Locate -> visionmod.mixins.json:ContainerScreenAccess from mod visionmod->@Invoker[METHOD_PROXY]::visionmod$slotAt(DD)Lnet/minecraft/world/inventory/Slot;]
 	at org.spongepowered.asm.mixin.gen.InvokerInfo.findTargetMethod(InvokerInfo.java:120)
@@ -123,7 +123,7 @@ org.spongepowered.asm.mixin.gen.throwables.InvalidAccessorException: No candidat
 	at net.fabricmc.loader.impl.launch.knot.Knot.launch(Knot.java:72)
 	at net.fabricmc.loader.impl.launch.knot.KnotClient.main(KnotClient.java:23)
 	at net.fabricmc.devlaunchinjector.Main.main(Main.java:86)
-[20:30:28] [Render thread/ERROR] (FabricLoader/Mixin) Mixin apply for mod visionmod failed visionmod.mixins.json:ContainerScreenAccess from mod visionmod -> net.minecraft.client.gui.screens.inventory.AbstractContainerScreen: org.spongepowered.asm.mixin.gen.throwables.InvalidAccessorException No candidates were found matching getSlotAt(DD)Lnet/minecraft/world/inventory/Slot; in net/minecraft/client/gui/screens/inventory/AbstractContainerScreen for visionmod.mixins.json:ContainerScreenAccess from mod visionmod->@Invoker[METHOD_PROXY]::visionmod$slotAt(DD)Lnet/minecraft/world/inventory/Slot; [ACCESSOR Applicator Phase -> visionmod.mixins.json:ContainerScreenAccess from mod visionmod -> Apply Accessors ->  -> Locate -> visionmod.mixins.json:ContainerScreenAccess from mod visionmod->@Invoker[METHOD_PROXY]::visionmod$slotAt(DD)Lnet/minecraft/world/inventory/Slot;]
+[20:32:55] [Render thread/ERROR] (FabricLoader/Mixin) Mixin apply for mod visionmod failed visionmod.mixins.json:ContainerScreenAccess from mod visionmod -> net.minecraft.client.gui.screens.inventory.AbstractContainerScreen: org.spongepowered.asm.mixin.gen.throwables.InvalidAccessorException No candidates were found matching getSlotAt(DD)Lnet/minecraft/world/inventory/Slot; in net/minecraft/client/gui/screens/inventory/AbstractContainerScreen for visionmod.mixins.json:ContainerScreenAccess from mod visionmod->@Invoker[METHOD_PROXY]::visionmod$slotAt(DD)Lnet/minecraft/world/inventory/Slot; [ACCESSOR Applicator Phase -> visionmod.mixins.json:ContainerScreenAccess from mod visionmod -> Apply Accessors ->  -> Locate -> visionmod.mixins.json:ContainerScreenAccess from mod visionmod->@Invoker[METHOD_PROXY]::visionmod$slotAt(DD)Lnet/minecraft/world/inventory/Slot;]
 
 org.spongepowered.asm.mixin.gen.throwables.InvalidAccessorException: No candidates were found matching getSlotAt(DD)Lnet/minecraft/world/inventory/Slot; in net/minecraft/client/gui/screens/inventory/AbstractContainerScreen for visionmod.mixins.json:ContainerScreenAccess from mod visionmod->@Invoker[METHOD_PROXY]::visionmod$slotAt(DD)Lnet/minecraft/world/inventory/Slot; [ACCESSOR Applicator Phase -> visionmod.mixins.json:ContainerScreenAccess from mod visionmod -> Apply Accessors ->  -> Locate -> visionmod.mixins.json:ContainerScreenAccess from mod visionmod->@Invoker[METHOD_PROXY]::visionmod$slotAt(DD)Lnet/minecraft/world/inventory/Slot;]
 	at org.spongepowered.asm.mixin.gen.InvokerInfo.findTargetMethod(InvokerInfo.java:120)
@@ -165,7 +165,7 @@ org.spongepowered.asm.mixin.gen.throwables.InvalidAccessorException: No candidat
 	at net.fabricmc.loader.impl.launch.knot.Knot.launch(Knot.java:72)
 	at net.fabricmc.loader.impl.launch.knot.KnotClient.main(KnotClient.java:23)
 	at net.fabricmc.devlaunchinjector.Main.main(Main.java:86)
-[20:30:28] [Render thread/ERROR] (FabricLoader) Minecraft has crashed!
+[20:32:55] [Render thread/ERROR] (FabricLoader) Minecraft has crashed!
 
 net.fabricmc.loader.impl.FormattedException: java.lang.RuntimeException: Mixin transformation of net.minecraft.client.gui.screens.inventory.AbstractContainerScreen failed
 	at net.fabricmc.loader.impl.FormattedException.ofLocalized(FormattedException.java:63)
@@ -224,7 +224,7 @@ Caused by: org.spongepowered.asm.mixin.gen.throwables.InvalidAccessorException: 
 	... 28 more
 
 > Task :runClientGameTest FAILED
-gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_2-1794861017196.json
+gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_2-1794861163356.json
 
 FAILURE: Build failed with an exception.
 
