@@ -249,11 +249,11 @@ public final class VisionExtendedFeatures {
             VisionHudTheme.text(g,mc.font,lastTarget,box.x()+12,box.y()+24,box.width()-24,VisionGeometry.withAlpha(VisionMenuTheme.WHITE,alpha));
         }
         if(FLAGS[5]){
-            int height=30+Math.max(1,friendRows.size())*14;
-            var box=VisionHudLayout.place(VisionHudLayout.Widget.SOCIAL,w-168,h-height-18,156,height);
+            boolean empty=friendRows.isEmpty();
+            int height=empty?22:30+friendRows.size()*14,width=empty?118:156;
+            var box=VisionHudLayout.place(VisionHudLayout.Widget.SOCIAL,w-width-12,h-height-18,width,height);
             VisionHudTheme.panel(g,box.x(),box.y(),box.width(),box.height(),0xFF96E2C2);
-            g.drawString(mc.font,"ДРУЗЬЯ РЯДОМ",box.x()+10,box.y()+9,0xFF96E2C2);
-            if(friendRows.isEmpty())g.drawString(mc.font,"Никого в радиусе 48 m",box.x()+10,box.y()+27,VisionMenuTheme.MUTED);
+            g.drawString(mc.font,empty?"ДРУЗЬЯ · 0":"ДРУЗЬЯ РЯДОМ",box.x()+10,box.y()+(empty?7:9),0xFF96E2C2);
             for(int i=0;i<friendRows.size();i++)VisionHudTheme.text(g,mc.font,friendRows.get(i),box.x()+10,box.y()+27+i*14,box.width()-20,VisionMenuTheme.WHITE);
         }
     }

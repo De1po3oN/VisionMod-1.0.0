@@ -41,7 +41,7 @@ if (providers.gradleProperty('visualGameTest').isPresent()) {
   enableClientGameTests = true
  }
  // This smoke checks rendering, not deterministic packet scheduling. The API's
- // optional network synchronizer can stall integrated-world startup on CI.
+ // optional network synchronizer is unnecessary for these visual assertions.
  loom.runs.named('clientGameTest') {
   vmArg '-Dfabric.client.gametest.disableNetworkSynchronizer=true'
  }
