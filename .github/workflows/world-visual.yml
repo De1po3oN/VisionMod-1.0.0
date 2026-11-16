@@ -22,7 +22,7 @@ jobs:
       - name: Prepare isolated game test
         run: |
           set +e
-          gradle -PvisualGameTest gametestClasses downloadAssets --no-daemon --max-workers=2 --console=plain > world-prepare.log 2>&1
+          gradle -PvisualGameTest gametestClasses inspectMinecraftHooks downloadAssets --no-daemon --max-workers=2 --console=plain > world-prepare.log 2>&1
           status=$?
           tail -n 70 world-prepare.log
           exit "$status"

@@ -45,4 +45,9 @@ if (providers.gradleProperty('visualGameTest').isPresent()) {
  loom.runs.named('clientGameTest') {
   vmArg '-Dfabric.client.gametest.disableNetworkSynchronizer=true'
  }
+ tasks.register('inspectMinecraftHooks',JavaExec) {
+  dependsOn tasks.named('gametestClasses')
+  classpath=sourceSets.gametest.runtimeClasspath
+  mainClass='com.visionmod.InspectMinecraftHooks'
+ }
 }
