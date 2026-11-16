@@ -116,6 +116,10 @@ public final class VisionDashboardScreen extends Screen {
         extras(m,TOOLS,"Small Sword","Compact held sword",11);
         extras(m,TOOLS,"Small Shield","Compact held shield",12);
         extras(m,TOOLS,"Small Totem","Compact held totem",13);
+        m.add(new Module(TOOLS,"Totem Animation","Компактная анимация активации тотема",()->VisionAdvanced.smallTotemAnimation,
+            ()->{VisionAdvanced.smallTotemAnimation=!VisionAdvanced.smallTotemAnimation;VisionAdvanced.save();},VisionAdvanced::cycleTotemSize));
+        m.add(new Module(TOOLS,"Shulker Grid","Предпросмотр 9 × 3 в инвентаре",()->VisionAdvanced.shulkerGrid,
+            ()->{VisionAdvanced.shulkerGrid=!VisionAdvanced.shulkerGrid;VisionAdvanced.save();},null));
         m.add(new Module(PERFORMANCE,"Real FPS Boost",
             "Reversible vanilla render settings",
             ()->VisionRenderBoost.enabled,VisionRenderBoost::toggle,null));
@@ -156,7 +160,7 @@ public final class VisionDashboardScreen extends Screen {
                 }
                 VisionPerformance.custom();
             },
-            i==1 ? VisionDashboardScreen::openOres
+            i==0 ? VisionAppearance::cycleBrightness : i==1 ? VisionDashboardScreen::openOres
                 : i==5 ? ()->net.minecraft.client.Minecraft.getInstance().setScreen(new ParticleSettingsScreen())
                 : null));
     }
@@ -165,6 +169,7 @@ public final class VisionDashboardScreen extends Screen {
         Runnable options = switch(id) {
             case 3 -> ()->net.minecraft.client.Minecraft.getInstance().setScreen(new VisionCrosshairEditorScreen());
             case 4 -> VisionExtras::cycleZoom;
+            case 6 -> ()->net.minecraft.client.Minecraft.getInstance().setScreen(new OreColorPickerScreen("Контур блока",()->VisionExtras.outlineColor,color->{VisionExtras.outlineColor=color;VisionExtras.save();},null));
             case 7,8 -> VisionExtras::cycleAmbientStyle;
             default -> null;
         };
@@ -274,6 +279,8 @@ public final class VisionDashboardScreen extends Screen {
             case "Small Totem" -> VisionHotkeys.extra(13);
             case "Low Fire" -> VisionHotkeys.extra(14);
             case "Shulker Tooltip" -> VisionHotkeys.extra(15);
+            case "Totem Animation" -> VisionHotkeys.totemAnimationToggle();
+            case "Shulker Grid" -> VisionHotkeys.shulkerGridToggle();
             case "Real FPS Boost" -> VisionHotkeys.boostToggle();
             case "Adaptive Budgets" -> VisionHotkeys.performanceToggle(0);
             case "HUD Throttle" -> VisionHotkeys.performanceToggle(1);
@@ -431,6 +438,8 @@ public final class VisionDashboardScreen extends Screen {
             case "Free Look" -> "Сглаживание: "+(FreeLook.smooth?"ВКЛ":"ВЫКЛ");
             case "Local Pet" -> VisionPetRenderer.suspended()?"Ошибка рендера · выключи и включи для повтора":"Цвет: "+VisionExtendedFeatures.petColorLabel();
             case "Trails","China Hat","Jump Circles","Target ESP" -> VisionWorldEffects.suspended()?"Ошибка рендера · выключи и включи для повтора":"Эффект виден в мире · F5: третье лицо";
+            case "FullBright" -> "Яркость: "+VisionAppearance.brightness;
+            case "Totem Animation" -> "Масштаб: "+VisionAdvanced.totemAnimationPercent+"%";
             case "Custom Models" -> VisionCustomModels.suspended()?"Ошибка модели · включи заново для повтора":"config/visionmod/custom-model.json";
             case "Custom Sound" -> "Звук: "+VisionExtendedFeatures.soundLabel();
             case "World Color" -> "Палитра: "+VisionExtendedFeatures.colorLabel();

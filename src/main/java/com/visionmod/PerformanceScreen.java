@@ -4,8 +4,9 @@ public final class PerformanceScreen extends VisionOptionsScreen {
     public PerformanceScreen(){super("ПРОИЗВОДИТЕЛЬНОСТЬ");}
     @Override protected void options(){
         String[] names={"MAX FPS","BALANCED","VISUAL"};
-        for(int i=0;i<3;i++){final int id=i;option(names[i],()->VisionPerformance.preset,()->VisionHotkeys.applyPreset(id),VisionHotkeys.preset(i));}
+        for(int i=0;i<3;i++){final int id=i;option(names[i],()->VisionPerformance.preset.equals(names[id].replace(' ','_'))?"АКТИВЕН":"Применить",()->VisionHotkeys.applyPreset(id),VisionHotkeys.preset(i));}
         option("Реальный FPS Boost",()->VisionRenderBoost.enabled?"ВКЛ · настройки обратимы":"ВЫКЛ",VisionRenderBoost::toggle,VisionHotkeys.boostToggle());
+        option("Адаптивные чанки",()->VisionRenderBoost.adaptiveChunks?"ВКЛ":"ВЫКЛ",()->{VisionRenderBoost.adaptiveChunks=!VisionRenderBoost.adaptiveChunks;VisionRenderBoost.save();});
         option("Лимит чанков",()->VisionRenderBoost.chunkCap+" чанков",VisionRenderBoost::cycleCap,VisionHotkeys.boostCap());
         option("Целевой FPS",()->Integer.toString(VisionRenderBoost.targetFps),VisionRenderBoost::cycleTargetFps,VisionHotkeys.performanceValue(3));
         String[] values={"Радиус руд","Проверок за тик","Максимум контуров"};

@@ -1,0 +1,45 @@
+name: Native Windows media smoke
+on:
+  push:
+    branches: [main, 'codex/visual-refresh']
+    paths:
+      - 'src/main/java/com/visionmod/SystemMedia*.java'
+      - 'src/main/resources/visionmod/media-session.ps1'
+      - 'tests/WindowsMediaSmokeTest.java'
+      - '.github/workflows/native-media.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  windows-media:
+    runs-on: windows-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Call Windows media session API
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          New-Item -ItemType Directory -Force native-test/classes | Out-Null
+          Invoke-WebRequest 'https://repo.maven.apache.org/maven2/com/google/code/gson/gson/2.11.0/gson-2.11.0.jar' -OutFile native-test/gson.jar
+          $digest = (Get-FileHash native-test/gson.jar -Algorithm SHA1).Hash.ToLowerInvariant()
+          if ($digest -ne '527175ca6d81050b53bdd4c457a6d6e017626b0e') { throw 'Gson checksum mismatch' }
+          & javac --release 21 -cp native-test/gson.jar -d native-test/classes src/main/java/com/visionmod/SystemMediaTrack.java src/main/java/com/visionmod/SystemMediaReader.java tests/WindowsMediaSmokeTest.java
+          if ($LASTEXITCODE -ne 0) { throw 'Compilation failed' }
+          Copy-Item src/main/resources/visionmod native-test/classes -Recurse
+          & java -ea -cp 'native-test/classes;native-test/gson.jar' WindowsMediaSmokeTest 2>&1 | Tee-Object windows-media.log
+          if ($LASTEXITCODE -ne 0) { throw 'Windows media smoke failed' }
+      - name: Check out isolated CI evidence
+        if: always()
+        uses: actions/checkout@v4
+        with:
+          ref: codex/visual-evidence
+          path: .qa-evidence
+      - name: Save native media result
+        if: always()
+        shell: bash
+        run: bash tests/publish-evidence.sh windows

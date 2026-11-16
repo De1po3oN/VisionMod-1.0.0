@@ -44,7 +44,7 @@ public final class VisionCrosshairEditorScreen extends VisionPanelScreen {
             int bx=cx+canvas+14,bw=x+w-16-bx;
             for(int i=0;i<3;i++)if(hit(e.x(),e.y(),bx,cy+i*25,bw,21)){VisionExtras.setCrosshairGrid(16<<i);build();return true;}
             if(hit(e.x(),e.y(),bx,cy+80,bw,21)){VisionExtras.setCrosshairSize(VisionExtras.crosshairSize%4+1);return true;}
-            if(hit(e.x(),e.y(),bx,cy+106,bw,21)){VisionExtras.cycleCrosshairColor();return true;}
+            if(hit(e.x(),e.y(),bx,cy+106,bw,21)){minecraft.setScreen(new OreColorPickerScreen("Прицел",()->VisionExtras.crosshairColor,color->{VisionExtras.crosshairColor=color;VisionExtras.save();},this));return true;}
             if((cy+155<layout.bodyBottom()&&hit(e.x(),e.y(),bx,cy+132,bw,21))||
                 (cy+155>=layout.bodyBottom()&&hit(e.x(),e.y(),x+16,y+h-29,80,20))){VisionExtras.resetPixels();return true;}
         }
