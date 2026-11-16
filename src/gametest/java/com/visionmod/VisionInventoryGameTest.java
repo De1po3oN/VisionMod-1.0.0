@@ -30,7 +30,9 @@ final class VisionInventoryGameTest {
         serverCounts(world,32,0,0);
         // First stack uses vanilla shift-click; dragging onto the second invokes Fast Scroller.
         slot(context,1);context.getInput().holdMouse(0);context.waitTicks(2);
+        logInventory(context,"initial shift-click");
         slot(context,2);context.waitTicks(2);slot(context,1);slot(context,2);
+        logInventory(context,"after drag");
         context.getInput().releaseMouse(0);
         context.waitFor(mc->mc.player.getInventory().countItem(Items.DIRT)==16&&mc.player.getInventory().countItem(Items.APPLE)==8,100);
         serverCounts(world,32,16,8);
@@ -70,5 +72,8 @@ final class VisionInventoryGameTest {
             var inventory=server.getPlayerList().getPlayers().getFirst().getInventory();
             check(inventory.countItem(Items.STONE)==stone&&inventory.countItem(Items.DIRT)==dirt&&inventory.countItem(Items.APPLE)==apple,"Server rejected or duplicated an inventory transfer");
         });
+    }
+    private static void logInventory(ClientGameTestContext context,String stage){
+        context.runOnClient(mc->System.out.println("[VisionMod][INVENTORY] "+stage+": dirt="+mc.player.getInventory().countItem(Items.DIRT)+", apple="+mc.player.getInventory().countItem(Items.APPLE)+", carried="+mc.player.containerMenu.getCarried().getCount()+", left="+mc.mouseHandler.isLeftPressed()+", shift="+mc.hasShiftDown()));
     }
 }

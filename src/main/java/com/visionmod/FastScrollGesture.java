@@ -22,5 +22,6 @@ public final class FastScrollGesture {
         wheel=0;return true;
     }
     public void clearWheel(){wheelSlot=-1;wheel=0;}
-    public void reset(){dragging=false;visited.clear();clearWheel();}
+    public void endDrag(){dragging=false;visited.clear();}
+    public void reset(){endDrag();clearWheel();}
 }

@@ -26,9 +26,14 @@ public final class VisionFastScroller {
             });
             ScreenMouseEvents.allowMouseDrag(screen).register((scr,click,dx,dy)->{
                 if(click.button()!=0||!ready(container)){gesture.reset();return true;}
-                Slot slot=slotAt(container,click.x(),click.y());
-                if(!movable(slot)||!gesture.visit(slot.index))return true;
-                transfer(container,slot);return false;
+                return !dragAt(container,gesture,click.x(),click.y());
+            });
+            // A vanilla Shift-click may not enter the screen's drag state.
+            // Sample the real held button as well; visited slots cannot transfer twice.
+            ScreenEvents.afterRender(screen).register((scr,graphics,x,y,delta)->{
+                if(!ready(container)){gesture.reset();return;}
+                if(!client.mouseHandler.isLeftPressed()){gesture.endDrag();return;}
+                dragAt(container,gesture,x,y);
             });
             ScreenMouseEvents.allowMouseScroll(screen).register((scr,x,y,horizontal,vertical)->{
                 if(!ready(container)||vertical==0){gesture.clearWheel();return true;}
@@ -50,6 +55,11 @@ public final class VisionFastScroller {
         var access=(ContainerScreenAccess)screen;
         for(Slot slot:screen.getMenu().slots)if(slot.isActive()&&access.visionmod$hovering(slot,x,y))return slot;
         return null;
+    }
+    private static boolean dragAt(AbstractContainerScreen<?> screen,FastScrollGesture gesture,double x,double y){
+        Slot slot=slotAt(screen,x,y);
+        if(!movable(slot)||!gesture.visit(slot.index))return false;
+        transfer(screen,slot);return true;
     }
     private static boolean movable(Slot slot){
         Minecraft mc=Minecraft.getInstance();
