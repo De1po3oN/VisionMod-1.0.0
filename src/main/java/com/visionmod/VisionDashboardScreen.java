@@ -211,7 +211,7 @@ public final class VisionDashboardScreen extends Screen {
                 case 1 -> "Client-observed defeat notification";
                 case 2 -> "Dusk / warm / cool screen coloring";
                 case 3 -> "Музыка из системного плеера · без расширений";
-                case 4 -> "Animated solid pet with colors and wings";
+                case 4 -> "Плавное следование за камерой и прыжками";
                 case 5 -> "Панель друзей поблизости · до 48 блоков";
                 case 6 -> "Client hit-feedback sound";
                 default -> "Filter ordinary weather particles";
@@ -241,7 +241,7 @@ public final class VisionDashboardScreen extends Screen {
         m.add(new Module(category,VisionTools2.NAMES[id],
             switch(id) {
                 case 0 -> "Rate-limited vanilla item use";
-                case 1 -> "Local JSON box model on player";
+                case 1 -> "JSON-модель на теле · пример: рюкзак";
                 default -> "Choose color of hit and target outline";
             },
             ()->VisionTools2.selected(id),()->VisionTools2.toggle(id),

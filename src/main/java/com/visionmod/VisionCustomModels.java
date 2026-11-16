@@ -54,6 +54,7 @@ public final class VisionCustomModels {
                 mc.options.getCameraType() == CameraType.FIRST_PERSON) return;
 
             Vec3 camera = mc.gameRenderer.getMainCamera().position();
+            if(camera.distanceToSqr(mc.player.getEyePosition())<.85*.85)return;
             Vec3 player = mc.player.getPosition(mc.getDeltaTracker().getGameTimeDeltaPartialTick(false));
             var pose = context.matrices();
             pose.pushPose();
@@ -61,7 +62,10 @@ public final class VisionCustomModels {
             // Local geometry rotates with the player's body, NOT the Free Look camera.
             pose.translate(player.x - camera.x, player.y - camera.y + 1.08,
                 player.z - camera.z);
-            pose.mulPose(Axis.YP.rotationDegrees(-mc.player.getYRot()));
+            float partial=mc.getDeltaTracker().getGameTimeDeltaPartialTick(false);
+            float bodyYaw=net.minecraft.util.Mth.rotLerp(partial,mc.player.yBodyRotO,mc.player.yBodyRot);
+            // Minecraft models face local -Z; local +Z is the backpack side.
+            pose.mulPose(Axis.YP.rotationDegrees(180-bodyYaw));
             VertexConsumer fill = context.consumers().getBuffer(
                 RenderTypes.entityTranslucent(VisionGeometry.WHITE_TEXTURE));
             for (Box b : boxes) {

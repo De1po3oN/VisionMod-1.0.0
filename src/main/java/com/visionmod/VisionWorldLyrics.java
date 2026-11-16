@@ -33,7 +33,7 @@ public final class VisionWorldLyrics {
         String timed = VisionLyricsSource.current();
         if (timed != null) return timed;
         String manual = previewLine(VisionExtendedFeatures.customText(), mc.level.getGameTime());
-        return manual.isBlank() ? "♪ Нет музыки" : manual;
+        return manual;
     }
     private static boolean ready(Minecraft mc) {
         return VisionModClient.enabled && VisionExtendedFeatures.enabled(3) && mc.player != null && mc.level != null;
