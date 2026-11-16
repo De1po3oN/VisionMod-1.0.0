@@ -17,6 +17,40 @@ Note: Recompile with -Xlint:deprecation for details.
 > Task :gametestClasses
 
 > Task :inspectMinecraftHooks
+[TEXT_HOOKS] net/minecraft/client/gui/Font.drawInBatch(Ljava/lang/String;FFIZLorg/joml/Matrix4f;Lnet/minecraft/client/renderer/MultiBufferSource;Lnet/minecraft/client/gui/Font$DisplayMode;II)V
+  call net/minecraft/client/gui/Font.prepareText(Ljava/lang/String;FFIZI)Lnet/minecraft/client/gui/Font$PreparedText;
+  call net/minecraft/client/gui/Font$GlyphVisitor.forMultiBufferSource(Lnet/minecraft/client/renderer/MultiBufferSource;Lorg/joml/Matrix4f;Lnet/minecraft/client/gui/Font$DisplayMode;I)Lnet/minecraft/client/gui/Font$GlyphVisitor;
+  call net/minecraft/client/gui/Font$PreparedText.visit(Lnet/minecraft/client/gui/Font$GlyphVisitor;)V
+[TEXT_HOOKS] net/minecraft/client/gui/Font.drawInBatch(Lnet/minecraft/network/chat/Component;FFIZLorg/joml/Matrix4f;Lnet/minecraft/client/renderer/MultiBufferSource;Lnet/minecraft/client/gui/Font$DisplayMode;II)V
+  call net/minecraft/network/chat/Component.getVisualOrderText()Lnet/minecraft/util/FormattedCharSequence;
+  call net/minecraft/client/gui/Font.prepareText(Lnet/minecraft/util/FormattedCharSequence;FFIZZI)Lnet/minecraft/client/gui/Font$PreparedText;
+  call net/minecraft/client/gui/Font$GlyphVisitor.forMultiBufferSource(Lnet/minecraft/client/renderer/MultiBufferSource;Lorg/joml/Matrix4f;Lnet/minecraft/client/gui/Font$DisplayMode;I)Lnet/minecraft/client/gui/Font$GlyphVisitor;
+  call net/minecraft/client/gui/Font$PreparedText.visit(Lnet/minecraft/client/gui/Font$GlyphVisitor;)V
+[TEXT_HOOKS] net/minecraft/client/gui/Font.drawInBatch(Lnet/minecraft/util/FormattedCharSequence;FFIZLorg/joml/Matrix4f;Lnet/minecraft/client/renderer/MultiBufferSource;Lnet/minecraft/client/gui/Font$DisplayMode;II)V
+  call net/minecraft/client/gui/Font.prepareText(Lnet/minecraft/util/FormattedCharSequence;FFIZZI)Lnet/minecraft/client/gui/Font$PreparedText;
+  call net/minecraft/client/gui/Font$GlyphVisitor.forMultiBufferSource(Lnet/minecraft/client/renderer/MultiBufferSource;Lorg/joml/Matrix4f;Lnet/minecraft/client/gui/Font$DisplayMode;I)Lnet/minecraft/client/gui/Font$GlyphVisitor;
+  call net/minecraft/client/gui/Font$PreparedText.visit(Lnet/minecraft/client/gui/Font$GlyphVisitor;)V
+[TEXT_HOOKS] net/minecraft/client/Camera.setRotation(FF)V
+  field net/minecraft/client/Camera.xRot F
+  field net/minecraft/client/Camera.yRot F
+  field net/minecraft/client/Camera.rotation Lorg/joml/Quaternionf;
+  constant 3.1415927
+  constant 0.017453292
+  constant 0.017453292
+  call org/joml/Quaternionf.rotationYXZ(FFF)Lorg/joml/Quaternionf;
+  field net/minecraft/client/Camera.FORWARDS Lorg/joml/Vector3f;
+  field net/minecraft/client/Camera.rotation Lorg/joml/Quaternionf;
+  field net/minecraft/client/Camera.forwards Lorg/joml/Vector3f;
+  call org/joml/Vector3f.rotate(Lorg/joml/Quaternionfc;Lorg/joml/Vector3f;)Lorg/joml/Vector3f;
+  field net/minecraft/client/Camera.UP Lorg/joml/Vector3f;
+  field net/minecraft/client/Camera.rotation Lorg/joml/Quaternionf;
+  field net/minecraft/client/Camera.up Lorg/joml/Vector3f;
+  call org/joml/Vector3f.rotate(Lorg/joml/Quaternionfc;Lorg/joml/Vector3f;)Lorg/joml/Vector3f;
+  field net/minecraft/client/Camera.LEFT Lorg/joml/Vector3f;
+  field net/minecraft/client/Camera.rotation Lorg/joml/Quaternionf;
+  field net/minecraft/client/Camera.left Lorg/joml/Vector3f;
+  call org/joml/Vector3f.rotate(Lorg/joml/Quaternionfc;Lorg/joml/Vector3f;)Lorg/joml/Vector3f;
+[TEXT_HOOKS] net/minecraft/client/renderer/SubmitNodeCollector.order(I)Lnet/minecraft/client/renderer/OrderedSubmitNodeCollector;
 [HOOKS] net/minecraft/client/Camera.setup(Lnet/minecraft/world/level/Level;Lnet/minecraft/world/entity/Entity;ZZF)V
   field initialized Z
   field level Lnet/minecraft/world/level/Level;
@@ -251,7 +285,7 @@ Note: Recompile with -Xlint:deprecation for details.
   call net/minecraft/client/input/KeyEvent.key()I
 
 > Task :downloadAssets
-gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run-1794869025602.json
+gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run-1794869178744.json
 
 [Incubating] Problems report is available at: file:///home/runner/work/VisionMod-1.0.0/VisionMod-1.0.0/build/reports/problems/problems-report.html
 
@@ -261,5 +295,5 @@ You can use '--warning-mode all' to show the individual deprecation warnings and
 
 For more on this, please refer to https://docs.gradle.org/9.7.1/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
 
-BUILD SUCCESSFUL in 37s
+BUILD SUCCESSFUL in 42s
 6 actionable tasks: 6 executed
