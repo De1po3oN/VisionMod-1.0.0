@@ -20,7 +20,12 @@ jobs:
         with:
           gradle-version: '9.7.1'
       - name: Prepare isolated game test
-        run: gradle -PvisualGameTest gametestClasses downloadAssets --no-daemon --max-workers=2 --console=plain
+        run: |
+          set +e
+          gradle -PvisualGameTest gametestClasses downloadAssets --no-daemon --max-workers=2 --console=plain > world-prepare.log 2>&1
+          status=$?
+          tail -n 70 world-prepare.log
+          exit "$status"
       - name: Render enabled modules in a real flat world
         env:
           LIBGL_ALWAYS_SOFTWARE: '1'
@@ -38,6 +43,7 @@ jobs:
         with:
           name: VisionMod-World-Render-QA
           path: |
+            world-prepare.log
             world-client.log
             build/run/clientGameTest/vision-world-captures/**
           if-no-files-found: warn

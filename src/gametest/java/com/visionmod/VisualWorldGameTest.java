@@ -9,6 +9,11 @@ import java.nio.file.*;
 /** Real integrated-world render smoke; does not replace shader/visual acceptance or FPS measurement. */
 public final class VisualWorldGameTest implements FabricClientGameTest {
     @Override public void runTest(ClientGameTestContext context){
+        context.runOnClient(mc->{
+            mc.options.renderDistance().set(3);
+            mc.options.simulationDistance().set(5);
+            mc.options.pauseOnLostFocus=false;
+        });
         try(var world=context.worldBuilder().create()){
             world.getServer().runCommand("gamemode creative @p");
             world.getServer().runCommand("time set day");
@@ -57,7 +62,15 @@ public final class VisualWorldGameTest implements FabricClientGameTest {
             context.runOnClient(mc->VisionModClient.enabled=false);
             context.waitTicks(3);capture(context,"06-global-off");
             System.out.println("[VisionMod][WORLDTEST] PASS: loaded world, active renderers, movement/jump, six framebuffer captures and global OFF");
-        }catch(Exception e){throw new AssertionError("Vision world render test failed",e);}
+        }catch(Throwable e){
+            Thread.getAllStackTraces().forEach((thread,stack)->{
+                if(thread.getName().equals("Server thread")||thread.getName().equals("Render thread")||thread.getName().startsWith("Worker-")){
+                    System.err.println("[VisionMod][WORLDTEST] Thread: "+thread.getName()+" "+thread.getState());
+                    for(int i=0;i<Math.min(24,stack.length);i++)System.err.println("  at "+stack[i]);
+                }
+            });
+            throw new AssertionError("Vision world render test failed",e);
+        }
     }
     private static void assertRenderers(ClientGameTestContext context){
         context.runOnClient(mc->{
