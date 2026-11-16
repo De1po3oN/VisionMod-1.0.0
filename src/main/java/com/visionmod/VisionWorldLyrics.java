@@ -57,7 +57,9 @@ public final class VisionWorldLyrics {
         try {
             pose.translate(relative.x,relative.y,relative.z);
             pose.mulPose(camera.rotation());
-            pose.scale(-scale,-scale,scale);
+            // Camera.rotation() already includes the half-turn in 1.21.11.
+            // Keep X positive: negating it mirrors the glyphs and reverses their front face.
+            pose.scale(scale,-scale,scale);
             // One translucent text layer; no floating box, HUD copy or stale transition line.
             int count=Math.min(3,rows.size());
             for(int i=0;i<count;i++) {
