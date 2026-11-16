@@ -1,7 +1,1 @@
-Traceback (most recent call last):
-  File "/home/runner/work/VisionMod-1.0.0/VisionMod-1.0.0/tests/capture-editors.py", line 22, in <module>
-    frame.verify()
-    ~~~~~~~~~~~~^^
-  File "/home/runner/.local/lib/python3.14/site-packages/PIL/PngImagePlugin.py", line 877, in verify
-    raise RuntimeError(msg)
-RuntimeError: verify must be called directly after open
+PASS: 8 nonblank Minecraft framebuffer screenshots
