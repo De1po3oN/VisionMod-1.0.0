@@ -101,7 +101,7 @@ public final class VisionHudLayout {
         x=Math.max(0,Math.min(Math.max(0,screenW-ww),x));
         y=Math.max(0,Math.min(Math.max(0,screenH-hh),y));
         occupied.remove(widget);
-        if(!widget.moved){
+        if(!widget.moved&&widget!=Widget.ARROW){
             var packed=HudPacking.find(x,y,ww,hh,screenW,screenH,occupied.values());
             x=packed.x();y=packed.y();
         }

@@ -14,6 +14,7 @@ public final class VisualWorldGameTest implements FabricClientGameTest {
             mc.options.simulationDistance().set(5);
             mc.options.pauseOnLostFocus=false;
         });
+        context.waitTicks(5);
         try(var world=context.worldBuilder().create()){
             world.getServer().runCommand("gamemode creative @p");
             world.getServer().runCommand("time set day");
@@ -66,8 +67,14 @@ public final class VisualWorldGameTest implements FabricClientGameTest {
             context.setScreen(VisionDashboardScreen::new);
             context.waitTicks(3);capture(context,"05-dashboard-in-world");
             context.setScreen(()->null);
+            long[] frames=context.computeOnClient(mc->new long[]{VisionPetRenderer.renderedFrames(),VisionWorldEffects.renderedFrames(),VisionCustomModels.renderedFrames()});
             context.runOnClient(mc->VisionModClient.enabled=false);
             context.waitTicks(3);capture(context,"06-global-off");
+            context.runOnClient(mc->{
+                if(frames[0]!=VisionPetRenderer.renderedFrames()||frames[1]!=VisionWorldEffects.renderedFrames()||frames[2]!=VisionCustomModels.renderedFrames())
+                    throw new AssertionError("Global OFF left a renderer running");
+                System.out.println("[VisionMod][WORLDTEST] Submitted frames: pet="+frames[0]+", world="+frames[1]+", custom="+frames[2]);
+            });
             System.out.println("[VisionMod][WORLDTEST] PASS: loaded world, active renderers, movement/jump, six framebuffer captures and global OFF");
         }catch(Throwable e){
             Thread.getAllStackTraces().forEach((thread,stack)->{
