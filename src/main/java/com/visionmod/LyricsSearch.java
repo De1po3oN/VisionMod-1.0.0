@@ -9,16 +9,22 @@ public final class LyricsSearch {
     public record Query(String artist,String title){}
     private LyricsSearch(){}
     public static Query query(String artist,String title){
-        artist=artist==null?"":artist.strip();title=title==null?"":title.strip();
-        if(artist.isBlank()){
-            int split=title.indexOf(" - ");
-            if(split>0){artist=title.substring(0,split).strip();title=title.substring(split+3).strip();}
+        artist=cleanArtist(artist==null?"":artist.strip());title=clean(title==null?"":title.strip());
+        String[] parts=title.split("\\s+(?:-|—|–|\\|)\\s+",2);
+        if(parts.length==2&&!parts[0].isBlank()&&!parts[1].isBlank()){
+            if(artist.isBlank()){artist=cleanArtist(parts[0]);title=parts[1].strip();}
+            else if(normalized(cleanArtist(parts[0])).equals(normalized(artist)))title=parts[1].strip();
         }
         return new Query(clean(artist),clean(title));
     }
+    private static String cleanArtist(String text){
+        return clean(text).replaceAll("(?iu)\\s*[-—–]\\s*(?:topic|official)\\s*$","")
+            .replaceAll("(?i)VEVO$","").strip();
+    }
     private static String clean(String text){
         return text.replaceAll("(?iu)\\s*(?:[—–|·]| - )\\s*(?:яндекс[ .]?музыка|yandex\\s*music)\\s*$","")
-            .replaceAll("(?i)\\s*[\\[(](?:official(?: music)? (?:video|audio)|lyrics?(?: video)?|audio|visuali[sz]er|\\d{4} remaster(?:ed)?|remaster(?:ed)?(?: \\d{4})?)[\\])]","").strip();
+            .replaceAll("(?iu)\\s*[\\[(](?:official(?: music)?(?: (?:video|audio))?(?: (?:hd|4k))?|lyrics?(?: video)?|audio|visuali[sz]er|текст(?: песни)?|официальн(?:ое|ый) (?:видео|клип)|\\d{4} remaster(?:ed)?|remaster(?:ed)?(?: \\d{4})?)[\\])]","")
+            .replaceAll("\\s+"," ").strip();
     }
     private static String normalized(String text){
         return Normalizer.normalize(clean(text),Normalizer.Form.NFKD).replaceAll("\\p{M}","")
@@ -32,12 +38,12 @@ public final class LyricsSearch {
     }
     public static boolean matches(String title,String artist,Query query){
         if(!normalized(title).equals(normalized(query.title)))return false;
-        String actual=normalized(artist),wanted=normalized(query.artist);
+        String actual=normalized(cleanArtist(artist)),wanted=normalized(query.artist);
         if(wanted.isBlank()||actual.equals(wanted))return true;
         String a=primaryArtist(artist),b=primaryArtist(query.artist);
         return a.length()>2&&a.equals(b);
     }
-    private static String primaryArtist(String value){return normalized(value.split("(?iu)(?:\\s+(?:feat\\.?|ft\\.?|featuring|&|x)\\s+|\\s*,\\s*)",2)[0]);}
+    private static String primaryArtist(String value){return normalized(cleanArtist(value).split("(?iu)(?:\\s+(?:feat\\.?|ft\\.?|featuring|&|x)\\s+|\\s*,\\s*)",2)[0]);}
     public static LyricsResult selectResult(String json,Query query,long durationMs,String provider){
         JsonElement root=JsonParser.parseString(json);
         JsonArray candidates;

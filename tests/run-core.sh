@@ -13,11 +13,12 @@ else
 fi
 printf '527175ca6d81050b53bdd4c457a6d6e017626b0e  %s\n' "$gson" | sha1sum -c -
 "$javac_bin" -encoding UTF-8 --release 21 -cp "$gson" -d "$work/classes" \
-  src/main/java/com/visionmod/{LrcTimeline,LyricsResult,LyricsSearch,SystemMediaTrack,SystemMediaReader,BoundedLyricsBody,DashboardLayout,PanelLayout,EffectMath,HudPacking,HotbarTween,FastScrollGesture,PetMotion,WorldLyricMotion,LyricEntrance}.java tests/CoreRegressionTest.java tests/PetMotionRegressionTest.java tests/WorldLyricMotionTest.java tests/LyricEntranceTest.java
+  src/main/java/com/visionmod/{LrcTimeline,LyricsResult,LyricsSearch,SystemMediaTrack,SystemMediaReader,BoundedLyricsBody,DashboardLayout,PanelLayout,EffectMath,HudPacking,HotbarTween,FastScrollGesture,PetMotion,WorldLyricMotion,LyricEntrance,SpearLungeTrigger}.java tests/CoreRegressionTest.java tests/PetMotionRegressionTest.java tests/WorldLyricMotionTest.java tests/LyricEntranceTest.java tests/SpearLungeTriggerTest.java
 "$java_bin" -ea -cp "$work/classes:$gson" CoreRegressionTest "$@"
 "$java_bin" -ea -cp "$work/classes" PetMotionRegressionTest
 "$java_bin" -ea -cp "$work/classes" WorldLyricMotionTest
 "$java_bin" -ea -cp "$work/classes" LyricEntranceTest
+"$java_bin" -ea -cp "$work/classes" SpearLungeTriggerTest
 
 "$javac_bin" -encoding UTF-8 --release 21 -cp "$gson:$work/classes" -d "$work/classes" \
   tests/stubs/net/minecraft/client/Minecraft.java tests/stubs/net/fabricmc/loader/api/FabricLoader.java \

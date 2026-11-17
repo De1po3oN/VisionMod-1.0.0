@@ -22,6 +22,8 @@
     "MouseExtrasMixin",
     "ContainerScreenAccess",
     "SmoothHotbarMixin",
+    "SpearLungeMixin",
+    "SpearDamageMixin",
     "ArrowHitSoundMixin",
     "CompactHandMixin",
     "LowFireMixin",

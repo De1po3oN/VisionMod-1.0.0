@@ -24,7 +24,7 @@ public abstract class VisionPanelScreen extends Screen {
         VisionHudTheme.round(g,x-1,y-1,w+2,h+2,8,0xFF46415F);
         VisionHudTheme.round(g,x,y,w,h,8,0xFF171C2B);
         g.fillGradient(x+12,y+1,x+w-12,y+3,VisionMenuTheme.CYAN,VisionMenuTheme.PURPLE);
-        g.drawString(font,"VISION / "+caption,x+16,y+16,VisionMenuTheme.WHITE);
+        VisionFonts.fit(g,font,"VISION / "+caption,x+16,y+16,w-32,VisionMenuTheme.WHITE);
         g.fill(x+16,y+40,x+w-16,y+41,0xFF34394E);
         draw(g,mx,my,delta);
         button(g,x+w-93,y+h-29,77,20,"Готово",false,mx,my);
@@ -34,7 +34,7 @@ public abstract class VisionPanelScreen extends Screen {
         boolean hover=hit(mx,my,bx,by,bw,bh);
         VisionHudTheme.round(g,bx,by,bw,bh,4,active?0xFF494064:hover?0xFF34384F:0xFF252B3E);
         if(active)g.fill(bx+5,by+bh-1,bx+bw-5,by+bh,VisionMenuTheme.CYAN);
-        VisionHudTheme.text(g,font,label,bx+8,by+(bh-8)/2,bw-16,active?VisionMenuTheme.WHITE:VisionMenuTheme.MUTED);
+        VisionFonts.fit(g,font,label,bx+8,by+(bh-8)/2,bw-16,active?VisionMenuTheme.WHITE:VisionMenuTheme.MUTED);
     }
     protected static boolean hit(double mx,double my,int x,int y,int w,int h){return mx>=x&&my>=y&&mx<x+w&&my<y+h;}
     @Override public boolean mouseClicked(MouseButtonEvent e,boolean doubled){

@@ -28,6 +28,9 @@ final class VisionWorldPlaneGameTest {
             var forward=Vec3.directionFromRotation(0,mc.player.getYRot());
             check(Math.abs(delta.dot(forward)-WorldLyricMotion.DISTANCE)<.06&&Math.abs(delta.y-WorldLyricMotion.HEIGHT)<.06,"Text is not anchored ahead of the player in world coordinates");
         });
+        // The first-frame assertion above checks immediate submission. Bright pixel
+        // comparisons measure settled geometry, after the 280 ms entrance fade.
+        context.waitTicks(8);
         VisualWorldGameTest.capture(context,"19-lyrics-world-first-person");
         int close=glyphPixels("19-lyrics-world-first-person");
         check(close>100,"World model produced no visible glyphs: "+close);

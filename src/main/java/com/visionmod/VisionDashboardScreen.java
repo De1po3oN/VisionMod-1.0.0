@@ -66,6 +66,8 @@ public final class VisionDashboardScreen extends Screen {
     private String cachedQuery = null;
     private int cachedCategory = -1;
     private DashboardLayout layout;
+    private final java.util.Map<Module,Float> switchPositions=new java.util.IdentityHashMap<>();
+    private long renderedAt;
 
     private int left, top, w, h, sidebar, contentX, contentW, columns, rows, cardsPerPage;
 
@@ -229,12 +231,13 @@ public final class VisionDashboardScreen extends Screen {
             switch(id) {
                 case 0 -> "Alternative first-person swing pose";
                 case 1 -> "Optional dropped-item pose rotation";
-                case 2 -> "Local particle feedback when carrying a spear";
-                case 3 -> "Local visual spear contact effect";
+                case 2 -> "Световой след при реальном рывке копьём";
+                case 3 -> "Импульс в точке попадания копьём · включая разгон";
                 default -> "Lightweight camera-motion accent, not true blur";
             },
             ()->VisionMotionEffects.selected(id),
-            ()->VisionMotionEffects.toggle(id),null));
+            ()->VisionMotionEffects.toggle(id),id==2||id==3?
+                ()->net.minecraft.client.Minecraft.getInstance().setScreen(new VisionSpearSettingsScreen()):null));
     }
 
     private static void tools(List<Module> m,int category,int id) {
@@ -298,7 +301,7 @@ public final class VisionDashboardScreen extends Screen {
         contentX=left+sidebar+22;contentW=layout.contentWidth();
         columns=layout.columns();rows=layout.rows();cardsPerPage=layout.cards();
         search=new EditBox(font,contentX,top+21,contentW,20,Component.literal("Поиск"));
-        search.setMaxLength(48);search.setHint(Component.literal("Найти модуль…"));
+        search.setMaxLength(48);search.setHint(VisionFonts.text("Найти модуль…"));
         search.setValue(previousQuery);
         search.setResponder(value->{page=0;cachedQuery=null;});
         addRenderableWidget(search);
@@ -323,9 +326,7 @@ public final class VisionDashboardScreen extends Screen {
         }
     }
     private void textFit(GuiGraphics g,String text,int x,int y,int max,int color){
-        if(max<1)return;
-        if(font.width(text)>max)text=font.plainSubstrByWidth(text,Math.max(1,max-font.width("…")))+"…";
-        g.drawString(font,text,x,y,color);
+        VisionFonts.fit(g,font,text,x,y,max,color);
     }
     private void button(GuiGraphics g,int x,int y,int w,int h,String text,boolean selected,int mx,int my){
         boolean hover=inside(mx,my,x,y,w,h);
@@ -346,13 +347,18 @@ public final class VisionDashboardScreen extends Screen {
     private int maxPage(List<Module> m){return Math.max(0,(m.size()-1)/cardsPerPage);}
 
     @Override public void render(GuiGraphics g,int mx,int my,float delta){
+        long now=System.nanoTime();
+        float approach=!VisionAppearance.animations||renderedAt==0?1:
+            (float)(1-Math.exp(-Math.min(.1,(now-renderedAt)/1_000_000_000.0)*20));
+        renderedAt=now;
         g.fill(0,0,width,height,0x80080B15);
         round(g,left-4,top+6,w+8,h+3,12,0x6003040B);
-        round(g,left-1,top-1,w+2,h+2,10,0xFF46405E);
-        round(g,left,top,w,h,10,0xF5141725);
+        round(g,left-1,top-1,w+2,h+2,10,0xFF393C50);
+        round(g,left,top,w,h,10,0xFA111521);
+        round(g,left+6,top+6,sidebar+3,h-12,7,0xFF191D2B);
         g.fillGradient(left+14,top+1,left+w-14,top+3,accent(),VisionMenuTheme.PURPLE);
-        g.drawString(font,"VISION",left+20,top+20,WHITE);
-        g.drawString(font,"2.0 / BETA",left+20,top+35,accent());
+        VisionFonts.draw(g,font,"VISION",left+20,top+20,WHITE);
+        VisionFonts.draw(g,font,"2.0 / BETA",left+20,top+35,accent());
         g.fill(left+16,top+59,left+w-16,top+60,0xFF303347);
         int step=Math.min(36,(h-108)/TABS.length);
         for(int i=0;i<TABS.length;i++)button(g,left+12,top+73+i*step,sidebar-4,step-3,
@@ -362,16 +368,19 @@ public final class VisionDashboardScreen extends Screen {
         long active=CATALOG.stream().filter(m->m.enabled.getAsBoolean()).count();
         textFit(g,search.getValue().isBlank()?TABS[category]:"РЕЗУЛЬТАТЫ",contentX,top+72,contentW-76,WHITE);
         String counter=modules.size()+" / "+active+" вкл.";
-        g.drawString(font,counter,contentX+contentW-font.width(counter),top+72,MUTED);
+        VisionFonts.draw(g,font,counter,contentX+contentW-VisionFonts.width(font,counter),top+72,MUTED);
         for(int i=0;i<cardsPerPage&&page*cardsPerPage+i<modules.size();i++){
             Module m=modules.get(page*cardsPerPage+i);
             int x=cardX(i),y=cardY(i),cw=cardWidth();
             boolean on=m.enabled.getAsBoolean(),hover=inside(mx,my,x,y,cw,60);
-            round(g,x,y,cw,60,6,hover?0xFF2E3048:0xFF202436);
-            g.fill(x+9,y+12,x+11,y+28,on?accent():0xFF57596E);
+            float target=on?1:0,position=switchPositions.getOrDefault(m,target);
+            position+=(target-position)*approach;switchPositions.put(m,position);
+            round(g,x-1,y-1,cw+2,62,7,hover?0xFF53546D:on?0xFF414458:0xFF2C3141);
+            round(g,x,y,cw,60,6,hover?0xFF2B3043:0xFF202535);
+            round(g,x+9,y+12,2,16,1,on?accent():0xFF57596E);
             textFit(g,m.title,x+18,y+12,cw-56,WHITE);
-            round(g,x+cw-32,y+11,22,12,6,on?0xFF68578E:0xFF43465B);
-            round(g,x+cw-(on?20:29),y+14,6,6,3,on?accent():0xFFB2B1C5);
+            round(g,x+cw-32,y+11,22,12,6,VisionGeometry.blendRgb(0xFF3B4052,VisionGeometry.blendRgb(accent(),0xFF202535,.5f),position));
+            round(g,x+cw-29+Math.round(9*position),y+14,6,6,3,VisionGeometry.blendRgb(0xFFB2B1C5,accent(),position));
             textFit(g,m.info,x+12,y+32,cw-24,MUTED);
             int bind=bindingId(m);
             textFit(g,bind>=0?VisionHotkeys.label(bind):"ПКМ · подробнее",x+12,y+47,cw-24,0xFF858BA6);
@@ -380,7 +389,8 @@ public final class VisionDashboardScreen extends Screen {
         int ny=top+h-48;
         button(g,contentX,ny,54,19,"<",page>0,mx,my);
         button(g,contentX+contentW-54,ny,54,19,">",page<maxPage(modules),mx,my);
-        g.drawCenteredString(font,(page+1)+" / "+(maxPage(modules)+1),contentX+contentW/2,ny+5,MUTED);
+        String pageLabel=(page+1)+" / "+(maxPage(modules)+1);
+        VisionFonts.draw(g,font,pageLabel,contentX+(contentW-VisionFonts.width(font,pageLabel))/2,ny+5,MUTED);
         int bw=(contentW-10)/2;
         button(g,contentX,top+h-24,bw,17,"Настройки",false,mx,my);
         button(g,contentX+bw+10,top+h-24,bw,17,"Тема  •",false,mx,my);
@@ -397,8 +407,8 @@ public final class VisionDashboardScreen extends Screen {
     }
     private void overlay(GuiGraphics g,String title){
         round(g,left+8,top+8,w-16,h-16,8,0xFF181C2D);
-        g.drawString(font,title,left+24,top+25,accent());
-        g.drawString(font,"×",left+w-30,top+24,MUTED);
+        VisionFonts.draw(g,font,title,left+24,top+25,accent());
+        VisionFonts.draw(g,font,"×",left+w-30,top+24,MUTED);
         g.fill(left+24,top+44,left+w-24,top+45,0xFF36384F);
     }
     private void renderModal(GuiGraphics g,int mx,int my){
@@ -437,7 +447,7 @@ public final class VisionDashboardScreen extends Screen {
         for(int i=0;i<2&&!remaining.isEmpty();i++){
             String part=font.plainSubstrByWidth(remaining,w-48);
             if(part.isEmpty())break;
-            g.drawString(font,part,left+24,y+i*13,MUTED);remaining=remaining.substring(part.length());
+            VisionFonts.draw(g,font,part,left+24,y+i*13,MUTED);remaining=remaining.substring(part.length());
         }
         String value=switch(details.title){
             case "Air Hearts","Snowflakes" -> "Режим: "+VisionExtras.ambientStyleLabel()+"  ·  Плотность: "+VisionExtras.ambientDensityLabel();

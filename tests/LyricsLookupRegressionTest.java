@@ -13,6 +13,16 @@ public final class LyricsLookupRegressionTest {
         String correct="{\"trackName\":\"Song\",\"artistName\":\"Artist\",\"duration\":200,\"syncedLyrics\":\"[00:00]Start\\n[00:01]Next\"}";
         var query=LyricsSearch.query("","Artist - Song (Official Video)");
         check(query.artist().equals("Artist")&&query.title().equals("Song"),"browser title normalized");
+        for(String separator:new String[]{" — "," – "," | "," - "}){
+            var sparse=LyricsSearch.query("","Artist"+separator+"Song [Official Music Video 4K]");
+            check(sparse.artist().equals("Artist")&&sparse.title().equals("Song"),"sparse browser separator "+separator);
+        }
+        check(LyricsSearch.query("Artist - Topic","Song").artist().equals("Artist"),"YouTube Topic channel normalized");
+        check(LyricsSearch.query("ArtistVEVO","Artist — Song").title().equals("Song"),"duplicated artist prefix removed");
+        check(LyricsSearch.query("Artist","Song — Яндекс Музыка").title().equals("Song"),"Yandex presentation suffix removed");
+        check(LyricsSearch.matches("Song","Artist",LyricsSearch.query("Artist","Song (Текст песни)")),"Russian lyric presentation label normalized");
+        check(!LyricsSearch.matches("Song (Live)","Artist",query),"live version remains distinct");
+        check(!LyricsSearch.matches("Song (Remix)","Artist",query),"remix version remains distinct");
         check(LyricsSearch.select(correct,query,200000).contains("Next"),"exact timed result selected");
         check(LyricsSearch.select(correct,query,240000).isEmpty(),"wrong song version rejected by duration");
         check(LyricsSearch.select(correct,LyricsSearch.query("Other","Song"),200000).isEmpty(),"wrong performer rejected");

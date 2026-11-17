@@ -5,13 +5,13 @@ import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.resources.Identifier;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.util.Mth;
-import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.Vec3;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.world.damagesource.DamageTypes;
+import net.minecraft.network.protocol.game.ClientboundDamageEventPacket;
+import net.minecraft.client.multiplayer.ClientLevel;
 
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -31,12 +31,21 @@ public final class VisionMotionEffects {
     private static final boolean[] ENABLED = new boolean[NAMES.length];
     private static final Path FILE = FabricLoader.getInstance().getConfigDir()
         .resolve("visionmod/motion-2.properties");
-    private static int tickCounter;
-    private static int hurtTargetId = -1;
     private static int streakTicks;
     private static float previousYaw;
-    private static int effectsCooldown;
-    private static int lastPierceHitSequence;
+    private static final SpearLungeTrigger LUNGE = new SpearLungeTrigger();
+    private static ClientLevel previousWorld;
+    private static int spearDuration=700, spearSize=100, spearColor=0xFFA89CFF;
+    public static int spearDuration(){return spearDuration;}
+    public static float spearSize(){return spearSize/100f;}
+    public static int spearColor(){return spearColor;}
+    public static void cycleSpearDuration(){spearDuration=spearDuration>=1100?400:spearDuration+350;save();}
+    public static void cycleSpearSize(){spearSize=spearSize>=150?75:spearSize+25;save();}
+    public static void setSpearColor(int color){spearColor=0xFF000000|(color&0xFFFFFF);save();}
+    public static void setSpearSettings(int duration,int percent,int color){
+        spearDuration=Math.clamp(duration,300,1500);spearSize=Math.clamp(percent,50,175);
+        spearColor=0xFF000000|(color&0xFFFFFF);save();
+    }
 
     private VisionMotionEffects() {}
     public static int count() { return NAMES.length; }
@@ -55,22 +64,45 @@ public final class VisionMotionEffects {
     public static void init() {
         load();
         ClientTickEvents.END_CLIENT_TICK.register(VisionMotionEffects::tick);
+        VisionSpearEffects.init();
         HudElementRegistry.addLast(Identifier.fromNamespaceAndPath("visionmod", "camera_streaks"),
             (g, tracker) -> render(g));
     }
-    private static boolean holdingSpear(Minecraft mc) {
-        return mc.player != null &&
-            (BuiltInRegistries.ITEM.getKey(mc.player.getMainHandItem().getItem()).getPath().endsWith("_spear") ||
-             BuiltInRegistries.ITEM.getKey(mc.player.getOffhandItem().getItem()).getPath().endsWith("_spear"));
+    public static void beforeLunge() {
+        Minecraft mc=Minecraft.getInstance();
+        if(enabled(2)&&mc.player!=null&&mc.player.getMainHandItem().has(DataComponents.PIERCING_WEAPON))
+            LUNGE.arm(mc.player.getDeltaMovement().horizontalDistance());
+    }
+    public static void afterLunge() { observeLunge(Minecraft.getInstance()); }
+    private static void observeLunge(Minecraft mc) {
+        boolean eligible=enabled(2)&&mc.player!=null&&mc.level!=null&&
+            mc.player.getMainHandItem().has(DataComponents.PIERCING_WEAPON);
+        if(LUNGE.sample(eligible?mc.player.getDeltaMovement().horizontalDistance():0,eligible)) {
+            Vec3 velocity=mc.player.getDeltaMovement();
+            VisionSpearEffects.emit(mc.player.position().add(0,.9,0),new Vec3(velocity.x,0,velocity.z),false);
+        }
+    }
+    /** Server damage attribution also covers the spear's held-use charge attack. */
+    public static void spearDamage(ClientboundDamageEventPacket packet) {
+        Minecraft mc=Minecraft.getInstance();
+        if(!enabled(3)||mc.player==null||mc.level==null||packet.sourceCauseId()!=mc.player.getId()||
+            !packet.sourceType().is(DamageTypes.PLAYER_ATTACK))return;
+        var stack=mc.player.isUsingItem()&&mc.player.getUseItem().has(DataComponents.KINETIC_WEAPON)?
+            mc.player.getUseItem():mc.player.getMainHandItem();
+        if(!stack.has(DataComponents.PIERCING_WEAPON))return;
+        var target=mc.level.getEntity(packet.entityId());
+        if(target==null||target==mc.player||target.distanceToSqr(mc.player)>100)return;
+        Vec3 contact=target.getBoundingBox().getCenter();
+        VisionSpearEffects.emit(contact,contact.subtract(mc.player.getEyePosition()),true);
     }
     private static void tick(Minecraft mc) {
         if (mc.player == null || mc.level == null || !VisionModClient.enabled) {
-            tickCounter = 0; effectsCooldown = 0; streakTicks = 0; hurtTargetId = -1;
-            lastPierceHitSequence = VisionCombatTracker.hitSequence();
-            if (mc.player != null) previousYaw = mc.player.getYRot();
+            streakTicks=0;LUNGE.reset();VisionSpearEffects.reset();previousWorld=null;
+            if(mc.player!=null)previousYaw=mc.player.getYRot();
             return;
         }
-        if (effectsCooldown > 0) effectsCooldown--;
+        if(previousWorld!=mc.level){LUNGE.reset();VisionSpearEffects.reset();previousWorld=mc.level;previousYaw=mc.player.getYRot();}
+        observeLunge(mc);
         if (streakTicks > 0) streakTicks--;
         if (enabled(4)) {
             float difference = Math.abs(Mth.wrapDegrees(mc.player.getYRot() - previousYaw));
@@ -78,38 +110,6 @@ public final class VisionMotionEffects {
         }
         previousYaw = mc.player.getYRot();
 
-        // Never replay an old hit after changing equipment or enabling the FX.
-        int currentHitSequence = VisionCombatTracker.hitSequence();
-        if (!holdingSpear(mc) || (!enabled(2) && !enabled(3))) {
-            lastPierceHitSequence = currentHitSequence;
-            return;
-        }
-
-        if (enabled(2) && ++tickCounter >= 4) {
-            tickCounter = 0;
-            Vec3 velocity = mc.player.getDeltaMovement();
-            if (velocity.horizontalDistanceSqr() > 0.0075 && mc.player.onGround()) {
-                Vec3 behind = mc.player.position().subtract(velocity.normalize().scale(.55));
-                VisionParticles.spawn(mc.level, ParticleTypes.CLOUD,
-                    behind.x, behind.y + .14, behind.z,
-                    -velocity.x * .12, .015, -velocity.z * .12);
-            }
-        }
-        if (currentHitSequence != lastPierceHitSequence) {
-            lastPierceHitSequence = currentHitSequence;
-            if (enabled(3) && effectsCooldown == 0) {
-                Vec3 p = VisionCombatTracker.hitPosition();
-                if (p != null && p.distanceToSqr(mc.player.position()) < 64.0) {
-                    effectsCooldown = 8;
-                    for (int i = 0; i < 4; i++) {
-                        double a = i * Math.PI * .5;
-                        VisionParticles.spawn(mc.level, ParticleTypes.CRIT,
-                            p.x + Math.cos(a) * .3, p.y + .1, p.z + Math.sin(a) * .3,
-                            Math.cos(a) * .08, .04, Math.sin(a) * .08);
-                    }
-                }
-            }
-        }
     }
     private static void render(GuiGraphics g) {
         Minecraft mc = Minecraft.getInstance();
@@ -133,6 +133,9 @@ public final class VisionMotionEffects {
             p.load(in);
             for (int i = 0; i < ENABLED.length; i++)
                 ENABLED[i] = Boolean.parseBoolean(p.getProperty("motion." + i,"false"));
+            spearDuration=Math.clamp(Integer.parseInt(p.getProperty("spearDuration","700")),300,1500);
+            spearSize=Math.clamp(Integer.parseInt(p.getProperty("spearSize","100")),50,175);
+            spearColor=VisionWorldEffects.parseTrailColor(p.getProperty("spearColor","#A89CFF"));
         } catch (Exception e) {
             System.err.println("[VisionMod] Motion options load failed: " + e);
         }
@@ -141,6 +144,9 @@ public final class VisionMotionEffects {
         Properties p = new Properties();
         for (int i = 0; i < ENABLED.length; i++)
             p.setProperty("motion." + i, Boolean.toString(ENABLED[i]));
+        p.setProperty("spearDuration",Integer.toString(spearDuration));
+        p.setProperty("spearSize",Integer.toString(spearSize));
+        p.setProperty("spearColor",VisionWorldEffects.trailColorHex(spearColor));
         try {
             Files.createDirectories(FILE.getParent());
             try (OutputStream out = Files.newOutputStream(FILE)) {

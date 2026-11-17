@@ -69,7 +69,7 @@ public final class VisionWorldLyrics {
         Vec3 relative=lastAnchor.subtract(camera.position());
         if(relative.lengthSqr()<.65*.65)return;
         // Physical width and orientation belong to the model, not to the viewport.
-        var rows=mc.font.split(Component.literal(text),160);
+        var rows=mc.font.split(VisionFonts.text(text),160);
         Vec3 forward=Vec3.directionFromRotation(0,lastPose.yaw());
         boolean back=camera.position().subtract(lastAnchor).dot(forward)>0;
         PoseStack pose=ctx.matrices();pose.pushPose();

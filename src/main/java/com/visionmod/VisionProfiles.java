@@ -68,6 +68,9 @@ public final class VisionProfiles {
         data.addProperty("trailMode",VisionWorldEffects.trailMode());
         data.addProperty("trailWidth",VisionWorldEffects.trailWidth());
         data.addProperty("trailOpacity",VisionWorldEffects.trailOpacity());
+        data.addProperty("spearDuration",VisionMotionEffects.spearDuration());
+        data.addProperty("spearSize",Math.round(VisionMotionEffects.spearSize()*100));
+        data.addProperty("spearColor",VisionWorldEffects.trailColorHex(VisionMotionEffects.spearColor()));
         data.addProperty("ambientStyle",VisionExtras.ambientStyle);
         data.addProperty("ambientDensity",VisionExtras.ambientDensity);
         data.addProperty("petColor",String.format("#%06X",VisionExtendedFeatures.petColor()&0xFFFFFF));
@@ -175,6 +178,9 @@ public final class VisionProfiles {
         int soundPreset=optionalChoice(data,"soundPreset",VisionExtendedFeatures.soundPreset(),0,1,2);
         float trailWidth=optionalFloat(data,"trailWidth",VisionWorldEffects.trailWidth(),.04f,.30f);
         int trailOpacity=optionalRange(data,"trailOpacity",VisionWorldEffects.trailOpacity(),30,250);
+        int spearDuration=optionalRange(data,"spearDuration",VisionMotionEffects.spearDuration(),300,1500);
+        int spearSize=optionalRange(data,"spearSize",Math.round(VisionMotionEffects.spearSize()*100),50,175);
+        int spearColor=optionalHex(data,"spearColor",VisionMotionEffects.spearColor());
         int ambientStyle=optionalChoice(data,"ambientStyle",VisionExtras.ambientStyle,0,1);
         int ambientDensity=optionalChoice(data,"ambientDensity",VisionExtras.ambientDensity,1,2,3);
         int petColor=optionalHex(data,"petColor",VisionExtendedFeatures.petColor());
@@ -265,6 +271,7 @@ public final class VisionProfiles {
                 throw new IllegalArgumentException("Unsupported zoom factor");
         }
         VisionWorldEffects.setTrailWidth(trailWidth);VisionWorldEffects.setTrailOpacity(trailOpacity);
+        VisionMotionEffects.setSpearSettings(spearDuration,spearSize,spearColor);
         VisionExtras.ambientStyle=ambientStyle;VisionExtras.ambientDensity=ambientDensity;
         VisionExtendedFeatures.setPetColor(petColor);VisionExtendedFeatures.setWorldColor(worldColor);
         VisionAppearance.brightness=brightness;VisionAppearance.handScale=handScale;
