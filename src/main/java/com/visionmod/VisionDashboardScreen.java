@@ -300,7 +300,8 @@ public final class VisionDashboardScreen extends Screen {
         left=(width-w)/2;top=(height-h)/2;
         contentX=left+sidebar+22;contentW=layout.contentWidth();
         columns=layout.columns();rows=layout.rows();cardsPerPage=layout.cards();
-        search=new EditBox(font,contentX,top+21,contentW,20,Component.literal("Поиск"));
+        search=new EditBox(font,contentX+9,top+26,contentW-18,20,Component.literal("Поиск"));
+        search.setBordered(false);
         search.setMaxLength(48);search.setHint(VisionFonts.text("Найти модуль…"));
         search.setValue(previousQuery);
         search.setResponder(value->{page=0;cachedQuery=null;});
@@ -359,6 +360,9 @@ public final class VisionDashboardScreen extends Screen {
         g.fillGradient(left+14,top+1,left+w-14,top+3,accent(),VisionMenuTheme.PURPLE);
         VisionFonts.draw(g,font,"VISION",left+20,top+20,WHITE);
         VisionFonts.draw(g,font,"2.0 / BETA",left+20,top+35,accent());
+        round(g,contentX-1,top+16,contentW+2,31,6,
+            search.isFocused()?VisionGeometry.blendRgb(accent(),0xFF202535,.5f):0xFF383E52);
+        round(g,contentX,top+17,contentW,29,5,0xFF202535);
         g.fill(left+16,top+59,left+w-16,top+60,0xFF303347);
         int step=Math.min(36,(h-108)/TABS.length);
         for(int i=0;i<TABS.length;i++)button(g,left+12,top+73+i*step,sidebar-4,step-3,

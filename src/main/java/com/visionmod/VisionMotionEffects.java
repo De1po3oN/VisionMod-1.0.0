@@ -12,6 +12,7 @@ import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.damagesource.DamageTypes;
 import net.minecraft.network.protocol.game.ClientboundDamageEventPacket;
 import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.world.item.enchantment.Enchantments;
 
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -72,15 +73,20 @@ public final class VisionMotionEffects {
         Minecraft mc=Minecraft.getInstance();
         LUNGE.reset();
         if(enabled(2)&&mc.player!=null&&mc.player.getMainHandItem().has(DataComponents.PIERCING_WEAPON)){
-            Vec3 velocity=mc.player.getDeltaMovement();LUNGE.arm(velocity.x,velocity.z);
+            boolean enchanted=mc.player.getMainHandItem().getEnchantments().entrySet().stream()
+                .anyMatch(entry->entry.getKey().is(Enchantments.LUNGE)&&entry.getIntValue()>0);
+            if(enchanted){
+                Vec3 view=mc.player.getLookAngle();
+                LUNGE.arm(mc.player.getX(),mc.player.getZ(),view.x,view.z,
+                    Math.hypot(mc.player.getX()-mc.player.xo,mc.player.getZ()-mc.player.zo));
+            }
         }
     }
     public static void afterLunge() { observeLunge(Minecraft.getInstance()); }
     private static void observeLunge(Minecraft mc) {
         boolean eligible=enabled(2)&&mc.player!=null&&mc.level!=null&&
             mc.player.getMainHandItem().has(DataComponents.PIERCING_WEAPON);
-        Vec3 velocity=eligible?mc.player.getDeltaMovement():Vec3.ZERO;
-        var impulse=LUNGE.finish(velocity.x,velocity.z,eligible);
+        var impulse=LUNGE.sample(eligible?mc.player.getX():0,eligible?mc.player.getZ():0,eligible);
         if(impulse!=null) {
             VisionSpearEffects.emit(mc.player.position().add(0,.9,0),new Vec3(impulse.x(),0,impulse.z()),false);
         }
@@ -105,6 +111,8 @@ public final class VisionMotionEffects {
             return;
         }
         if(previousWorld!=mc.level){LUNGE.reset();VisionSpearEffects.reset();previousWorld=mc.level;previousYaw=mc.player.getYRot();}
+        // Vanilla can defer the lunge's movement until the following client tick.
+        observeLunge(mc);
         if (streakTicks > 0) streakTicks--;
         if (enabled(4)) {
             float difference = Math.abs(Mth.wrapDegrees(mc.player.getYRot() - previousYaw));

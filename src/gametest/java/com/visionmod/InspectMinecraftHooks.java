@@ -6,7 +6,7 @@ import org.objectweb.asm.tree.*;
 /** Prints the actual mapped call sites before launching the integration test. */
 public final class InspectMinecraftHooks {
     public static void main(String[] args)throws Exception{
-        for(String name:new String[]{"net/minecraft/world/entity/player/Player","net/minecraft/client/player/LocalPlayer","net/minecraft/client/multiplayer/MultiPlayerGameMode","net/minecraft/client/multiplayer/ClientPacketListener","net/minecraft/network/protocol/game/ClientboundSetEntityMotionPacket"}){
+        for(String name:new String[]{"net/minecraft/world/entity/Avatar","net/minecraft/world/entity/player/Player","net/minecraft/client/player/LocalPlayer","net/minecraft/client/multiplayer/MultiPlayerGameMode","net/minecraft/client/multiplayer/ClientPacketListener","net/minecraft/network/protocol/game/ClientboundSetEntityMotionPacket"}){
             try(var in=InspectMinecraftHooks.class.getClassLoader().getResourceAsStream(name+".class")){
                 ClassNode node=new ClassNode();new ClassReader(in).accept(node,ClassReader.SKIP_DEBUG);
                 for(MethodNode method:node.methods){
