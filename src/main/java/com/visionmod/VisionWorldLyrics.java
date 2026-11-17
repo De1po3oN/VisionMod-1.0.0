@@ -19,6 +19,7 @@ public final class VisionWorldLyrics {
     private static long renderedFrames;
     private static Vec3 lastAnchor;
     private static String lastRenderedText="";
+    private static int lastRenderedRows;
     private static final WorldLyricMotion MOTION=new WorldLyricMotion();
     private static LocalPlayer trackedPlayer;
     private static ClientLevel trackedWorld;
@@ -75,11 +76,12 @@ public final class VisionWorldLyrics {
             // Switch front/back faces of a vertical card; never billboard toward the camera.
             pose.mulPose(Axis.YP.rotationDegrees(180-lastPose.yaw()+(back?180:0)));
             pose.scale(SCALE,-SCALE,SCALE);
-            int count=Math.min(3,rows.size());
+            int count=rows.size();lastRenderedRows=0;
             for(int i=0;i<count;i++) {
                 var row=rows.get(i);
-                mc.font.drawInBatch(row,-mc.font.width(row)*.5f,i*11,0xFFF4F1FF,true,
+                mc.font.drawInBatch(row,-mc.font.width(row)*.5f,(i-(count-1)*.5f)*11,0xFFF4F1FF,true,
                     pose.last().pose(),TEXT_BUFFERS,Font.DisplayMode.NORMAL,0,VisionGeometry.FULL_BRIGHT);
+                lastRenderedRows++;
             }
             TEXT_BUFFERS.endBatch();
             renderedFrames++;
@@ -90,4 +92,5 @@ public final class VisionWorldLyrics {
     static Vec3 lastAnchor(){return lastAnchor;}
     static WorldLyricMotion.Pose lastPose(){return lastPose;}
     static String lastRenderedText(){return lastRenderedText;}
+    static int lastRenderedRows(){return lastRenderedRows;}
 }

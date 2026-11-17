@@ -46,6 +46,9 @@ final class VisionLyricsPresenceGameTest {
         });context.waitTicks(2);
         long blank=context.computeOnClient(mc->VisionWorldLyrics.renderedFrames());context.waitTicks(2);
         context.runOnClient(mc->check(blank==VisionWorldLyrics.renderedFrames(),"Instrumental gap submitted a placeholder world panel"));
+        context.runOnClient(mc->VisionLyricsSource.setMediaLyrics("Artist","Synced song","[00:00]"+"Слова песни ".repeat(10).strip()));context.waitTicks(2);
+        context.runOnClient(mc->check(VisionWorldLyrics.lastRenderedRows()>3,"A long timed line was truncated to three render rows"));
+        VisualWorldGameTest.capture(context,"26-complete-long-lyric-line");
         context.runOnClient(mc->{
             var plain=new LyricsResult("","First plain line\nSecond plain line","Fixture");
             VisionLyricsSource.setMediaLyrics("Artist","Synced song",plain);
