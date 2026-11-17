@@ -1,6 +1,7 @@
 import com.visionmod.VisionLyricsSource;
 import com.visionmod.VisionLyricsLookup;
 import com.visionmod.SystemMediaTrack;
+import com.visionmod.LyricsResult;
 import java.nio.file.*;
 public class LyricsSourceTest {
     private static int checks;
@@ -10,7 +11,7 @@ public class LyricsSourceTest {
         check(!VisionLyricsSource.mediaConnected(),"no phantom connection");
         check(VisionLyricsSource.current()==null,"empty source has no invented words");
         VisionLyricsSource.receiveMediaTrack("Spotify","Artist","Song",1600,true);
-        check(VisionLyricsSource.current().contains("Song"),"title fallback before lookup");
+        check(VisionLyricsSource.current().isEmpty(),"title is not presented as song lyrics while lookup is pending");
         VisionLyricsSource.setMediaLyrics("Artist","Song","[00:00.00]First\n[00:01.50]Second\n[00:02.00]Third");
         check(VisionLyricsSource.current().equals("Second"),"paused playback position");
         Thread.sleep(100);
@@ -18,7 +19,7 @@ public class LyricsSourceTest {
         VisionLyricsSource.receiveMediaTrack("Spotify","Artist","Song",0,true);
         check(VisionLyricsSource.current().equals("First"),"seek backwards");
         VisionLyricsSource.receiveMediaTrack("Spotify","Other Artist","Next",0,true);
-        check(VisionLyricsSource.current().contains("Next"),"new track clears old lyric");
+        check(VisionLyricsSource.current().isEmpty(),"new track clears old lyric without a title substitute");
         VisionLyricsSource.setMediaLyrics("Artist","Song","[00:00]STALE");
         check(!VisionLyricsSource.current().contains("STALE"),"late response cannot replace new song");
         VisionLyricsSource.receiveMediaTrack("Spotify","Other Artist","Next",0,false);
@@ -31,7 +32,22 @@ public class LyricsSourceTest {
         VisionLyricsSource.receiveMediaTrack(new SystemMediaTrack("Spotify","Next","Other Artist",0,false,1000,2,true),System.nanoTime()-100_000_000);
         check(VisionLyricsSource.current().equals("Advance"),"capture timestamp and playback rate survive client queue delay");
         VisionLyricsSource.receiveMediaTrack(new SystemMediaTrack("Spotify","Next","Other Artist",0,false,1000,1,false),System.nanoTime());
-        check(VisionLyricsSource.current().contains("Next")&&VisionLyricsSource.progress()<0,"missing player position does not claim sync");
+        check(VisionLyricsSource.current().equals("Start")&&VisionLyricsSource.plainMode()&&VisionLyricsSource.progress()<0,"missing player position exposes actual words without claiming sync");
+        VisionLyricsSource.movePlainLine(1);
+        check(VisionLyricsSource.current().equals("Advance"),"untimed words can be read without inventing playback timing");
+        VisionLyricsSource.setMediaLyrics("Other Artist","Next",new LyricsResult("","Одна строка\nДругая строка","Test provider"));
+        check(VisionLyricsSource.plainMode()&&VisionLyricsSource.current().equals("Одна строка"),"plain lyrics work even without an LRC timeline");
+        VisionLyricsSource.movePlainLine(-1);
+        check(VisionLyricsSource.current().equals("Другая строка"),"plain line navigation wraps safely");
+        VisionLyricsSource.receiveMediaTrack("Spotify","Other Artist","Next",0,true);
+        VisionLyricsSource.setMediaLyrics("Other Artist","Next",new LyricsResult("[00:00]Timed","Plain alternative","Test provider"));
+        check(VisionLyricsSource.current().equals("Timed")&&!VisionLyricsSource.plainMode(),"real timed lyrics take priority over plain alternatives");
+        VisionLyricsSource.receiveMediaTrack(new SystemMediaTrack("YandexMusic","Same Song","Same Artist",0,true,1000,1,true,"https://music.yandex.ru/album/1/track/123?from=one"),System.nanoTime());
+        VisionLyricsSource.setMediaLyrics("Same Artist","Same Song","[00:00]Stable words");
+        VisionLyricsSource.receiveMediaTrack(new SystemMediaTrack("YandexMusic","Same Song","Same Artist",0,true,1000,1,true,"https://music.yandex.ru/album/1/track/123?from=two"),System.nanoTime());
+        check(VisionLyricsSource.current().equals("Stable words"),"Yandex URL tracking parameters cannot erase the current lyric");
+        VisionLyricsSource.receiveMediaTrack(new SystemMediaTrack("YandexMusic","Same Song","Same Artist",0,true,1000,1,true,"https://music.yandex.ru/album/1/track/124"),System.nanoTime());
+        check(VisionLyricsSource.current().isEmpty(),"a different Yandex track ID invalidates the old words even with identical labels");
         VisionLyricsSource.clearMediaTrack();VisionLyricsLookup.clear();
         check(!VisionLyricsSource.mediaConnected(),"off clears media");
         Files.createDirectories(dir.resolve("visionmod"));

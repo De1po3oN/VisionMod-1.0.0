@@ -17,8 +17,19 @@ $manager = Await ([Windows.Media.Control.GlobalSystemMediaTransportControlsSessi
 while ($true) {
     try {
         $session = $manager.GetCurrentSession()
+        $currentSource = if ($null -eq $session) { '' } else { [string]$session.SourceAppUserModelId }
+        $bestScore = -1
+        $checked = 0
         foreach ($candidate in $manager.GetSessions()) {
-            if ($candidate.GetPlaybackInfo().PlaybackStatus.ToString() -eq 'Playing') { $session = $candidate; break }
+            $checked += 1
+            if ($checked -gt 8) { break }
+            try {
+                $source = [string]$candidate.SourceAppUserModelId
+                $score = if ($candidate.GetPlaybackInfo().PlaybackStatus.ToString() -eq 'Playing') { 100 } else { 0 }
+                if ($source -match '(?i)(yandex.*music|music.*yandex)') { $score += 20 }
+                if ($source -eq $currentSource) { $score += 1 }
+                if ($score -gt $bestScore) { $bestScore = $score; $session = $candidate }
+            } catch { continue } # A player may close while the sessions are enumerated.
         }
         if ($null -eq $session) {
             [Console]::WriteLine('{}')
@@ -44,7 +55,7 @@ while ($true) {
             [Console]::WriteLine(($payload | ConvertTo-Json -Compress))
         }
     } catch {
-        [Console]::WriteLine('{"error":"Media session unavailable"}')
+        [Console]::WriteLine('{}') # Transient session change; poll again without restarting the worker.
     }
     Start-Sleep -Milliseconds 500
 }

@@ -31,8 +31,8 @@ final class VisionLyricsPresenceGameTest {
             String fixture="[00:01.00]FIRST TIMED LINE\n[00:02.00]SECOND TIMED LINE\n[00:03.00]";
             try{
                 var field=VisionLyricsLookup.class.getDeclaredField("CACHE");field.setAccessible(true);
-                @SuppressWarnings("unchecked") var cache=(java.util.Map<String,String>)field.get(null);
-                cache.put("Artist\nSynced song\n0",fixture);
+                @SuppressWarnings("unchecked") var cache=(java.util.Map<String,LyricsResult>)field.get(null);
+                cache.put("Artist\nSynced song\n0",new LyricsResult(fixture,"","Fixture"));
             }catch(ReflectiveOperationException error){throw new AssertionError(error);}
             VisionLyricsSource.setMediaLyrics("Artist","Synced song",fixture);
         });context.waitTicks(1);
@@ -46,6 +46,27 @@ final class VisionLyricsPresenceGameTest {
         });context.waitTicks(2);
         long blank=context.computeOnClient(mc->VisionWorldLyrics.renderedFrames());context.waitTicks(2);
         context.runOnClient(mc->check(blank==VisionWorldLyrics.renderedFrames(),"Instrumental gap submitted a placeholder world panel"));
+        context.runOnClient(mc->{
+            var plain=new LyricsResult("","First plain line\nSecond plain line","Fixture");
+            VisionLyricsSource.setMediaLyrics("Artist","Synced song",plain);
+            try{
+                var field=VisionLyricsLookup.class.getDeclaredField("CACHE");field.setAccessible(true);
+                @SuppressWarnings("unchecked") var cache=(java.util.Map<String,LyricsResult>)field.get(null);cache.put("Artist\nSynced song\n0",plain);
+            }catch(ReflectiveOperationException error){throw new AssertionError(error);}
+        });context.waitTicks(2);
+        context.runOnClient(mc->check(VisionLyricsSource.plainMode()&&VisionLyricsSource.progress()<0&&VisionWorldLyrics.lastRenderedText().equals("First plain line"),"Plain words were lost or presented as timed lyrics"));
+        context.setScreen(VisionLyricsScreen::new);context.waitTicks(2);
+        double[] next=context.computeOnClient(mc->{var screen=(VisionLyricsScreen)mc.screen;int half=(screen.w-42)/2;return new double[]{screen.x+26+half+half-15,screen.layout.bodyBottom()-36};});
+        GuiTestInput.click(context,next[0],next[1],0);context.waitTicks(2);
+        context.runOnClient(mc->check(VisionLyricsSource.plainLineIndex()==1&&VisionWorldLyrics.lastRenderedText().equals("Second plain line"),"Real plain-line GUI control did not update the world model"));
+        double[] yandex=context.computeOnClient(mc->{var screen=(VisionLyricsScreen)mc.screen;return new double[]{screen.x+30,screen.layout.bodyBottom()-36};});
+        GuiTestInput.click(context,yandex[0],yandex[1],0);context.waitTicks(2);
+        context.runOnClient(mc->{
+            check(mc.screen instanceof VisionYandexScreen,"Yandex access editor did not open");
+            var box=(net.minecraft.client.gui.components.EditBox)GuiTestInput.field(mc.screen,"token");box.setValue("fixture-token-never-submitted");box.setFocused(false);
+            check(!YandexMusicAccess.connected(),"Editing a token field submitted it before connection");
+        });
+        VisualWorldGameTest.capture(context,"25-yandex-access-editor");context.setScreen(()->null);
         context.runOnClient(mc->{VisionLyricsSource.clearMediaTrack();VisionExtendedFeatures.setCustomText("");mc.options.hideGui=false;});
         context.waitFor(mc->VisionPresenceClient.confirmed(mc.player.getUUID()),100);
         context.runOnClient(mc->{
@@ -79,6 +100,6 @@ final class VisionLyricsPresenceGameTest {
             catch(ReflectiveOperationException error){throw new AssertionError(error);}
         });
         context.waitFor(mc->VisionPresenceClient.confirmed(mc.player.getUUID()),100);
-        System.out.println("[VisionMod][LYRICS_PRESENCE] PASS: player-anchored world plane, immediate timed seek, blank interval, server handshake/withdraw/restore, real name tag/TAB hooks and unknown-player exclusion");
+        System.out.println("[VisionMod][LYRICS_PRESENCE] PASS: player-anchored world plane, immediate timed seek, blank interval, plain words and actual paging/Yandex editor, server handshake/withdraw/restore, real name tag/TAB hooks and unknown-player exclusion");
     }
 }

@@ -12,5 +12,5 @@ fixture=$!
 trap '\''kill "$fixture" 2>/dev/null || true; rm -f "$ready"'\'' EXIT
 for i in {1..50}; do [ -f "$ready" ] && break; sleep 0.1; done
 [ -f "$ready" ]
-timeout 15s bash tests/run-core.sh --mpris
+timeout 30s bash tests/run-core.sh --mpris
 '

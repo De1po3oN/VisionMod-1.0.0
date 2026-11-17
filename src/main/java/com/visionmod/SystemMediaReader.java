@@ -52,7 +52,7 @@ public final class SystemMediaReader implements AutoCloseable {
                     doc.get("positionMs").getAsLong(),doc.get("paused").getAsBoolean(),
                     doc.has("durationMs")?doc.get("durationMs").getAsLong():0,
                     doc.has("rate")?doc.get("rate").getAsDouble():1,
-                    !doc.has("positionKnown")||doc.get("positionKnown").getAsBoolean()));
+                    !doc.has("positionKnown")||doc.get("positionKnown").getAsBoolean(),text(doc,"url")));
             }
         }
     }
@@ -86,8 +86,8 @@ public final class SystemMediaReader implements AutoCloseable {
                         "/org/mpris/MediaPlayer2","--method","org.freedesktop.DBus.Properties.GetAll","org.mpris.MediaPlayer2.Player");
                     SystemMediaTrack track=SystemMediaTrack.fromMpris(source,data);
                     if(track.title().isBlank())continue;
-                    if(choice==null||!track.paused())choice=track;
-                    if(!track.paused())break;
+                    if(choice==null||track.selectionScore()>choice.selectionScore())choice=track;
+                    if(track.selectionScore()==5)break;
                 }catch(java.io.IOException ignored){ /* A player may close during enumeration. */ }
             }
             sink.accept(choice);Thread.sleep(500);

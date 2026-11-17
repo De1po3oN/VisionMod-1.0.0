@@ -33,7 +33,7 @@ public final class VisionMediaSession {
             }
             VisionLyricsLookup.tick();
         });
-        ClientLifecycleEvents.CLIENT_STOPPING.register(mc->{stop();WORKER.shutdownNow();});
+        ClientLifecycleEvents.CLIENT_STOPPING.register(mc->{stop();YandexMusicAccess.disconnect();WORKER.shutdownNow();});
     }
     private static boolean active(int current){return current==generation&&!Thread.currentThread().isInterrupted();}
     private static void stop(){
@@ -68,7 +68,7 @@ public final class VisionMediaSession {
             if(track==null||track.title().isBlank()){
                 status="Включи музыку в браузере или плеере";VisionLyricsSource.clearMediaTrack();return;
             }
-            status=track.paused()?"Музыка на паузе":"Музыка подключена";
+            status=track.serviceName()+(track.paused()?" · пауза":" · подключено");
             VisionLyricsSource.receiveMediaTrack(track,observedNanos);
         });
     }

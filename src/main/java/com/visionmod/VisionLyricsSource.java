@@ -16,6 +16,10 @@ public final class VisionLyricsSource {
     private static long mediaDurationMs;
     private static double mediaRate=1;
     private static boolean mediaPaused,mediaPositionKnown=true;
+    private static java.util.List<String> plainLines=java.util.List.of();
+    private static int plainIndex;
+    private static String lyricProvider="";
+    private static String mediaUrl="";
     private VisionLyricsSource() {}
 
     public static String fileLocation() { return FILE.toString(); }
@@ -25,32 +29,47 @@ public final class VisionLyricsSource {
     }
     public static boolean active() { return mediaConnected() || !timeline.isEmpty(); }
     public static String status() {
-        if (mediaConnected()) return !mediaPositionKnown?"Плеер не передаёт позицию песни":mediaLines.isEmpty() ? "Трек подключён · ищем текст" :
-            mediaPaused ? "Пауза" : "Текст синхронизирован";
+        if (mediaConnected()) {
+            if(plainMode())return "Без таймкодов · строка "+(plainIndex+1)+"/"+plainLines.size()+" · "+lyricProvider;
+            return !mediaPositionKnown?"Плеер не передаёт позицию песни":mediaLines.isEmpty()&&timeline.isEmpty()?"Трек подключён · ищем слова":
+                (mediaPaused?"Пауза":"Строки синхронизированы")+(mediaLines.isEmpty()&&!timeline.isEmpty()?" · локальный LRC":lyricProvider.isEmpty()?"":" · "+lyricProvider);
+        }
         return !timeline.isEmpty() ? "Локальный LRC" : "Включи музыку в браузере";
     }
     public static String trackLabel() { return mediaTitle + (mediaArtist.isBlank() ? "" : " — " + mediaArtist); }
     public static String artist() { return mediaArtist; }
     public static String title() { return mediaTitle; }
     public static long durationMs(){return mediaDurationMs;}
+    public static String sourceUrl(){return mediaUrl;}
     public static boolean positionKnown(){return mediaPositionKnown;}
     public static void receiveMediaTrack(String provider, String artist, String title, long positionMs, boolean paused) {
         receiveMediaTrack(new SystemMediaTrack(provider,title,artist,positionMs,paused),System.nanoTime());
     }
     public static void receiveMediaTrack(SystemMediaTrack track,long observedNanos){
-        boolean changed=!track.artist().equals(mediaArtist)||!track.title().equals(mediaTitle)||!track.provider().equals(mediaProvider);
-        mediaArtist=track.artist();mediaTitle=track.title();mediaProvider=track.provider();
+        String oldId=YandexLyricsClient.trackId(mediaUrl),newId=YandexLyricsClient.trackId(track.sourceUrl());
+        boolean urlChanged=!newId.isEmpty()&&!oldId.isEmpty()?!newId.equals(oldId):!track.sourceUrl().equals(mediaUrl);
+        boolean changed=!track.artist().equals(mediaArtist)||!track.title().equals(mediaTitle)||!track.provider().equals(mediaProvider)||urlChanged;
+        mediaArtist=track.artist();mediaTitle=track.title();mediaProvider=track.provider();mediaUrl=track.sourceUrl();
         mediaPositionMs=track.positionMs();mediaPaused=track.paused();mediaDurationMs=track.durationMs();
         mediaRate=track.playbackRate();mediaPositionKnown=track.positionKnown();
         mediaReceivedNanos=Math.min(System.nanoTime(),observedNanos);
-        if (changed) { mediaLines = LrcTimeline.EMPTY; VisionLyricsLookup.trackChanged(); }
+        if (changed) { mediaLines = LrcTimeline.EMPTY;plainLines=java.util.List.of();plainIndex=0;lyricProvider="";VisionLyricsLookup.trackChanged(); }
     }
     public static void setMediaLyrics(String artist, String title, String lrc) {
-        if (artist.equals(mediaArtist) && title.equals(mediaTitle)) mediaLines = LrcTimeline.parse(lrc);
+        setMediaLyrics(artist,title,new LyricsResult(lrc,"","LRC"));
     }
+    public static void setMediaLyrics(String artist,String title,LyricsResult lyrics){
+        if(artist.equals(mediaArtist)&&title.equals(mediaTitle)){
+            mediaLines=LrcTimeline.parse(lyrics.timed());plainLines=lyrics.plainLines();plainIndex=0;lyricProvider=lyrics.source();
+        }
+    }
+    public static boolean plainMode(){return mediaConnected()&&(!mediaPositionKnown||(mediaLines.isEmpty()&&timeline.isEmpty()))&&!plainLines.isEmpty();}
+    public static int plainLineCount(){return plainLines.size();}
+    public static int plainLineIndex(){return plainIndex;}
+    public static void movePlainLine(int direction){if(!plainLines.isEmpty())plainIndex=Math.floorMod(plainIndex+direction,plainLines.size());}
     public static void clearMediaTrack() {
-        mediaArtist = mediaTitle = mediaProvider = "";
-        mediaLines = LrcTimeline.EMPTY; mediaReceivedNanos = 0; VisionLyricsLookup.trackChanged();
+        mediaArtist = mediaTitle = mediaProvider = mediaUrl = "";
+        mediaLines = LrcTimeline.EMPTY;plainLines=java.util.List.of();plainIndex=0;lyricProvider="";mediaReceivedNanos = 0; VisionLyricsLookup.trackChanged();
     }
     private static long livePosition() {
         long position=mediaPositionMs+(mediaPaused?0:(long)(Math.max(0,(System.nanoTime()-mediaReceivedNanos)/1_000_000.0)*mediaRate));
@@ -73,7 +92,8 @@ public final class VisionLyricsSource {
         poll();
         if (mediaConnected()) {
             LrcTimeline selected=mediaLines.isEmpty()?timeline:mediaLines;
-            if(!mediaPositionKnown||selected.isEmpty())return "♪ "+trackLabel();
+            if(plainMode())return plainLines.get(plainIndex);
+            if(!mediaPositionKnown||selected.isEmpty())return "";
             String line=selected.at(livePosition());
             return line==null?"":line;
         }

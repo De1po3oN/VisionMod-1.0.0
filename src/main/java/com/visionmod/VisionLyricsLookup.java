@@ -1,24 +1,21 @@
 package com.visionmod;
 
+import com.google.gson.*;
 import net.minecraft.client.Minecraft;
 import java.net.URI;
-import java.net.URLEncoder;
-import java.net.http.*;
-import java.nio.charset.StandardCharsets;
-import java.time.Duration;
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.*;
+import java.util.concurrent.atomic.*;
 
-/** Timed lyrics only; exact lookup with a bounded search fallback, all state on the client thread. */
+/** Multiple bounded providers; real timestamps are preferred over plain words. */
 public final class VisionLyricsLookup {
-    private static final HttpClient HTTP=HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(3)).build();
-    private static final URI SERVICE=URI.create("https://lrclib.net");
-    private static final Map<String,String> CACHE=new LinkedHashMap<>();
+    private static final URI SERVICE=URI.create("https://lrclib.net"),YANDEX=URI.create("https://api.music.yandex.net"),PLAIN=URI.create("https://api.lyrics.ovh");
+    private static final Map<String,LyricsResult> CACHE=new LinkedHashMap<>();
     private static String appliedKey="",status="";
     private static boolean pending;
     private static long retryAt;
     private static int generation;
-    private static CompletableFuture<String> inFlight;
+    private static CompletableFuture<LyricsResult> inFlight;
     private VisionLyricsLookup(){}
     public static String status(){return status;}
     public static void trackChanged(){
@@ -26,66 +23,93 @@ public final class VisionLyricsLookup {
         inFlight=null;pending=false;appliedKey="";status="";retryAt=0;
     }
     public static void clear(){trackChanged();}
+    public static void clearCache(){CACHE.clear();trackChanged();}
     public static void tick(){
         if(!VisionLyricsSource.mediaConnected())return;
         String artist=VisionLyricsSource.artist(),title=VisionLyricsSource.title();
-        long duration=VisionLyricsSource.durationMs();
-        String key=artist+"\n"+title+"\n"+duration/1000;
+        long duration=VisionLyricsSource.durationMs();String key=artist+"\n"+title+"\n"+duration/1000;
+        String knownId=YandexLyricsClient.trackId(VisionLyricsSource.sourceUrl());if(!knownId.isBlank())key+="\n"+knownId;
+        final String cacheKey=key;
         if(CACHE.containsKey(key)){
             if(!key.equals(appliedKey))VisionLyricsSource.setMediaLyrics(artist,title,CACHE.get(key));
-            appliedKey=key;
-            status=CACHE.get(key).isBlank()?"Синхронизированного текста нет":
-                VisionLyricsSource.positionKnown()?"Текст идёт по позиции песни":"Плеер не передаёт позицию песни";
-            return;
+            appliedKey=key;status=VisionLyricsSource.status();return;
         }
-        long now=System.nanoTime();
-        if(pending||now<retryAt)return;
-        retryAt=now+15_000_000_000L;pending=true;status="Ищем синхронизированный текст…";
+        long now=System.nanoTime();if(pending||now<retryAt)return;
+        retryAt=now+15_000_000_000L;pending=true;status="Ищем слова · LRCLIB / Яндекс / запасной источник…";
         final int current=generation;
-        inFlight=fetch(SERVICE,LyricsSearch.query(artist,title),duration);
+        inFlight=fetchAll(SERVICE,YANDEX,PLAIN,LyricsSearch.query(artist,title),duration,YandexMusicAccess.token(),VisionLyricsSource.sourceUrl());
         inFlight.whenComplete((lyrics,error)->Minecraft.getInstance().execute(()->{
             if(current!=generation)return;
             pending=false;inFlight=null;
-            if(error!=null){status="Нет связи с текстами · повторим автоматически";return;}
-            if(CACHE.size()>=24)CACHE.remove(CACHE.keySet().iterator().next());
-            CACHE.put(key,lyrics);
+            if(error!=null){status="Источники текстов недоступны · повторим автоматически";return;}
+            if(!lyrics.hasText()){
+                status=YandexMusicAccess.connected()?"Слова не найдены в доступных источниках":"Слова не найдены · можно подключить тексты Яндекса";
+                retryAt=System.nanoTime()+60_000_000_000L;return;
+            }
+            if(CACHE.size()>=24)CACHE.remove(CACHE.keySet().iterator().next());CACHE.put(cacheKey,lyrics);
             if(artist.equals(VisionLyricsSource.artist())&&title.equals(VisionLyricsSource.title())){
-                VisionLyricsSource.setMediaLyrics(artist,title,lyrics);appliedKey=key;
+                VisionLyricsSource.setMediaLyrics(artist,title,lyrics);appliedKey=cacheKey;status=VisionLyricsSource.status();
             }
         }));
     }
-    static CompletableFuture<String> fetch(URI service,LyricsSearch.Query query,long duration){
-        if(query.title().isBlank())return CompletableFuture.completedFuture("");
-        String search=query.artist().isBlank()?"q="+encode(query.title()):
-            "track_name="+encode(query.title())+"&artist_name="+encode(query.artist());
-        if(query.artist().isBlank())return request(service.resolve("/api/search?"+search),query,duration);
-        String exact="/api/get?track_name="+encode(query.title())+"&artist_name="+encode(query.artist())+
-            (duration>0?"&duration="+duration/1000.0:"");
-        CompletableFuture<String> result=new CompletableFuture<>();
-        var active=new java.util.concurrent.atomic.AtomicReference<CompletableFuture<String>>();
-        result.whenComplete((text,error)->{if(result.isCancelled()&&active.get()!=null)active.get().cancel(true);});
-        CompletableFuture<String> first=request(service.resolve(exact),query,duration);active.set(first);
-        first.whenComplete((text,error)->{
+    /** Compatibility probe for the timed public catalog, without credentials. */
+    public static CompletableFuture<String> fetch(URI service,LyricsSearch.Query query,long duration){
+        LyricsHttp.Flight flight=new LyricsHttp.Flight();var result=new CompletableFuture<String>();
+        result.whenComplete((value,error)->flight.cancel());
+        catalog(service,query,duration,flight,0,LyricsResult.EMPTY,variants(service,query,duration))
+            .whenComplete((lyrics,error)->{if(error!=null)result.completeExceptionally(error);else result.complete(lyrics.timed());});
+        return result;
+    }
+    static CompletableFuture<LyricsResult> fetchAll(URI catalog,URI yandex,URI plain,LyricsSearch.Query query,long duration,String token){
+        return fetchAll(catalog,yandex,plain,query,duration,token,"");
+    }
+    static CompletableFuture<LyricsResult> fetchAll(URI catalog,URI yandex,URI plain,LyricsSearch.Query query,long duration,String token,String sourceUrl){
+        if(query.title().isBlank())return CompletableFuture.completedFuture(LyricsResult.EMPTY);
+        LyricsHttp.Flight flight=new LyricsHttp.Flight();var result=new CompletableFuture<LyricsResult>();
+        result.whenComplete((value,error)->flight.cancel());
+        var best=new AtomicReference<>(LyricsResult.EMPTY);var remaining=new AtomicInteger(2);var failed=new AtomicBoolean();
+        java.util.function.BiConsumer<LyricsResult,Throwable> accept=(lyrics,error)->{
             if(result.isDone())return;
-            if(error!=null){result.completeExceptionally(error);return;}
-            if(!text.isBlank()){result.complete(text);return;}
-            CompletableFuture<String> fallback=request(service.resolve("/api/search?"+search),query,duration);active.set(fallback);
-            if(result.isCancelled())fallback.cancel(true);
-            fallback.whenComplete((found,failure)->{if(failure==null)result.complete(found);else result.completeExceptionally(failure);});
-        });
+            if(error!=null)failed.set(true);
+            if(lyrics!=null&&lyrics.hasText()){
+                if(!lyrics.timed().isBlank()){result.complete(lyrics);return;}
+                best.compareAndSet(LyricsResult.EMPTY,lyrics);
+            }
+            if(remaining.decrementAndGet()!=0||result.isDone())return;
+            if(best.get().hasText()){result.complete(best.get());return;}
+            if(query.artist().isBlank()){if(failed.get())result.completeExceptionally(new java.io.IOException("Lyrics providers unavailable"));else result.complete(LyricsResult.EMPTY);return;}
+            URI uri=plain.resolve("/v1/"+LyricsHttp.encode(query.artist()).replace("+","%20")+"/"+LyricsHttp.encode(query.title()).replace("+","%20"));
+            LyricsHttp.get(uri,"",flight).whenComplete((reply,failure)->{
+                if(result.isDone())return;
+                if(failure!=null){result.completeExceptionally(failure);return;}
+                if(reply.code()==404){if(failed.get())result.completeExceptionally(new java.io.IOException("Lyrics providers unavailable"));else result.complete(LyricsResult.EMPTY);return;}
+                if(reply.code()!=200){result.completeExceptionally(new java.io.IOException("Plain lyrics HTTP "+reply.code()));return;}
+                try{
+                    var doc=JsonParser.parseString(reply.text()).getAsJsonObject();
+                    result.complete(new LyricsResult("",doc.has("lyrics")?doc.get("lyrics").getAsString():"","lyrics.ovh"));
+                }catch(RuntimeException problem){result.completeExceptionally(problem);}
+            });
+        };
+        catalog(catalog,query,duration,flight,0,LyricsResult.EMPTY,variants(catalog,query,duration)).whenComplete(accept);
+        YandexLyricsClient.fetch(yandex,query,duration,token,flight,sourceUrl).whenComplete(accept);
         return result;
     }
-    private static CompletableFuture<String> request(URI uri,LyricsSearch.Query query,long duration){
-        HttpRequest request=HttpRequest.newBuilder(uri).timeout(Duration.ofSeconds(6))
-            .header("User-Agent","VisionMod/2.0.0 (https://github.com/De1po3oN/VisionMod-1.0.0)").GET().build();
-        CompletableFuture<HttpResponse<byte[]>> response=HTTP.sendAsync(request,info->new BoundedLyricsBody());
-        CompletableFuture<String> result=response.thenApply(reply->{
-            if(reply.statusCode()==404)return "";
-            if(reply.statusCode()!=200)throw new IllegalStateException("Lyrics HTTP "+reply.statusCode());
-            return LyricsSearch.select(new String(reply.body(),StandardCharsets.UTF_8),query,duration);
-        });
-        result.whenComplete((value,error)->{if(result.isCancelled())response.cancel(true);});
-        return result;
+    private static List<URI> variants(URI service,LyricsSearch.Query query,long duration){
+        var urls=new LinkedHashSet<URI>();String artist=LyricsHttp.encode(query.artist()),title=LyricsHttp.encode(query.title());
+        if(!query.artist().isBlank()){
+            urls.add(service.resolve("/api/get?track_name="+title+"&artist_name="+artist+(duration>0?"&duration="+duration/1000.0:"")));
+            urls.add(service.resolve("/api/search?track_name="+title+"&artist_name="+artist));
+            urls.add(service.resolve("/api/search?q="+LyricsHttp.encode(query.artist()+" "+query.title())));
+        }
+        urls.add(service.resolve("/api/search?q="+title));return List.copyOf(urls);
     }
-    private static String encode(String value){return URLEncoder.encode(value,StandardCharsets.UTF_8);}
+    private static CompletableFuture<LyricsResult> catalog(URI service,LyricsSearch.Query query,long duration,LyricsHttp.Flight flight,int index,LyricsResult plain,List<URI> urls){
+        if(index>=urls.size())return CompletableFuture.completedFuture(plain);
+        return LyricsHttp.get(urls.get(index),"",flight).thenCompose(reply->{
+            if(reply.code()!=200&&reply.code()!=404)return plain.hasText()?CompletableFuture.completedFuture(plain):CompletableFuture.failedFuture(new java.io.IOException("Lyrics HTTP "+reply.code()));
+            LyricsResult found=reply.code()==200?LyricsSearch.selectResult(reply.text(),query,duration,"LRCLIB"):LyricsResult.EMPTY;
+            if(!found.timed().isBlank())return CompletableFuture.completedFuture(found);
+            return catalog(service,query,duration,flight,index+1,found.hasText()?found:plain,urls);
+        });
+    }
 }
