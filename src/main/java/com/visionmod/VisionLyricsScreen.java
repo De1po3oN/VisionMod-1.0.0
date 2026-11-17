@@ -19,7 +19,7 @@ public final class VisionLyricsScreen extends VisionPanelScreen {
         line(g,VisionMediaSession.state(),top+35,VisionMenuTheme.WHITE);
         line(g,VisionLyricsSource.mediaConnected()?VisionLyricsSource.trackLabel():"Включи музыку и возвращайся в игру.",top+53,VisionMenuTheme.MUTED);
         line(g,VisionLyricsLookup.status(),top+71,VisionMenuTheme.CYAN);
-        line(g,"2D-текст в мире перед камерой · первый вид и F5",top+89,VisionMenuTheme.MUTED);
+        line(g,"Текст в мире · плавно следует за игроком",top+89,VisionMenuTheme.MUTED);
     }
     private void line(GuiGraphics g,String text,int top,int color){VisionHudTheme.text(g,font,text,x+16,top,w-32,color);}
     @Override public boolean mouseClicked(MouseButtonEvent e,boolean doubled){

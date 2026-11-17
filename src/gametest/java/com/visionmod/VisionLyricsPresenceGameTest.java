@@ -8,7 +8,6 @@ import net.minecraft.client.player.RemotePlayer;
 import net.minecraft.client.renderer.entity.state.AvatarRenderState;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.Avatar;
-import net.minecraft.world.phys.Vec3;
 import static com.visionmod.GuiTestInput.check;
 
 /** Real world text submissions and a real integrated-server presence handshake. */
@@ -26,27 +25,7 @@ final class VisionLyricsPresenceGameTest {
             mc.options.hideGui=true;mc.options.setCameraType(CameraType.FIRST_PERSON);
             VisionLyricsSource.clearMediaTrack();VisionExtendedFeatures.setCustomText("VISION · Текст перед камерой");
         });
-        long before=context.computeOnClient(mc->VisionWorldLyrics.renderedFrames());
-        context.waitTicks(1);
-        context.runOnClient(mc->{
-            check(VisionWorldLyrics.renderedFrames()>before,"First-person lyrics never submitted world text");
-            check(VisionWorldLyrics.lastRenderedText().contains("перед камерой"),"Manual text did not appear immediately");
-        });
-        assertAnchor(context);VisualWorldGameTest.capture(context,"19-lyrics-world-first-person");
-        // This fixture has no HUD and a green ground behind the line: count the pale
-        // glyph pixels so a successful vertex submission cannot hide an empty frame.
-        var screenshot=javax.imageio.ImageIO.read(java.nio.file.Path.of("vision-world-captures/19-lyrics-world-first-person.png").toFile());
-        int glyphPixels=0;
-        for(int y=screenshot.getHeight()*51/100;y<screenshot.getHeight()*83/100;y++)
-            for(int x=screenshot.getWidth()/8;x<screenshot.getWidth()*7/8;x++){
-                int pixel=screenshot.getRGB(x,y),r=(pixel>>>16)&255,g=(pixel>>>8)&255,b=pixel&255;
-                if(r>225&&g>225&&b>235&&b-r>=4)glyphPixels++;
-            }
-        check(glyphPixels>100,"World lyrics submitted vertices but produced no visible glyphs: "+glyphPixels);
-        for(CameraType type:new CameraType[]{CameraType.THIRD_PERSON_FRONT,CameraType.THIRD_PERSON_BACK}){
-            context.runOnClient(mc->mc.options.setCameraType(type));context.waitTicks(2);assertAnchor(context);
-            VisualWorldGameTest.capture(context,type==CameraType.THIRD_PERSON_FRONT?"20-lyrics-world-f5-front":"21-lyrics-world-f5-back");
-        }
+        VisionWorldPlaneGameTest.run(context,world);
         context.runOnClient(mc->{
             VisionLyricsSource.receiveMediaTrack("Test","Artist","Synced song",1500,true);
             String fixture="[00:01.00]FIRST TIMED LINE\n[00:02.00]SECOND TIMED LINE\n[00:03.00]";
@@ -100,16 +79,6 @@ final class VisionLyricsPresenceGameTest {
             catch(ReflectiveOperationException error){throw new AssertionError(error);}
         });
         context.waitFor(mc->VisionPresenceClient.confirmed(mc.player.getUUID()),100);
-        System.out.println("[VisionMod][LYRICS_PRESENCE] PASS: first-person/F5 world text, camera anchor, immediate timed seek, blank interval, server handshake/withdraw/restore, real name tag/TAB hooks and unknown-player exclusion");
-    }
-    private static void assertAnchor(ClientGameTestContext context){
-        context.runOnClient(mc->{
-            var camera=mc.gameRenderer.getMainCamera();
-            var relative=VisionWorldLyrics.lastAnchor().subtract(camera.position());
-            var forward=Vec3.directionFromRotation(camera.xRot(),camera.yRot());
-            var up=Vec3.directionFromRotation(camera.xRot()-90,camera.yRot());
-            var right=Vec3.directionFromRotation(0,camera.yRot()+90);
-            check(Math.abs(relative.dot(right))<.01&&Math.abs(relative.dot(up)+.40)<.01&&Math.abs(relative.dot(forward)-2.4)<.01,"World text was not in front of the actual camera");
-        });
+        System.out.println("[VisionMod][LYRICS_PRESENCE] PASS: player-anchored world plane, immediate timed seek, blank interval, server handshake/withdraw/restore, real name tag/TAB hooks and unknown-player exclusion");
     }
 }
