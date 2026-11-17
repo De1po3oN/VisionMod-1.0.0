@@ -11,10 +11,9 @@ public final class VisionYandexScreen extends VisionPanelScreen {
     private EditBox token;
     public VisionYandexScreen(){super("ЯНДЕКС МУЗЫКА");}
     @Override protected void build(){
-        token=new EditBox(font,x+16,layout.bodyTop()+35,w-32,20,Component.literal("OAuth-токен Яндекс Музыки"));
+        token=new MaskedTokenBox(font,x+16,layout.bodyTop()+35,w-32,20);
         token.setMaxLength(2048);token.setValue(draft);
         token.setHint(Component.literal("OAuth-токен · не пароль"));
-        token.setFormatter((value,cursor)->Component.literal("•".repeat(value.length())).getVisualOrderText());
         token.setResponder(value->draft=value);addRenderableWidget(token);
     }
     @Override protected void draw(GuiGraphics g,int mx,int my,float delta){
@@ -38,4 +37,20 @@ public final class VisionYandexScreen extends VisionPanelScreen {
         return super.mouseClicked(event,doubled);
     }
     @Override public void onClose(){minecraft.setScreen(new VisionLyricsScreen());}
+    /** Draw only bullets; neither the text renderer nor narrator receives the credential. */
+    private static final class MaskedTokenBox extends EditBox {
+        private final net.minecraft.client.gui.Font textFont;
+        MaskedTokenBox(net.minecraft.client.gui.Font font,int x,int y,int width,int height){
+            super(font,x,y,width,height,Component.literal("OAuth-токен Яндекс Музыки"));textFont=font;
+        }
+        @Override public void renderWidget(GuiGraphics g,int mx,int my,float delta){
+            g.fill(getX()-1,getY()-1,getX()+getWidth()+1,getY()+getHeight()+1,isFocused()?VisionMenuTheme.CYAN:0xFF586077);
+            g.fill(getX(),getY(),getX()+getWidth(),getY()+getHeight(),0xFF111725);
+            String value=getValue();int max=Math.max(1,(getWidth()-12)/Math.max(1,textFont.width("•")));
+            String shown=value.isEmpty()?"OAuth-токен · не пароль":"•".repeat(Math.min(max,value.length()));
+            g.drawString(textFont,shown,getX()+5,getY()+6,value.isEmpty()?VisionMenuTheme.MUTED:VisionMenuTheme.WHITE);
+            if(isFocused()&&System.currentTimeMillis()%1000<500){int cx=getX()+5+textFont.width(value.isEmpty()?"":"•".repeat(Math.min(max,value.length())));g.fill(cx,getY()+4,cx+1,getY()+15,VisionMenuTheme.CYAN);}
+        }
+        @Override public net.minecraft.network.chat.MutableComponent createNarrationMessage(){return Component.literal("OAuth-токен Яндекс Музыки · содержимое скрыто");}
+    }
 }
