@@ -301,7 +301,7 @@ public final class VisionDashboardScreen extends Screen {
         columns=layout.columns();rows=layout.rows();cardsPerPage=layout.cards();
         search=new EditBox(font,contentX+29,top+layout.searchTop()+8,contentW-56,16,Component.literal("Поиск"));
         search.setBordered(false);
-        search.setMaxLength(48);search.setHint(VisionFonts.menu("Поиск модулей…"));
+        search.setMaxLength(48);search.setHint(Component.empty());
         search.setTextColor(WHITE);
         search.setValue(previousQuery);
         search.setResponder(value->{page=0;cachedQuery=null;});
@@ -350,6 +350,8 @@ public final class VisionDashboardScreen extends Screen {
         round(g,contentX-1,sy-1,contentW+2,sh+2,6,search.isFocused()?VisionGuiTheme.tint(VisionGuiTheme.BORDER,.55f):VisionGuiTheme.BORDER);
         round(g,contentX,sy,contentW,sh,5,VisionGuiTheme.CARD);
         VisionGuiTheme.icon(g,VisionGuiTheme.SEARCH,contentX+10,sy+(sh-11)/2,11,search.isFocused()?accent():VisionGuiTheme.FAINT);
+        if(search.getValue().isEmpty()&&!search.isFocused())
+            VisionFonts.fit(g,font,"Поиск модулей…",search.getX(),search.getY(),search.getWidth(),MUTED);
         if(!search.getValue().isBlank())VisionGuiTheme.icon(g,VisionGuiTheme.CLOSE,contentX+contentW-20,sy+(sh-10)/2,10,MUTED);
         List<Module> modules=filtered();page=Math.min(page,maxPage(modules));
         String title=search.getValue().isBlank()?TABS[category]:"Результаты поиска";
@@ -411,8 +413,9 @@ public final class VisionDashboardScreen extends Screen {
             if(hover&&!selected)round(g,left+9,y,sidebar-18,layout.tabHeight(),5,VisionGuiTheme.HOVER);
             int size=layout.dense()?10:12,ix=rail?left+(sidebar-size)/2:left+17;
             VisionGuiTheme.icon(g,i,ix,y+(layout.tabHeight()-size)/2,size,selected?accent():hover?WHITE:MUTED);
-            if(!rail)textFit(g,TABS[i],left+36,y+(layout.tabHeight()-8)/2,sidebar-48,selected?WHITE:MUTED);
-            if(hover)tooltip=TABS[i];
+            String label=i==PERFORMANCE?"Оптимизация":TABS[i];
+            if(!rail)textFit(g,label,left+36,y+(layout.tabHeight()-8)/2,sidebar-48,selected?WHITE:MUTED);
+            if(hover&&(rail||i==PERFORMANCE))tooltip=TABS[i];
         }
         int myy=top+layout.masterTop(),mh=layout.masterHeight();boolean over=inside(mx,my,left+9,myy,sidebar-18,mh);
         round(g,left+9,myy,sidebar-18,mh,5,over?VisionGuiTheme.HOVER:VisionGuiTheme.CARD);
