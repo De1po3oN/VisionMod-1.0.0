@@ -17,6 +17,171 @@ Note: Recompile with -Xlint:deprecation for details.
 > Task :gametestClasses
 
 > Task :inspectMinecraftHooks
+[REFERENCE_API] net/minecraft/world/entity/player/Player.createItemCooldowns()Lnet/minecraft/world/item/ItemCooldowns;
+[REFERENCE_API] net/minecraft/world/entity/player/Player.startAutoSpinAttack(IFLnet/minecraft/world/item/ItemStack;)V
+[REFERENCE_API] net/minecraft/world/entity/player/Player.getWeaponItem()Lnet/minecraft/world/item/ItemStack;
+[REFERENCE_API] net/minecraft/world/entity/player/Player.destroyVanishingCursedItems()V
+[REFERENCE_API] net/minecraft/world/entity/player/Player.handleCreativeModeItemDrop(Lnet/minecraft/world/item/ItemStack;)V
+[REFERENCE_API] net/minecraft/world/entity/player/Player.blockUsingItem(Lnet/minecraft/server/level/ServerLevel;Lnet/minecraft/world/entity/LivingEntity;)V
+[REFERENCE_API] net/minecraft/world/entity/player/Player.openItemGui(Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/world/InteractionHand;)V
+[REFERENCE_API] net/minecraft/world/entity/player/Player.attack(Lnet/minecraft/world/entity/Entity;)V
+[REFERENCE_API] net/minecraft/world/entity/player/Player.createAttackSource(Lnet/minecraft/world/item/ItemStack;)Lnet/minecraft/world/damagesource/DamageSource;
+[REFERENCE_API] net/minecraft/world/entity/player/Player.cannotAttack(Lnet/minecraft/world/entity/Entity;)Z
+[REFERENCE_API] net/minecraft/world/entity/player/Player.canCriticalAttack(Lnet/minecraft/world/entity/Entity;)Z
+[REFERENCE_API] net/minecraft/world/entity/player/Player.isSweepAttack(ZZZ)Z
+[REFERENCE_API] net/minecraft/world/entity/player/Player.attackVisualEffects(Lnet/minecraft/world/entity/Entity;ZZZZF)V
+[REFERENCE_API] net/minecraft/world/entity/player/Player.itemAttackInteraction(Lnet/minecraft/world/entity/Entity;Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/world/damagesource/DamageSource;Z)V
+[REFERENCE_API] net/minecraft/world/entity/player/Player.doSweepAttack(Lnet/minecraft/world/entity/Entity;FLnet/minecraft/world/damagesource/DamageSource;F)V
+[REFERENCE_API] net/minecraft/world/entity/player/Player.doAutoAttackOnTouch(Lnet/minecraft/world/entity/LivingEntity;)V
+[REFERENCE_API] net/minecraft/world/entity/player/Player.stabAttack(Lnet/minecraft/world/entity/EquipmentSlot;Lnet/minecraft/world/entity/Entity;FZZZ)Z
+[REFERENCE_API] net/minecraft/world/entity/player/Player.hasInfiniteMaterials()Z
+[REFERENCE_API] net/minecraft/world/entity/player/Player.canDropItems()Z
+[REFERENCE_API] net/minecraft/world/entity/player/Player.lungeForwardMaybe()V
+[REFERENCE_API] net/minecraft/world/entity/player/Player.mayUseItemAt(Lnet/minecraft/core/BlockPos;Lnet/minecraft/core/Direction;Lnet/minecraft/world/item/ItemStack;)Z
+[REFERENCE_API] net/minecraft/world/entity/player/Player.addItem(Lnet/minecraft/world/item/ItemStack;)Z
+[REFERENCE_API] net/minecraft/world/entity/player/Player.getCurrentItemAttackStrengthDelay()F
+[REFERENCE_API] net/minecraft/world/entity/player/Player.cannotAttackWithItem(Lnet/minecraft/world/item/ItemStack;I)Z
+[REFERENCE_API] net/minecraft/world/entity/player/Player.getAttackStrengthScale(F)F
+[REFERENCE_API] net/minecraft/world/entity/player/Player.getItemSwapScale(F)F
+[REFERENCE_API] net/minecraft/world/entity/player/Player.resetAttackStrengthTicker()V
+[REFERENCE_API] net/minecraft/world/entity/player/Player.onAttack()V
+[REFERENCE_API] net/minecraft/world/entity/player/Player.resetOnlyAttackStrengthTicker()V
+[REFERENCE_API] net/minecraft/world/entity/player/Player.isWithinAttackRange(Lnet/minecraft/world/phys/AABB;D)Z
+[REFERENCE_API] net/minecraft/client/multiplayer/ClientPacketListener.handleDamageEvent(Lnet/minecraft/network/protocol/game/ClientboundDamageEventPacket;)V
+[REFERENCE_API] net/minecraft/network/protocol/game/ClientboundDamageEventPacket.<init>(Lnet/minecraft/world/entity/Entity;Lnet/minecraft/world/damagesource/DamageSource;)V
+[REFERENCE_API] net/minecraft/network/protocol/game/ClientboundDamageEventPacket.<init>(Lnet/minecraft/network/RegistryFriendlyByteBuf;)V
+[REFERENCE_API] net/minecraft/network/protocol/game/ClientboundDamageEventPacket.<init>(ILnet/minecraft/core/Holder;IILjava/util/Optional;)V
+[REFERENCE_API] net/minecraft/network/protocol/game/ClientboundDamageEventPacket.writeOptionalEntityId(Lnet/minecraft/network/FriendlyByteBuf;I)V
+[REFERENCE_API] net/minecraft/network/protocol/game/ClientboundDamageEventPacket.readOptionalEntityId(Lnet/minecraft/network/FriendlyByteBuf;)I
+[REFERENCE_API] net/minecraft/network/protocol/game/ClientboundDamageEventPacket.write(Lnet/minecraft/network/RegistryFriendlyByteBuf;)V
+[REFERENCE_API] net/minecraft/network/protocol/game/ClientboundDamageEventPacket.type()Lnet/minecraft/network/protocol/PacketType;
+[REFERENCE_API] net/minecraft/network/protocol/game/ClientboundDamageEventPacket.handle(Lnet/minecraft/network/protocol/game/ClientGamePacketListener;)V
+[REFERENCE_API] net/minecraft/network/protocol/game/ClientboundDamageEventPacket.getSource(Lnet/minecraft/world/level/Level;)Lnet/minecraft/world/damagesource/DamageSource;
+[REFERENCE_API] net/minecraft/network/protocol/game/ClientboundDamageEventPacket.toString()Ljava/lang/String;
+[REFERENCE_API] net/minecraft/network/protocol/game/ClientboundDamageEventPacket.hashCode()I
+[REFERENCE_API] net/minecraft/network/protocol/game/ClientboundDamageEventPacket.equals(Ljava/lang/Object;)Z
+[REFERENCE_API] net/minecraft/network/protocol/game/ClientboundDamageEventPacket.entityId()I
+[REFERENCE_API] net/minecraft/network/protocol/game/ClientboundDamageEventPacket.sourceType()Lnet/minecraft/core/Holder;
+[REFERENCE_API] net/minecraft/network/protocol/game/ClientboundDamageEventPacket.sourceCauseId()I
+[REFERENCE_API] net/minecraft/network/protocol/game/ClientboundDamageEventPacket.sourceDirectId()I
+[REFERENCE_API] net/minecraft/network/protocol/game/ClientboundDamageEventPacket.sourcePosition()Ljava/util/Optional;
+[REFERENCE_API] net/minecraft/network/protocol/game/ClientboundDamageEventPacket.handle(Lnet/minecraft/network/PacketListener;)V
+[REFERENCE_API] net/minecraft/network/protocol/game/ClientboundDamageEventPacket.method_49073(Lnet/minecraft/network/FriendlyByteBuf;Lnet/minecraft/world/phys/Vec3;)V
+[REFERENCE_API] net/minecraft/network/protocol/game/ClientboundDamageEventPacket.method_49076(Lnet/minecraft/network/FriendlyByteBuf;)Lnet/minecraft/world/phys/Vec3;
+[REFERENCE_API] net/minecraft/network/protocol/game/ClientboundDamageEventPacket.<clinit>()V
+[REFERENCE_API] net/minecraft/network/chat/Style.getFont()Lnet/minecraft/network/chat/FontDescription;
+[REFERENCE_API] net/minecraft/network/chat/Style.withFont(Lnet/minecraft/network/chat/FontDescription;)Lnet/minecraft/network/chat/Style;
+[REFERENCE_API] net/minecraft/network/chat/FontDescription.CODEC Lcom/mojang/serialization/Codec;
+[REFERENCE_API] net/minecraft/network/chat/FontDescription.DEFAULT Lnet/minecraft/network/chat/FontDescription$Resource;
+[REFERENCE_API] net/minecraft/network/chat/FontDescription.method_73172(Lnet/minecraft/network/chat/FontDescription;)Lcom/mojang/serialization/DataResult;
+[REFERENCE_API] net/minecraft/network/chat/FontDescription.method_73173(Lnet/minecraft/network/chat/FontDescription;)Ljava/lang/String;
+[REFERENCE_API] net/minecraft/network/chat/FontDescription.<clinit>()V
+[REFERENCE_API] net/minecraft/core/component/DataComponents.ENCODER_CACHE Lnet/minecraft/util/EncoderCache;
+[REFERENCE_API] net/minecraft/core/component/DataComponents.CUSTOM_DATA Lnet/minecraft/core/component/DataComponentType;
+[REFERENCE_API] net/minecraft/core/component/DataComponents.MAX_STACK_SIZE Lnet/minecraft/core/component/DataComponentType;
+[REFERENCE_API] net/minecraft/core/component/DataComponents.MAX_DAMAGE Lnet/minecraft/core/component/DataComponentType;
+[REFERENCE_API] net/minecraft/core/component/DataComponents.DAMAGE Lnet/minecraft/core/component/DataComponentType;
+[REFERENCE_API] net/minecraft/core/component/DataComponents.UNBREAKABLE Lnet/minecraft/core/component/DataComponentType;
+[REFERENCE_API] net/minecraft/core/component/DataComponents.USE_EFFECTS Lnet/minecraft/core/component/DataComponentType;
+[REFERENCE_API] net/minecraft/core/component/DataComponents.CUSTOM_NAME Lnet/minecraft/core/component/DataComponentType;
+[REFERENCE_API] net/minecraft/core/component/DataComponents.MINIMUM_ATTACK_CHARGE Lnet/minecraft/core/component/DataComponentType;
+[REFERENCE_API] net/minecraft/core/component/DataComponents.DAMAGE_TYPE Lnet/minecraft/core/component/DataComponentType;
+[REFERENCE_API] net/minecraft/core/component/DataComponents.ITEM_NAME Lnet/minecraft/core/component/DataComponentType;
+[REFERENCE_API] net/minecraft/core/component/DataComponents.ITEM_MODEL Lnet/minecraft/core/component/DataComponentType;
+[REFERENCE_API] net/minecraft/core/component/DataComponents.LORE Lnet/minecraft/core/component/DataComponentType;
+[REFERENCE_API] net/minecraft/core/component/DataComponents.RARITY Lnet/minecraft/core/component/DataComponentType;
+[REFERENCE_API] net/minecraft/core/component/DataComponents.ENCHANTMENTS Lnet/minecraft/core/component/DataComponentType;
+[REFERENCE_API] net/minecraft/core/component/DataComponents.CAN_PLACE_ON Lnet/minecraft/core/component/DataComponentType;
+[REFERENCE_API] net/minecraft/core/component/DataComponents.CAN_BREAK Lnet/minecraft/core/component/DataComponentType;
+[REFERENCE_API] net/minecraft/core/component/DataComponents.ATTRIBUTE_MODIFIERS Lnet/minecraft/core/component/DataComponentType;
+[REFERENCE_API] net/minecraft/core/component/DataComponents.CUSTOM_MODEL_DATA Lnet/minecraft/core/component/DataComponentType;
+[REFERENCE_API] net/minecraft/core/component/DataComponents.TOOLTIP_DISPLAY Lnet/minecraft/core/component/DataComponentType;
+[REFERENCE_API] net/minecraft/core/component/DataComponents.REPAIR_COST Lnet/minecraft/core/component/DataComponentType;
+[REFERENCE_API] net/minecraft/core/component/DataComponents.CREATIVE_SLOT_LOCK Lnet/minecraft/core/component/DataComponentType;
+[REFERENCE_API] net/minecraft/core/component/DataComponents.ENCHANTMENT_GLINT_OVERRIDE Lnet/minecraft/core/component/DataComponentType;
+[REFERENCE_API] net/minecraft/core/component/DataComponents.INTANGIBLE_PROJECTILE Lnet/minecraft/core/component/DataComponentType;
+[REFERENCE_API] net/minecraft/core/component/DataComponents.FOOD Lnet/minecraft/core/component/DataComponentType;
+[REFERENCE_API] net/minecraft/core/component/DataComponents.CONSUMABLE Lnet/minecraft/core/component/DataComponentType;
+[REFERENCE_API] net/minecraft/core/component/DataComponents.USE_REMAINDER Lnet/minecraft/core/component/DataComponentType;
+[REFERENCE_API] net/minecraft/core/component/DataComponents.USE_COOLDOWN Lnet/minecraft/core/component/DataComponentType;
+[REFERENCE_API] net/minecraft/core/component/DataComponents.DAMAGE_RESISTANT Lnet/minecraft/core/component/DataComponentType;
+[REFERENCE_API] net/minecraft/core/component/DataComponents.TOOL Lnet/minecraft/core/component/DataComponentType;
+[REFERENCE_API] net/minecraft/core/component/DataComponents.WEAPON Lnet/minecraft/core/component/DataComponentType;
+[REFERENCE_API] net/minecraft/core/component/DataComponents.ATTACK_RANGE Lnet/minecraft/core/component/DataComponentType;
+[REFERENCE_API] net/minecraft/core/component/DataComponents.ENCHANTABLE Lnet/minecraft/core/component/DataComponentType;
+[REFERENCE_API] net/minecraft/core/component/DataComponents.EQUIPPABLE Lnet/minecraft/core/component/DataComponentType;
+[REFERENCE_API] net/minecraft/core/component/DataComponents.REPAIRABLE Lnet/minecraft/core/component/DataComponentType;
+[REFERENCE_API] net/minecraft/core/component/DataComponents.GLIDER Lnet/minecraft/core/component/DataComponentType;
+[REFERENCE_API] net/minecraft/core/component/DataComponents.TOOLTIP_STYLE Lnet/minecraft/core/component/DataComponentType;
+[REFERENCE_API] net/minecraft/core/component/DataComponents.DEATH_PROTECTION Lnet/minecraft/core/component/DataComponentType;
+[REFERENCE_API] net/minecraft/core/component/DataComponents.BLOCKS_ATTACKS Lnet/minecraft/core/component/DataComponentType;
+[REFERENCE_API] net/minecraft/core/component/DataComponents.PIERCING_WEAPON Lnet/minecraft/core/component/DataComponentType;
+[REFERENCE_API] net/minecraft/core/component/DataComponents.KINETIC_WEAPON Lnet/minecraft/core/component/DataComponentType;
+[REFERENCE_API] net/minecraft/core/component/DataComponents.SWING_ANIMATION Lnet/minecraft/core/component/DataComponentType;
+[REFERENCE_API] net/minecraft/core/component/DataComponents.STORED_ENCHANTMENTS Lnet/minecraft/core/component/DataComponentType;
+[REFERENCE_API] net/minecraft/core/component/DataComponents.DYED_COLOR Lnet/minecraft/core/component/DataComponentType;
+[REFERENCE_API] net/minecraft/core/component/DataComponents.MAP_COLOR Lnet/minecraft/core/component/DataComponentType;
+[REFERENCE_API] net/minecraft/core/component/DataComponents.MAP_ID Lnet/minecraft/core/component/DataComponentType;
+[REFERENCE_API] net/minecraft/core/component/DataComponents.MAP_DECORATIONS Lnet/minecraft/core/component/DataComponentType;
+[REFERENCE_API] net/minecraft/core/component/DataComponents.MAP_POST_PROCESSING Lnet/minecraft/core/component/DataComponentType;
+[REFERENCE_API] net/minecraft/core/component/DataComponents.CHARGED_PROJECTILES Lnet/minecraft/core/component/DataComponentType;
+[REFERENCE_API] net/minecraft/core/component/DataComponents.BUNDLE_CONTENTS Lnet/minecraft/core/component/DataComponentType;
+[REFERENCE_API] net/minecraft/core/component/DataComponents.POTION_CONTENTS Lnet/minecraft/core/component/DataComponentType;
+[REFERENCE_API] net/minecraft/core/component/DataComponents.POTION_DURATION_SCALE Lnet/minecraft/core/component/DataComponentType;
+[REFERENCE_API] net/minecraft/core/component/DataComponents.SUSPICIOUS_STEW_EFFECTS Lnet/minecraft/core/component/DataComponentType;
+[REFERENCE_API] net/minecraft/core/component/DataComponents.WRITABLE_BOOK_CONTENT Lnet/minecraft/core/component/DataComponentType;
+[REFERENCE_API] net/minecraft/core/component/DataComponents.WRITTEN_BOOK_CONTENT Lnet/minecraft/core/component/DataComponentType;
+[REFERENCE_API] net/minecraft/core/component/DataComponents.TRIM Lnet/minecraft/core/component/DataComponentType;
+[REFERENCE_API] net/minecraft/core/component/DataComponents.DEBUG_STICK_STATE Lnet/minecraft/core/component/DataComponentType;
+[REFERENCE_API] net/minecraft/core/component/DataComponents.ENTITY_DATA Lnet/minecraft/core/component/DataComponentType;
+[REFERENCE_API] net/minecraft/core/component/DataComponents.BUCKET_ENTITY_DATA Lnet/minecraft/core/component/DataComponentType;
+[REFERENCE_API] net/minecraft/core/component/DataComponents.BLOCK_ENTITY_DATA Lnet/minecraft/core/component/DataComponentType;
+[REFERENCE_API] net/minecraft/core/component/DataComponents.INSTRUMENT Lnet/minecraft/core/component/DataComponentType;
+[REFERENCE_API] net/minecraft/core/component/DataComponents.PROVIDES_TRIM_MATERIAL Lnet/minecraft/core/component/DataComponentType;
+[REFERENCE_API] net/minecraft/core/component/DataComponents.OMINOUS_BOTTLE_AMPLIFIER Lnet/minecraft/core/component/DataComponentType;
+[REFERENCE_API] net/minecraft/core/component/DataComponents.JUKEBOX_PLAYABLE Lnet/minecraft/core/component/DataComponentType;
+[REFERENCE_API] net/minecraft/core/component/DataComponents.PROVIDES_BANNER_PATTERNS Lnet/minecraft/core/component/DataComponentType;
+[REFERENCE_API] net/minecraft/core/component/DataComponents.RECIPES Lnet/minecraft/core/component/DataComponentType;
+[REFERENCE_API] net/minecraft/core/component/DataComponents.LODESTONE_TRACKER Lnet/minecraft/core/component/DataComponentType;
+[REFERENCE_API] net/minecraft/core/component/DataComponents.FIREWORK_EXPLOSION Lnet/minecraft/core/component/DataComponentType;
+[REFERENCE_API] net/minecraft/core/component/DataComponents.FIREWORKS Lnet/minecraft/core/component/DataComponentType;
+[REFERENCE_API] net/minecraft/core/component/DataComponents.PROFILE Lnet/minecraft/core/component/DataComponentType;
+[REFERENCE_API] net/minecraft/core/component/DataComponents.NOTE_BLOCK_SOUND Lnet/minecraft/core/component/DataComponentType;
+[REFERENCE_API] net/minecraft/core/component/DataComponents.BANNER_PATTERNS Lnet/minecraft/core/component/DataComponentType;
+[REFERENCE_API] net/minecraft/core/component/DataComponents.BASE_COLOR Lnet/minecraft/core/component/DataComponentType;
+[REFERENCE_API] net/minecraft/core/component/DataComponents.POT_DECORATIONS Lnet/minecraft/core/component/DataComponentType;
+[REFERENCE_API] net/minecraft/core/component/DataComponents.CONTAINER Lnet/minecraft/core/component/DataComponentType;
+[REFERENCE_API] net/minecraft/core/component/DataComponents.BLOCK_STATE Lnet/minecraft/core/component/DataComponentType;
+[REFERENCE_API] net/minecraft/core/component/DataComponents.BEES Lnet/minecraft/core/component/DataComponentType;
+[REFERENCE_API] net/minecraft/core/component/DataComponents.LOCK Lnet/minecraft/core/component/DataComponentType;
+[REFERENCE_API] net/minecraft/core/component/DataComponents.CONTAINER_LOOT Lnet/minecraft/core/component/DataComponentType;
+[REFERENCE_API] net/minecraft/core/component/DataComponents.BREAK_SOUND Lnet/minecraft/core/component/DataComponentType;
+[REFERENCE_API] net/minecraft/core/component/DataComponents.VILLAGER_VARIANT Lnet/minecraft/core/component/DataComponentType;
+[REFERENCE_API] net/minecraft/core/component/DataComponents.WOLF_VARIANT Lnet/minecraft/core/component/DataComponentType;
+[REFERENCE_API] net/minecraft/core/component/DataComponents.WOLF_SOUND_VARIANT Lnet/minecraft/core/component/DataComponentType;
+[REFERENCE_API] net/minecraft/core/component/DataComponents.WOLF_COLLAR Lnet/minecraft/core/component/DataComponentType;
+[REFERENCE_API] net/minecraft/core/component/DataComponents.FOX_VARIANT Lnet/minecraft/core/component/DataComponentType;
+[REFERENCE_API] net/minecraft/core/component/DataComponents.SALMON_SIZE Lnet/minecraft/core/component/DataComponentType;
+[REFERENCE_API] net/minecraft/core/component/DataComponents.PARROT_VARIANT Lnet/minecraft/core/component/DataComponentType;
+[REFERENCE_API] net/minecraft/core/component/DataComponents.TROPICAL_FISH_PATTERN Lnet/minecraft/core/component/DataComponentType;
+[REFERENCE_API] net/minecraft/core/component/DataComponents.TROPICAL_FISH_BASE_COLOR Lnet/minecraft/core/component/DataComponentType;
+[REFERENCE_API] net/minecraft/core/component/DataComponents.TROPICAL_FISH_PATTERN_COLOR Lnet/minecraft/core/component/DataComponentType;
+[REFERENCE_API] net/minecraft/core/component/DataComponents.MOOSHROOM_VARIANT Lnet/minecraft/core/component/DataComponentType;
+[REFERENCE_API] net/minecraft/core/component/DataComponents.RABBIT_VARIANT Lnet/minecraft/core/component/DataComponentType;
+[REFERENCE_API] net/minecraft/core/component/DataComponents.PIG_VARIANT Lnet/minecraft/core/component/DataComponentType;
+[REFERENCE_API] net/minecraft/core/component/DataComponents.COW_VARIANT Lnet/minecraft/core/component/DataComponentType;
+[REFERENCE_API] net/minecraft/core/component/DataComponents.CHICKEN_VARIANT Lnet/minecraft/core/component/DataComponentType;
+[REFERENCE_API] net/minecraft/core/component/DataComponents.ZOMBIE_NAUTILUS_VARIANT Lnet/minecraft/core/component/DataComponentType;
+[REFERENCE_API] net/minecraft/core/component/DataComponents.FROG_VARIANT Lnet/minecraft/core/component/DataComponentType;
+[REFERENCE_API] net/minecraft/core/component/DataComponents.HORSE_VARIANT Lnet/minecraft/core/component/DataComponentType;
+[REFERENCE_API] net/minecraft/core/component/DataComponents.PAINTING_VARIANT Lnet/minecraft/core/component/DataComponentType;
+[REFERENCE_API] net/minecraft/core/component/DataComponents.LLAMA_VARIANT Lnet/minecraft/core/component/DataComponentType;
+[REFERENCE_API] net/minecraft/core/component/DataComponents.AXOLOTL_VARIANT Lnet/minecraft/core/component/DataComponentType;
+[REFERENCE_API] net/minecraft/core/component/DataComponents.CAT_VARIANT Lnet/minecraft/core/component/DataComponentType;
+[REFERENCE_API] net/minecraft/core/component/DataComponents.CAT_COLLAR Lnet/minecraft/core/component/DataComponentType;
+[REFERENCE_API] net/minecraft/core/component/DataComponents.SHEEP_COLOR Lnet/minecraft/core/component/DataComponentType;
+[REFERENCE_API] net/minecraft/core/component/DataComponents.SHULKER_COLOR Lnet/minecraft/core/component/DataComponentType;
+[REFERENCE_API] net/minecraft/core/component/DataComponents.COMMON_ITEM_COMPONENTS Lnet/minecraft/core/component/DataComponentMap;
 [TEXT_HOOKS] net/minecraft/client/gui/Font.drawInBatch(Ljava/lang/String;FFIZLorg/joml/Matrix4f;Lnet/minecraft/client/renderer/MultiBufferSource;Lnet/minecraft/client/gui/Font$DisplayMode;II)V
   call net/minecraft/client/gui/Font.prepareText(Ljava/lang/String;FFIZI)Lnet/minecraft/client/gui/Font$PreparedText;
   call net/minecraft/client/gui/Font$GlyphVisitor.forMultiBufferSource(Lnet/minecraft/client/renderer/MultiBufferSource;Lorg/joml/Matrix4f;Lnet/minecraft/client/gui/Font$DisplayMode;I)Lnet/minecraft/client/gui/Font$GlyphVisitor;
@@ -285,7 +450,7 @@ Note: Recompile with -Xlint:deprecation for details.
   call net/minecraft/client/input/KeyEvent.key()I
 
 > Task :downloadAssets
-gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run-1794908346298.json
+gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run-1794929365969.json
 
 [Incubating] Problems report is available at: file:///home/runner/work/VisionMod-1.0.0/VisionMod-1.0.0/build/reports/problems/problems-report.html
 
@@ -295,5 +460,5 @@ You can use '--warning-mode all' to show the individual deprecation warnings and
 
 For more on this, please refer to https://docs.gradle.org/9.7.1/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
 
-BUILD SUCCESSFUL in 31s
+BUILD SUCCESSFUL in 37s
 6 actionable tasks: 6 executed
