@@ -54,6 +54,7 @@ public final class MultiLyricsRegressionTest {
         server.createContext("/search",exchange->{
             yandexHits.incrementAndGet();check(("OAuth "+TOKEN).equals(exchange.getRequestHeaders().getFirst("Authorization")),"OAuth stays on the Yandex API request");
             if(mode.get()==4){reply(exchange,401,"{}");return;}
+            if(mode.get()==7){reply(exchange,451,"{}");return;}
             String artist=mode.get()==5?"Unrelated Artist":"Artist";
             reply(exchange,200,"{\"result\":{\"tracks\":{\"results\":[{\"id\":123,\"title\":\"Song\",\"artists\":[{\"name\":\""+artist+"\"}],\"durationMs\":200000}]}}}");
         });
@@ -82,8 +83,12 @@ public final class MultiLyricsRegressionTest {
             check(found.source().equals("Яндекс Музыка")&&yandexHits.get()==withoutSearch+1,"known browser track skips fuzzy catalog search");
             mode.set(3);found=VisionLyricsLookup.fetchAll(base,base,base,query,200000,TOKEN).get(5,TimeUnit.SECONDS);
             check(found.timed().isBlank()&&found.plain().contains("Words from Yandex"),"TEXT format is tried when Yandex has no LRC");
+            YandexMusicAccess.connect(TOKEN);
             mode.set(4);found=VisionLyricsLookup.fetchAll(base,base,base,query,200000,TOKEN).get(5,TimeUnit.SECONDS);
             check(found.source().equals("lyrics.ovh")&&found.plain().contains("Fallback words"),"a denied Yandex token does not block other lyrics sources");
+            check(YandexMusicAccess.status().contains("отклонил токен"),"rejected credentials are explained without showing the token");
+            mode.set(7);found=VisionLyricsLookup.fetchAll(base,base,base,query,200000,TOKEN).get(5,TimeUnit.SECONDS);
+            check(found.source().equals("lyrics.ovh")&&YandexMusicAccess.status().contains("региона"),"regional refusal is reported and other providers continue");
             mode.set(5);int apiBefore=yandexHits.get();found=VisionLyricsLookup.fetchAll(base,base,base,query,200000,TOKEN).get(5,TimeUnit.SECONDS);
             check(found.source().equals("lyrics.ovh")&&yandexHits.get()==apiBefore+1,"wrong artist is rejected before asking for their lyrics");
             mode.set(6);int requestsBefore=catalogHits.get(),fallbacksBefore=ovhHits.get();

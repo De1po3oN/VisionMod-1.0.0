@@ -88,6 +88,8 @@ final class YandexLyricsClient {
         if(code==401)YandexMusicAccess.report(token,"Яндекс отклонил токен · подключи действующий OAuth-токен");
         else if(code==403)YandexMusicAccess.report(token,"Яндекс не разрешил доступ к этому тексту");
         else if(code==429)YandexMusicAccess.report(token,"Яндекс ограничил запросы · повторим позже");
+        else if(code==451)YandexMusicAccess.report(token,"Яндекс недоступен из текущего региона");
+        else if(code>=500)YandexMusicAccess.report(token,"Яндекс временно недоступен · попробуем другие источники");
         return code==200;
     }
     static String sign(String id,long timestamp){
