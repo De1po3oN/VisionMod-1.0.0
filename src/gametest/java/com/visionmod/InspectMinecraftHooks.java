@@ -6,6 +6,23 @@ import org.objectweb.asm.tree.*;
 /** Prints the actual mapped call sites before launching the integration test. */
 public final class InspectMinecraftHooks {
     public static void main(String[] args)throws Exception{
+        for(String name:new String[]{"net/minecraft/world/entity/player/Player","net/minecraft/client/player/LocalPlayer","net/minecraft/client/multiplayer/MultiPlayerGameMode","net/minecraft/client/multiplayer/ClientPacketListener","net/minecraft/network/protocol/game/ClientboundSetEntityMotionPacket"}){
+            try(var in=InspectMinecraftHooks.class.getClassLoader().getResourceAsStream(name+".class")){
+                ClassNode node=new ClassNode();new ClassReader(in).accept(node,ClassReader.SKIP_DEBUG);
+                for(MethodNode method:node.methods){
+                    String lower=method.name.toLowerCase(java.util.Locale.ROOT);
+                    if(!(lower.contains("lunge")||lower.contains("pierc")||lower.contains("setentitymotion")||name.endsWith("ClientboundSetEntityMotionPacket")))continue;
+                    System.out.println("[SPEAR_API] "+name+"."+method.name+method.desc);
+                    if(name.endsWith("ClientboundSetEntityMotionPacket"))continue;
+                    for(AbstractInsnNode instruction:method.instructions){
+                        if(instruction instanceof MethodInsnNode call)System.out.println("  call "+call.owner+"."+call.name+call.desc);
+                        else if(instruction instanceof FieldInsnNode field)System.out.println("  field "+field.owner+"."+field.name+" "+field.desc);
+                        else if(instruction instanceof LdcInsnNode constant)System.out.println("  constant "+constant.cst);
+                        else if(instruction instanceof JumpInsnNode jump)System.out.println("  branch "+jump.getOpcode());
+                    }
+                }
+            }
+        }
         for(String name:new String[]{"net/minecraft/world/entity/player/Player","net/minecraft/client/multiplayer/ClientPacketListener","net/minecraft/network/protocol/game/ClientboundDamageEventPacket","net/minecraft/network/chat/Style","net/minecraft/network/chat/FontDescription","net/minecraft/core/component/DataComponents"}){
             try(var in=InspectMinecraftHooks.class.getClassLoader().getResourceAsStream(name+".class")){
                 if(in==null){System.out.println("[REFERENCE_API] missing "+name);continue;}

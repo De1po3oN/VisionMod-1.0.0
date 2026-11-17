@@ -32,12 +32,16 @@ final class VisionSpearGameTest {
         VisualWorldGameTest.capture(context,"29-spear-pierce");
         world.getServer().runCommand("kill @e[tag=vision_spear_target]");
         world.getServer().runCommand("enchant @p minecraft:lunge 3");
+        world.getServer().runCommand("gamemode survival @p");
+        world.getServer().runCommand("effect give @p minecraft:saturation 2 5 true");
         world.getServer().runCommand("tp @p 8 -60 0 0 0");
         context.waitTicks(22);
         context.runOnClient(mc->mc.options.setCameraType(CameraType.THIRD_PERSON_BACK));
+        context.runOnClient(mc->System.out.println("[VisionMod][SPEAR] Before vanilla lunge: velocity="+mc.player.getDeltaMovement()+", food="+mc.player.getFoodData().getFoodLevel()+", item="+mc.player.getMainHandItem()));
         long beforeFrames=context.computeOnClient(mc->VisionSpearEffects.renderedFrames());
-        context.getInput().pressMouse(0);context.waitTicks(2);
+        context.getInput().pressMouse(0);context.waitTicks(5);
         context.runOnClient(mc->{
+            System.out.println("[VisionMod][SPEAR] After vanilla lunge: velocity="+mc.player.getDeltaMovement()+", position="+mc.player.position()+", lungeFX="+VisionSpearEffects.lungeEvents());
             check(VisionSpearEffects.lungeEvents()>beforeLunge,"Vanilla Lunge III did not produce a lunge effect");
             check(VisionSpearEffects.renderedFrames()>beforeFrames,"Spear effects were never submitted in the world");
         });
