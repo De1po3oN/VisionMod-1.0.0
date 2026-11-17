@@ -20,7 +20,7 @@ public final class VisionLyricsScreen extends VisionPanelScreen {
         line(g,VisionLyricsSource.mediaConnected()?VisionLyricsSource.trackLabel():"Включи музыку и возвращайся в игру.",top+53,VisionMenuTheme.MUTED);
         line(g,VisionLyricsLookup.status(),top+71,VisionMenuTheme.CYAN);
         int row=layout.bodyBottom()-47,half=(w-42)/2;
-        if(row>top+117)line(g,VisionLyricsSource.plainMode()?"Без таймкодов: выбирай строки стрелками ниже.":"Текст в мире · плавно следует за игроком",top+91,VisionMenuTheme.MUTED);
+        if(row>top+117)line(g,VisionLyricsSource.plainMode()?"Без точной синхронизации: строки листаются стрелками.":"Текст в мире · плавно следует за игроком",top+91,VisionMenuTheme.MUTED);
         button(g,x+16,row,half,22,"Яндекс Музыка",YandexMusicAccess.connected(),mx,my);
         if(VisionLyricsSource.plainMode()){
             int right=x+26+half;

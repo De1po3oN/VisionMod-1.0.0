@@ -30,7 +30,7 @@ public final class VisionLyricsSource {
     public static boolean active() { return mediaConnected() || !timeline.isEmpty(); }
     public static String status() {
         if (mediaConnected()) {
-            if(plainMode())return "Без таймкодов · строка "+(plainIndex+1)+"/"+plainLines.size()+" · "+lyricProvider;
+            if(plainMode())return (mediaPositionKnown?"Без таймкодов":"Плеер не передаёт позицию")+" · строка "+(plainIndex+1)+"/"+plainLines.size()+" · "+lyricProvider;
             return !mediaPositionKnown?"Плеер не передаёт позицию песни":mediaLines.isEmpty()&&timeline.isEmpty()?"Трек подключён · ищем слова":
                 (mediaPaused?"Пауза":"Строки синхронизированы")+(mediaLines.isEmpty()&&!timeline.isEmpty()?" · локальный LRC":lyricProvider.isEmpty()?"":" · "+lyricProvider);
         }
