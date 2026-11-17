@@ -105,11 +105,12 @@ public final class VisionLyricsLookup {
     }
     private static CompletableFuture<LyricsResult> catalog(URI service,LyricsSearch.Query query,long duration,LyricsHttp.Flight flight,int index,LyricsResult plain,List<URI> urls){
         if(index>=urls.size())return CompletableFuture.completedFuture(plain);
-        return LyricsHttp.get(urls.get(index),"",flight).thenCompose(reply->{
+        CompletableFuture<LyricsResult> request=LyricsHttp.get(urls.get(index),"",flight).thenCompose(reply->{
             if(reply.code()!=200&&reply.code()!=404)return plain.hasText()?CompletableFuture.completedFuture(plain):CompletableFuture.failedFuture(new java.io.IOException("Lyrics HTTP "+reply.code()));
             LyricsResult found=reply.code()==200?LyricsSearch.selectResult(reply.text(),query,duration,"LRCLIB"):LyricsResult.EMPTY;
             if(!found.timed().isBlank())return CompletableFuture.completedFuture(found);
             return catalog(service,query,duration,flight,index+1,found.hasText()?found:plain,urls);
         });
+        return request.exceptionallyCompose(error->plain.hasText()&&!flight.cancelled()?CompletableFuture.completedFuture(plain):CompletableFuture.failedFuture(error));
     }
 }

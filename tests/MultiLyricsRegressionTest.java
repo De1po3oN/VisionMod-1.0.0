@@ -49,6 +49,7 @@ public final class MultiLyricsRegressionTest {
         server.createContext("/api/",exchange->{
             catalogHits.incrementAndGet();int m=mode.get();
             if(m==6){slowStarted.countDown();try{slowRelease.await(2,TimeUnit.SECONDS);}catch(InterruptedException interrupted){Thread.currentThread().interrupt();}try{reply(exchange,404,"");}catch(java.io.IOException expected){}return;}
+            if(m==8){reply(exchange,200,exchange.getRequestURI().getPath().endsWith("/get")?PLAIN:"{broken");return;}
             if(m==0)reply(exchange,200,LRC);else if(m==1)reply(exchange,200,PLAIN);else if(m==2)reply(exchange,503,"");else reply(exchange,404,"");
         });
         server.createContext("/search",exchange->{
@@ -76,6 +77,8 @@ public final class MultiLyricsRegressionTest {
             check(yandexHits.get()==0&&ovhHits.get()==0,"no credentialless private API requests or unnecessary plain lookup");
             mode.set(1);found=VisionLyricsLookup.fetchAll(base,base,base,query,200000,"").get(5,TimeUnit.SECONDS);
             check(found.timed().isBlank()&&found.plain().contains("Real words")&&ovhHits.get()==0,"matching plain catalog result retained after searching for timed variants");
+            mode.set(8);found=VisionLyricsLookup.fetchAll(base,base,base,query,200000,"").get(5,TimeUnit.SECONDS);
+            check(found.source().equals("LRCLIB")&&found.plain().contains("Real words"),"a later malformed search cannot discard real words already found");
             mode.set(2);found=VisionLyricsLookup.fetchAll(base,base,base,query,200000,TOKEN).get(5,TimeUnit.SECONDS);
             check(found.source().equals("Яндекс Музыка")&&found.timed().contains("Actual next"),"Yandex LRC survives a failure of the primary service");
             check(downloadAuthLeaks.get()==0,"OAuth is never forwarded to the signed content URL");
