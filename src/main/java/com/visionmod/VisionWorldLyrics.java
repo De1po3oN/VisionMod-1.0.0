@@ -21,6 +21,7 @@ public final class VisionWorldLyrics {
     private static String lastRenderedText="";
     private static int lastRenderedRows;
     private static final WorldLyricMotion MOTION=new WorldLyricMotion();
+    private static final LyricEntrance ENTRANCE=new LyricEntrance();
     private static LocalPlayer trackedPlayer;
     private static ClientLevel trackedWorld;
     private static long previousFrame;
@@ -49,12 +50,12 @@ public final class VisionWorldLyrics {
     private static void renderInWorld(WorldRenderContext ctx) {
         Minecraft mc = Minecraft.getInstance();
         if (!VisionModClient.enabled || !VisionExtendedFeatures.enabled(3) || mc.player == null ||
-            mc.level == null){MOTION.reset();previousFrame=0;lastPose=null;return;}
+            mc.level == null){MOTION.reset();ENTRANCE.reset();previousFrame=0;lastPose=null;return;}
         if(ctx.matrices()==null)return;
         var camera=mc.gameRenderer.getMainCamera();
         if(!camera.isInitialized())return;
         if(trackedPlayer!=mc.player||trackedWorld!=mc.level){
-            trackedPlayer=mc.player;trackedWorld=mc.level;MOTION.reset();previousFrame=0;
+            trackedPlayer=mc.player;trackedWorld=mc.level;MOTION.reset();ENTRANCE.reset();previousFrame=0;
         }
         long now=System.nanoTime();double elapsed=previousFrame==0?0:(now-previousFrame)/1_000_000_000.0;previousFrame=now;
         float partial=mc.getDeltaTracker().getGameTimeDeltaPartialTick(false);
@@ -63,6 +64,7 @@ public final class VisionWorldLyrics {
         if(lastPose==null)return;
         lastAnchor=new Vec3(lastPose.x(),lastPose.y(),lastPose.z());
         String text=current(mc);
+        var entrance=ENTRANCE.sample(text,now,VisionAppearance.animations);
         if(text.isBlank())return;
         Vec3 relative=lastAnchor.subtract(camera.position());
         if(relative.lengthSqr()<.65*.65)return;
@@ -76,10 +78,12 @@ public final class VisionWorldLyrics {
             // Switch front/back faces of a vertical card; never billboard toward the camera.
             pose.mulPose(Axis.YP.rotationDegrees(180-lastPose.yaw()+(back?180:0)));
             pose.scale(SCALE,-SCALE,SCALE);
+            pose.scale(entrance.scale(),entrance.scale(),1);
             int count=rows.size();lastRenderedRows=0;
             for(int i=0;i<count;i++) {
                 var row=rows.get(i);
-                mc.font.drawInBatch(row,-mc.font.width(row)*.5f,(i-(count-1)*.5f)*11,0xFFF4F1FF,true,
+                mc.font.drawInBatch(row,-mc.font.width(row)*.5f,(i-(count-1)*.5f)*11+entrance.offset(),
+                    VisionGeometry.withAlpha(0xFFF4F1FF,Math.round(255*entrance.opacity())),true,
                     pose.last().pose(),TEXT_BUFFERS,Font.DisplayMode.NORMAL,0,VisionGeometry.FULL_BRIGHT);
                 lastRenderedRows++;
             }
