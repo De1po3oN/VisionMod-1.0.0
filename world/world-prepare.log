@@ -17,6 +17,47 @@ Note: Recompile with -Xlint:deprecation for details.
 > Task :gametestClasses
 
 > Task :inspectMinecraftHooks
+[SPEAR_API] net/minecraft/world/entity/player/Player.lungeForwardMaybe()V
+  call net/minecraft/world/entity/player/Player.hasEnoughFoodToDoExhaustiveManoeuvres()Z
+  branch 153
+  call net/minecraft/world/entity/Avatar.lungeForwardMaybe()V
+[SPEAR_API] net/minecraft/client/multiplayer/MultiPlayerGameMode.piercingAttack(Lnet/minecraft/world/item/component/PiercingWeapon;)V
+  call net/minecraft/client/multiplayer/MultiPlayerGameMode.ensureHasSentCarriedItem()V
+  field net/minecraft/client/multiplayer/MultiPlayerGameMode.connection Lnet/minecraft/client/multiplayer/ClientPacketListener;
+  field net/minecraft/network/protocol/game/ServerboundPlayerActionPacket$Action.STAB Lnet/minecraft/network/protocol/game/ServerboundPlayerActionPacket$Action;
+  field net/minecraft/core/BlockPos.ZERO Lnet/minecraft/core/BlockPos;
+  field net/minecraft/core/Direction.DOWN Lnet/minecraft/core/Direction;
+  call net/minecraft/network/protocol/game/ServerboundPlayerActionPacket.<init>(Lnet/minecraft/network/protocol/game/ServerboundPlayerActionPacket$Action;Lnet/minecraft/core/BlockPos;Lnet/minecraft/core/Direction;)V
+  call net/minecraft/client/multiplayer/ClientPacketListener.send(Lnet/minecraft/network/protocol/Packet;)V
+  field net/minecraft/client/multiplayer/MultiPlayerGameMode.minecraft Lnet/minecraft/client/Minecraft;
+  field net/minecraft/client/Minecraft.player Lnet/minecraft/client/player/LocalPlayer;
+  call net/minecraft/client/player/LocalPlayer.onAttack()V
+  field net/minecraft/client/multiplayer/MultiPlayerGameMode.minecraft Lnet/minecraft/client/Minecraft;
+  field net/minecraft/client/Minecraft.player Lnet/minecraft/client/player/LocalPlayer;
+  call net/minecraft/client/player/LocalPlayer.lungeForwardMaybe()V
+  field net/minecraft/client/multiplayer/MultiPlayerGameMode.minecraft Lnet/minecraft/client/Minecraft;
+  field net/minecraft/client/Minecraft.player Lnet/minecraft/client/player/LocalPlayer;
+  call net/minecraft/world/item/component/PiercingWeapon.makeSound(Lnet/minecraft/world/entity/Entity;)V
+[SPEAR_API] net/minecraft/client/multiplayer/ClientPacketListener.handleSetEntityMotion(Lnet/minecraft/network/protocol/game/ClientboundSetEntityMotionPacket;)V
+  field net/minecraft/client/multiplayer/ClientPacketListener.minecraft Lnet/minecraft/client/Minecraft;
+  call net/minecraft/client/Minecraft.packetProcessor()Lnet/minecraft/network/PacketProcessor;
+  call net/minecraft/network/protocol/PacketUtils.ensureRunningOnSameThread(Lnet/minecraft/network/protocol/Packet;Lnet/minecraft/network/PacketListener;Lnet/minecraft/network/PacketProcessor;)V
+  field net/minecraft/client/multiplayer/ClientPacketListener.level Lnet/minecraft/client/multiplayer/ClientLevel;
+  call net/minecraft/network/protocol/game/ClientboundSetEntityMotionPacket.getId()I
+  call net/minecraft/client/multiplayer/ClientLevel.getEntity(I)Lnet/minecraft/world/entity/Entity;
+  branch 199
+  call net/minecraft/network/protocol/game/ClientboundSetEntityMotionPacket.getMovement()Lnet/minecraft/world/phys/Vec3;
+  call net/minecraft/world/entity/Entity.lerpMotion(Lnet/minecraft/world/phys/Vec3;)V
+[SPEAR_API] net/minecraft/network/protocol/game/ClientboundSetEntityMotionPacket.<init>(Lnet/minecraft/world/entity/Entity;)V
+[SPEAR_API] net/minecraft/network/protocol/game/ClientboundSetEntityMotionPacket.<init>(ILnet/minecraft/world/phys/Vec3;)V
+[SPEAR_API] net/minecraft/network/protocol/game/ClientboundSetEntityMotionPacket.<init>(Lnet/minecraft/network/FriendlyByteBuf;)V
+[SPEAR_API] net/minecraft/network/protocol/game/ClientboundSetEntityMotionPacket.write(Lnet/minecraft/network/FriendlyByteBuf;)V
+[SPEAR_API] net/minecraft/network/protocol/game/ClientboundSetEntityMotionPacket.type()Lnet/minecraft/network/protocol/PacketType;
+[SPEAR_API] net/minecraft/network/protocol/game/ClientboundSetEntityMotionPacket.handle(Lnet/minecraft/network/protocol/game/ClientGamePacketListener;)V
+[SPEAR_API] net/minecraft/network/protocol/game/ClientboundSetEntityMotionPacket.getId()I
+[SPEAR_API] net/minecraft/network/protocol/game/ClientboundSetEntityMotionPacket.getMovement()Lnet/minecraft/world/phys/Vec3;
+[SPEAR_API] net/minecraft/network/protocol/game/ClientboundSetEntityMotionPacket.handle(Lnet/minecraft/network/PacketListener;)V
+[SPEAR_API] net/minecraft/network/protocol/game/ClientboundSetEntityMotionPacket.<clinit>()V
 [REFERENCE_API] net/minecraft/world/entity/player/Player.createItemCooldowns()Lnet/minecraft/world/item/ItemCooldowns;
 [REFERENCE_API] net/minecraft/world/entity/player/Player.startAutoSpinAttack(IFLnet/minecraft/world/item/ItemStack;)V
 [REFERENCE_API] net/minecraft/world/entity/player/Player.getWeaponItem()Lnet/minecraft/world/item/ItemStack;
@@ -450,7 +491,7 @@ Note: Recompile with -Xlint:deprecation for details.
   call net/minecraft/client/input/KeyEvent.key()I
 
 > Task :downloadAssets
-gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run-1794929962543.json
+gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run-1794930208929.json
 
 [Incubating] Problems report is available at: file:///home/runner/work/VisionMod-1.0.0/VisionMod-1.0.0/build/reports/problems/problems-report.html
 
@@ -460,5 +501,5 @@ You can use '--warning-mode all' to show the individual deprecation warnings and
 
 For more on this, please refer to https://docs.gradle.org/9.7.1/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
 
-BUILD SUCCESSFUL in 46s
+BUILD SUCCESSFUL in 27s
 6 actionable tasks: 6 executed
