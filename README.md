@@ -1,5 +1,7 @@
 # Vision Mod 2.0.0 · Open Beta
 
+Обновление GUI, World Lyrics и Spear: плавные переключатели, Inter, появление строк, более устойчивый разбор названий и эффекты реальных действий копья. [Готовый JAR](https://github.com/De1po3oN/VisionMod-1.0.0/raw/7395c1ef68055727ca4589bbe8b7528ddc60013c/build/visionmod-2.0.0.jar) · [проверки и кадры](REFERENCE_REFRESH_QA_RU.md).
+
 [Визуальная доработка 16.11.2026: HUD, эффекты, питомец и редакторы](VISUAL_REFRESH_RU.md).
 [Free Look, плавный хотбар и синхронизация Lyrics — исправления и проверки](CONTROLS_LYRICS_QA_RU.md).
 [Fast Scroller и память меню в текущем запуске](SCROLLER_MENU_SESSION_QA_RU.md).
