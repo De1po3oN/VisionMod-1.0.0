@@ -50,11 +50,17 @@ public class CoreRegressionTest {
             var layout=DashboardLayout.of(viewport[0],viewport[1]);
             for(int i=0;i<layout.cards();i++){
                 check(layout.cardWidth()>=140,"readable card width");
+                check(layout.cardHeight()>=52,"readable card height");
                 check(layout.cardLeft(i)+layout.cardWidth()<=layout.width()-16,"card within panel");
-                check(layout.cardTop(i)+60<=layout.navigationTop()-4,"cards do not overlap navigation");
+                check(layout.cardTop(i)+layout.cardHeight()<=layout.navigationTop()-4,"cards do not overlap navigation");
                 if(i%layout.columns()>0)check(layout.cardLeft(i-1)+layout.cardWidth()<layout.cardLeft(i),"columns do not overlap");
             }
+            for(int i=0;i<7;i++)check(layout.tabTop(i)+layout.tabHeight()<layout.masterTop(),"navigation does not overlap master toggle");
+            check(layout.contentLeft()+64+40<=layout.settingsLeft(),"pagination and settings do not overlap");
+            check(layout.settingsLeft()+layout.settingsWidth()<layout.themeLeft(),"footer actions do not overlap");
         }
+        check(DashboardLayout.of(320,240).cards()>=2,"minimum GUI shows at least two modules");
+        check(DashboardLayout.of(426,240).cards()>=4,"standard small GUI shows at least four modules");
         for(float progress:new float[]{-1,0,.1f,.5f,.9f,1,2,Float.NaN,Float.POSITIVE_INFINITY}){
             check(Float.isFinite(EffectMath.ease(progress)),"finite animation curve");
             check(EffectMath.fade(progress)>=0&&EffectMath.fade(progress)<=1,"bounded fade");

@@ -24,7 +24,7 @@ public final class VisionTrailSettingsScreen extends VisionPanelScreen {
     private void apply(int index,String value){try{VisionWorldEffects.setTrailColor(index,VisionWorldEffects.parseTrailColor(value));error="";}catch(IllegalArgumentException e){error="HEX #RRGGBB или R,G,B";}}
     @Override protected void draw(GuiGraphics g,int mx,int my,float delta){
         int top=layout.bodyTop(),half=(w-42)/2;
-        g.drawString(font,"НАЧАЛО",x+16,top,VisionMenuTheme.MUTED);g.drawString(font,"КОНЕЦ",x+26+half,top,VisionMenuTheme.MUTED);
+        VisionFonts.draw(g,font,"НАЧАЛО",x+16,top,VisionMenuTheme.MUTED);VisionFonts.draw(g,font,"КОНЕЦ",x+26+half,top,VisionMenuTheme.MUTED);
         int yy=top+43,pw=w-32;
         VisionHudTheme.round(g,x+16,yy,pw,18,4,0xFF101625);
         for(int i=0;i<48;i++){
@@ -38,7 +38,7 @@ public final class VisionTrailSettingsScreen extends VisionPanelScreen {
         button(g,x+16,top+99,half,22,"Ширина: "+String.format(java.util.Locale.ROOT,"%.2f",VisionWorldEffects.trailWidth()),false,mx,my);
         button(g,x+26+half,top+99,half,22,"Плотность: "+VisionWorldEffects.trailOpacity(),false,mx,my);
         button(g,x+16,y+h-29,Math.min(176,w-119),20,"Цветовая пара",false,mx,my);
-        if(h>280)VisionHudTheme.text(g,font,error.isEmpty()?"Цвет и режим сохраняются автоматически":error,x+16,top+141,w-32,error.isEmpty()?VisionMenuTheme.MUTED:VisionMenuTheme.RED);
+        if(h>280)VisionFonts.fit(g,font,error.isEmpty()?"Цвет и режим сохраняются автоматически":error,x+16,top+141,w-32,error.isEmpty()?VisionMenuTheme.MUTED:VisionMenuTheme.RED);
     }
     @Override public boolean mouseClicked(MouseButtonEvent e,boolean doubled){
         if(e.button()==0){

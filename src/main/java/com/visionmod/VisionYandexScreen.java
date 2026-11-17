@@ -25,7 +25,7 @@ public final class VisionYandexScreen extends VisionPanelScreen {
         line(g,YandexMusicAccess.status(),top+90,VisionMenuTheme.CYAN);
         line(g,"Токен хранится только до закрытия Minecraft.",top+109,VisionMenuTheme.MUTED);
     }
-    private void line(GuiGraphics g,String value,int yy,int color){VisionHudTheme.text(g,font,value,x+16,yy,w-32,color);}
+    private void line(GuiGraphics g,String value,int yy,int color){VisionFonts.fit(g,font,value,x+16,yy,w-32,color);}
     @Override public boolean mouseClicked(MouseButtonEvent event,boolean doubled){
         int top=layout.bodyTop();
         if(event.button()==0&&hit(event.x(),event.y(),x+16,top+59,(w-42)/2,22)){

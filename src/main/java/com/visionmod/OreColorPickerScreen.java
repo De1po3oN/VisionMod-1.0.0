@@ -59,8 +59,8 @@ public final class OreColorPickerScreen extends VisionPanelScreen {
         VisionHudTheme.ring(g,xx,yy,4,1,0xFFFFFFFF);
         int hy=sy+Math.round(hue*(size-1));g.fill(hx-2,hy-1,hx+14,hy+2,0xFFFFFFFF);
         VisionHudTheme.round(g,fieldX,sy,fieldWidth,36,4,getColor.getAsInt());
-        VisionHudTheme.text(g,font,label,fieldX,sy+41,fieldWidth,VisionMenuTheme.WHITE);
-        VisionHudTheme.text(g,font,error.isBlank()?"Сохраняется сразу":error,fieldX,sy+82,fieldWidth,error.isBlank()?VisionMenuTheme.MUTED:VisionMenuTheme.RED);
+        VisionFonts.fit(g,font,label,fieldX,sy+41,fieldWidth,VisionMenuTheme.WHITE);
+        VisionFonts.fit(g,font,error.isBlank()?"Сохраняется сразу":error,fieldX,sy+82,fieldWidth,error.isBlank()?VisionMenuTheme.MUTED:VisionMenuTheme.RED);
     }
     private void pick(double mx,double my){
         if(squareDrag){sat=EffectMath.unit((float)(mx-sx)/(size-1));value=1-EffectMath.unit((float)(my-sy)/(size-1));}

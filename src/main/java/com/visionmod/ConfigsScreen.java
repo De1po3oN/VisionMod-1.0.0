@@ -24,7 +24,7 @@ public final class ConfigsScreen extends VisionPanelScreen {
         button(g,x+16,top+27,w-32,24,current().isBlank()?"Пока нет профилей":"Профиль: "+current(),false,mx,my);
         String[] actions={"Сохранить","Загрузить","Удалить","Обновить"};
         for(int i=0;i<4;i++)button(g,x+16+(i%2)*(bw+10),top+58+(i/2)*28,bw,22,actions[i],i==0,mx,my);
-        VisionHudTheme.text(g,font,status,x+16,layout.bodyBottom()-10,w-32,VisionMenuTheme.MUTED);
+        VisionFonts.fit(g,font,status,x+16,layout.bodyBottom()-10,w-32,VisionMenuTheme.MUTED);
         button(g,x+16,y+h-29,Math.min(176,w-119),20,"Открыть папку",false,mx,my);
     }
     @Override public boolean mouseClicked(MouseButtonEvent e,boolean doubled){

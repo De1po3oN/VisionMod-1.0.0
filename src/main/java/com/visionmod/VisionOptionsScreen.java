@@ -21,14 +21,16 @@ public abstract class VisionOptionsScreen extends VisionPanelScreen {
     @Override protected void draw(GuiGraphics g,int mx,int my,float delta){
         for(int i=0;i<layout.pageSize()&&page*layout.pageSize()+i<entries.size();i++){
             Entry e=entries.get(page*layout.pageSize()+i);int bx=layout.rowX(i),by=layout.rowY(i),bw=layout.rowWidth();
-            VisionHudTheme.round(g,bx,by,bw,37,5,hit(mx,my,bx,by,bw,37)?0xFF30364B:0xFF232A3D);
-            VisionHudTheme.text(g,font,e.title,bx+10,by+7,bw-20,VisionMenuTheme.WHITE);
-            VisionHudTheme.text(g,font,e.value.get(),bx+10,by+22,bw-20,VisionMenuTheme.CYAN);
+            boolean hover=hit(mx,my,bx,by,bw,37);
+            VisionGuiTheme.round(g,bx-1,by-1,bw+2,39,6,hover?VisionGuiTheme.tint(VisionGuiTheme.BORDER,.2f):VisionGuiTheme.BORDER);
+            VisionGuiTheme.round(g,bx,by,bw,37,5,hover?VisionGuiTheme.HOVER:VisionGuiTheme.CARD);
+            VisionFonts.heading(g,font,e.title,bx+10,by+6,bw-20,VisionGuiTheme.WHITE);
+            VisionFonts.fit(g,font,e.value.get(),bx+10,by+23,bw-20,VisionGuiTheme.accent());
         }
         if(maxPage()>0){
             button(g,x+16,y+h-29,30,20,"<",page>0,mx,my);
             button(g,x+51,y+h-29,30,20,">",page<maxPage(),mx,my);
-            g.drawString(font,(page+1)+" / "+(maxPage()+1),x+90,y+h-23,VisionMenuTheme.MUTED);
+            VisionFonts.draw(g,font,(page+1)+" / "+(maxPage()+1),x+90,y+h-23,VisionGuiTheme.MUTED);
         }
         if(capture>=0){
             VisionHudTheme.round(g,x+12,y+50,w-24,h-88,6,0xF51A2032);

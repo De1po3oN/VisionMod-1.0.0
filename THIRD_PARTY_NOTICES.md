@@ -7,3 +7,9 @@ Inter font (unchanged variable TrueType font)
 
 Vision uses this font only for its own interface and world lyrics. Reference mod
 archives supplied for behavioral comparison are not included in the source or JAR.
+
+The menu also includes two static derivatives, named Vision UI Regular and
+Vision UI Semibold (`menu.ttf`, `menu-heading.ttf`), under the same OFL 1.1.
+They are generated from the source font above with `tools/generate-ui-fonts.py`:
+optical size 20, weights 450/650. The original copyright and license are retained.
+The variable font and world lyrics font are unchanged.
