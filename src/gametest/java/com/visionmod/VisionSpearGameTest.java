@@ -12,6 +12,7 @@ final class VisionSpearGameTest {
         world.getServer().runCommand("tp @p 8 -60 0 0 0");
         world.getServer().runCommand("item replace entity @p weapon.mainhand with minecraft:diamond_spear");
         context.runOnClient(mc->{
+            check(VisionFonts.width(mc.font,"iiiiWWWW Vision 2026")!=mc.font.width("iiiiWWWW Vision 2026"),"Inter font was not loaded; UI fell back to Minecraft's font");
             mc.options.setCameraType(CameraType.FIRST_PERSON);mc.options.hideGui=true;
             mc.setWindowActive(true);mc.mouseHandler.grabMouse();
             if(!VisionMotionEffects.selected(2))VisionMotionEffects.toggle(2);

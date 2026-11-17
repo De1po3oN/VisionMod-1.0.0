@@ -443,11 +443,9 @@ public final class VisionDashboardScreen extends Screen {
     private void renderDetails(GuiGraphics g,int mx,int my){
         overlay(g,details.title.toUpperCase(Locale.ROOT));
         int y=top+59;
-        String remaining=details.info;
-        for(int i=0;i<2&&!remaining.isEmpty();i++){
-            String part=font.plainSubstrByWidth(remaining,w-48);
-            if(part.isEmpty())break;
-            VisionFonts.draw(g,font,part,left+24,y+i*13,MUTED);remaining=remaining.substring(part.length());
+        var rows=font.split(VisionFonts.text(details.info),w-48);
+        for(int i=0;i<Math.min(2,rows.size());i++){
+            g.drawString(font,rows.get(i),left+24,y+i*13,MUTED,false);
         }
         String value=switch(details.title){
             case "Air Hearts","Snowflakes" -> "Режим: "+VisionExtras.ambientStyleLabel()+"  ·  Плотность: "+VisionExtras.ambientDensityLabel();

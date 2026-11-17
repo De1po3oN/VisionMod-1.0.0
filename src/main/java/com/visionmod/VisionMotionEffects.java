@@ -70,23 +70,26 @@ public final class VisionMotionEffects {
     }
     public static void beforeLunge() {
         Minecraft mc=Minecraft.getInstance();
-        if(enabled(2)&&mc.player!=null&&mc.player.getMainHandItem().has(DataComponents.PIERCING_WEAPON))
-            LUNGE.arm(mc.player.getDeltaMovement().horizontalDistance());
+        LUNGE.reset();
+        if(enabled(2)&&mc.player!=null&&mc.player.getMainHandItem().has(DataComponents.PIERCING_WEAPON)){
+            Vec3 velocity=mc.player.getDeltaMovement();LUNGE.arm(velocity.x,velocity.z);
+        }
     }
     public static void afterLunge() { observeLunge(Minecraft.getInstance()); }
     private static void observeLunge(Minecraft mc) {
         boolean eligible=enabled(2)&&mc.player!=null&&mc.level!=null&&
             mc.player.getMainHandItem().has(DataComponents.PIERCING_WEAPON);
-        if(LUNGE.sample(eligible?mc.player.getDeltaMovement().horizontalDistance():0,eligible)) {
-            Vec3 velocity=mc.player.getDeltaMovement();
-            VisionSpearEffects.emit(mc.player.position().add(0,.9,0),new Vec3(velocity.x,0,velocity.z),false);
+        Vec3 velocity=eligible?mc.player.getDeltaMovement():Vec3.ZERO;
+        var impulse=LUNGE.finish(velocity.x,velocity.z,eligible);
+        if(impulse!=null) {
+            VisionSpearEffects.emit(mc.player.position().add(0,.9,0),new Vec3(impulse.x(),0,impulse.z()),false);
         }
     }
     /** Server damage attribution also covers the spear's held-use charge attack. */
     public static void spearDamage(ClientboundDamageEventPacket packet) {
         Minecraft mc=Minecraft.getInstance();
         if(!enabled(3)||mc.player==null||mc.level==null||packet.sourceCauseId()!=mc.player.getId()||
-            !packet.sourceType().is(DamageTypes.PLAYER_ATTACK))return;
+            !packet.sourceType().is(DamageTypes.SPEAR))return;
         var stack=mc.player.isUsingItem()&&mc.player.getUseItem().has(DataComponents.KINETIC_WEAPON)?
             mc.player.getUseItem():mc.player.getMainHandItem();
         if(!stack.has(DataComponents.PIERCING_WEAPON))return;
@@ -102,7 +105,6 @@ public final class VisionMotionEffects {
             return;
         }
         if(previousWorld!=mc.level){LUNGE.reset();VisionSpearEffects.reset();previousWorld=mc.level;previousYaw=mc.player.getYRot();}
-        observeLunge(mc);
         if (streakTicks > 0) streakTicks--;
         if (enabled(4)) {
             float difference = Math.abs(Mth.wrapDegrees(mc.player.getYRot() - previousYaw));

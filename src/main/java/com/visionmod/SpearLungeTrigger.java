@@ -1,21 +1,19 @@
 package com.visionmod;
 
-/** Detect a burst of movement only inside a window armed by an actual spear attack. */
+/** Compare velocity immediately before and after vanilla's lunge method. */
 public final class SpearLungeTrigger {
-    private int remaining;
-    private double previousSpeed;
-    public void reset() { remaining = 0; previousSpeed = 0; }
-    public void arm(double speed) {
-        if (!Double.isFinite(speed) || speed < 0) { reset(); return; }
-        remaining = 10; previousSpeed = speed;
+    public record Impulse(double x, double z) { }
+    private boolean armed;
+    private double beforeX, beforeZ;
+    public void reset() { armed = false; }
+    public void arm(double x, double z) {
+        armed = Double.isFinite(x) && Double.isFinite(z);
+        beforeX = x; beforeZ = z;
     }
-    public boolean sample(double speed, boolean eligible) {
-        if (!eligible || !Double.isFinite(speed) || speed < 0) { reset(); return false; }
-        if (remaining <= 0) return false;
-        remaining--;
-        boolean launched = speed > .42 && speed - previousSpeed > .18;
-        previousSpeed = speed;
-        if (launched) remaining = 0;
-        return launched;
+    public Impulse finish(double x, double z, boolean eligible) {
+        boolean pending = armed; reset();
+        if (!pending || !eligible || !Double.isFinite(x) || !Double.isFinite(z)) return null;
+        double dx = x - beforeX, dz = z - beforeZ;
+        return dx * dx + dz * dz > .0001 ? new Impulse(dx, dz) : null;
     }
 }
