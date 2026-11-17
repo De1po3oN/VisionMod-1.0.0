@@ -17,7 +17,7 @@ Note: Recompile with -Xlint:deprecation for details.
 1 error
 
 > Task :compileJava FAILED
-gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run-1794907585580.json
+gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run-1794907693053.json
 
 [Incubating] Problems report is available at: file:///home/runner/work/VisionMod-1.0.0/VisionMod-1.0.0/build/reports/problems/problems-report.html
 
@@ -39,5 +39,5 @@ Execution failed for task ':compileJava' (registered by plugin class 'org.gradle
 > Check your code and dependencies to fix the compilation error(s)
 > Run with --scan to get full insights from a Build Scan (powered by Develocity).
 
-BUILD FAILED in 25s
+BUILD FAILED in 26s
 1 actionable task: 1 executed
