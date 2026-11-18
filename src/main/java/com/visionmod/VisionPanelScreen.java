@@ -27,6 +27,7 @@ public abstract class VisionPanelScreen extends Screen {
         g.fill(x+16,y+43,x+w-16,y+44,VisionGuiTheme.BORDER);
         draw(g,mx,my,delta);
         button(g,x+w-93,y+h-29,77,20,"Готово",false,mx,my);
+        VisionGuiTheme.branding(g,font,x,y,w,h);
         super.render(g,mx,my,delta);
     }
     protected void button(GuiGraphics g,int bx,int by,int bw,int bh,String label,boolean active,int mx,int my){

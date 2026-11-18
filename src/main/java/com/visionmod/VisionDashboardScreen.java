@@ -384,6 +384,7 @@ public final class VisionDashboardScreen extends Screen {
             textFit(g,"Нажми клавишу или кнопку мыши.",left+24,top+64,w-48,WHITE);
             textFit(g,"Esc — убрать привязку",left+24,top+85,w-48,MUTED);
         }
+        VisionGuiTheme.branding(g,font,left,top,w,h);
         super.render(g,mx,my,delta);
         if(tooltip==null||details!=null||modal!=0||captureBind>=0){hoverLabel="";hoverStarted=now;}
         else{

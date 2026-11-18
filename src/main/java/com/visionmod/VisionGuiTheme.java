@@ -39,6 +39,11 @@ public final class VisionGuiTheme {
     public static void backdrop(GuiGraphics g,int width,int height){
         g.fillGradient(0,0,width,height,0x7A0B1019,0xB4050810);
     }
+    public static void branding(GuiGraphics g,Font font,int x,int y,int w,int h){
+        String label="ТГК: "+VisionMenuTheme.TELEGRAM+"  ·  Сервер: "+VisionMenuTheme.SERVER;
+        g.pose().pushMatrix();g.pose().translate(x+w/2f,y+h-8);g.pose().scale(.75f,.75f);
+        VisionFonts.centered(g,font,label,0,0,MUTED);g.pose().popMatrix();
+    }
     public static void button(GuiGraphics g,int x,int y,int w,int h,boolean selected,boolean hover){
         round(g,x,y,w,h,5,selected?tint(CARD,.18f):hover?HOVER:CARD);
         if(hover||selected)round(g,x,y,2,h,1,selected?accent():FAINT);

@@ -14,6 +14,8 @@ public final class VisionMenuTheme {
     public static final int WIDTH = 450;
     public static final int HEIGHT = 316;
     public static final String VERSION = "2.0.0";
+    public static final String TELEGRAM = "@cocok_ali";
+    public static final String SERVER = "mc.showtime.su";
     private static final int[] PRIMARY = {0xFFA89CFF, 0xFFF38CC9, 0xFF7EE2BE, 0xFFF3BB7A, 0xFF7DADEB, 0xFFECECFD};
     private static final int[] SECONDARY = {0xFFDB9BFF, 0xFFB6A7FF, 0xFF91B7FC, 0xFFFF90B0, 0xFF84E4E8, 0xFFB6A5D3};
     private static final Path FILE = FabricLoader.getInstance().getConfigDir().resolve("visionmod/theme.properties");
@@ -89,8 +91,8 @@ public final class VisionMenuTheme {
         footer(g,font,x,y);
     }
     private static void footer(GuiGraphics g,Font font,int x,int y) {
-        g.drawString(font,"TG: @cocok_ali",x+17,y+HEIGHT-23,CYAN);
-        String server="For: mc.showtime.su";
+        g.drawString(font,"TG: "+TELEGRAM,x+17,y+HEIGHT-23,CYAN);
+        String server="For: "+SERVER;
         g.drawString(font,server,x+WIDTH-font.width(server)-17,y+HEIGHT-23,PURPLE);
     }
     public static int paletteHit(double mx,double my,int screenWidth,int screenHeight) {
