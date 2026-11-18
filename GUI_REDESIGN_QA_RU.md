@@ -1,5 +1,7 @@
 # Обновлённый GUI Vision
 
+Обновление подписи 2026-11-18: code `95134c5b6d47d3bacb17b1b4835fd44299b3c999`, evidence `fbb3ccf15654feab0f13b81ef5d44e1aa7f68583`. Внизу главного меню и настроек восстановлены **ТГК @cocok_ali · Сервер mc.showtime.su**. Кадры компактного меню и настроек просмотрены: текст читается, кнопки не перекрыты. [JAR](https://github.com/De1po3oN/VisionMod-1.0.0/raw/fbb3ccf15654feab0f13b81ef5d44e1aa7f68583/build/visionmod-2.0.0.jar) (5 825 615 байт), SHA-256 `99dc73cc4ad682a7ef080511f101de81f1fe4c1c768edd3e7a90e142477c4fbd`. Build [44274108412](https://github.com/De1po3oN/VisionMod-1.0.0/actions/runs/44274108412), client [44274108433](https://github.com/De1po3oN/VisionMod-1.0.0/actions/runs/44274108433), world [44274108458](https://github.com/De1po3oN/VisionMod-1.0.0/actions/runs/44274108458) — PASS, source.json всех трёх совпадает с этим кодом.
+
 Код: `611d5095ae3245959332d018f22d5c40bcc904ee`, ветка `codex/visual-refresh`.
 
 Что изменено:
