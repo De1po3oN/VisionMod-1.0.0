@@ -1,0 +1,28 @@
+name: Sacred War World Lyrics demonstration
+on:
+  push:
+    branches: ['qa/sacred-war']
+permissions:
+  contents: write
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 tests/probe-sacred-war.py > sacred-war-probe.json
+      - uses: actions/checkout@v4
+        with:
+          ref: codex/visual-evidence
+          path: .qa-evidence
+      - name: Retain catalog and recording evidence
+        run: |
+          mkdir -p .qa-evidence/sacred-war
+          cp sacred-war-probe.json .qa-evidence/sacred-war/providers.json
+          git -C .qa-evidence config user.name 'github-actions[bot]'
+          git -C .qa-evidence config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git -C .qa-evidence add sacred-war/providers.json
+          git -C .qa-evidence diff --cached --quiet && exit 0
+          git -C .qa-evidence commit -m 'Record Sacred War public media metadata'
+          git -C .qa-evidence pull --rebase origin codex/visual-evidence
+          git -C .qa-evidence push origin HEAD:codex/visual-evidence
