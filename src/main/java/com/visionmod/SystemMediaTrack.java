@@ -34,7 +34,9 @@ public record SystemMediaTrack(String provider,String title,String artist,long p
         int length=Math.min(maxCodePoints,value.codePointCount(0,value.length()));
         return value.substring(0,value.offsetByCodePoints(0,length));
     }
-    private static final String QUOTED="(?:'((?:\\\\.|[^'\\\\])*)'|\"((?:\\\\.|[^\"\\\\])*)\")";
+    // Match runs of ordinary characters at once. A long native metadata field
+    // must not put a regex stack frame on the stack for every character.
+    private static final String QUOTED="(?:'((?:\\\\.|[^'\\\\]++)*+)'|\"((?:\\\\.|[^\"\\\\]++)*+)\")";
     public static SystemMediaTrack fromMpris(String source,String data) {
         String url=property(data,"xesam:url",false);
         String title=property(data,"xesam:title",false);

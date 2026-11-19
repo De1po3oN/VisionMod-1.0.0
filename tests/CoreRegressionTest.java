@@ -42,6 +42,8 @@ public class CoreRegressionTest {
         check(SystemMediaTrack.fromMpris("Test","{'xesam:title': <'Last song'>, 'PlaybackStatus': <'Stopped'>}").title().isBlank(),"stopped players do not retain their previous track");
         var unknownPosition=new SystemMediaTrack("YandexMusic","Track","Artist",0,false,0,1,false);
         check(track.selectionScore()>unknownPosition.selectionScore(),"a playing session with position supports synchronization");
+        var longTitle=SystemMediaTrack.fromMpris("Test","{'xesam:title': <'"+"x".repeat(5000)+"'>}");
+        check(longTitle.title().length()==140,"long native title is truncated without overflowing the regex stack");
         var body=new BoundedLyricsBody();
         final boolean[] cancelled={false};
         body.onSubscribe(new java.util.concurrent.Flow.Subscription(){public void request(long n){}public void cancel(){cancelled[0]=true;}});
