@@ -62,6 +62,33 @@ public class LyricsSourceTest {
         Files.delete(dir.resolve("visionmod/lyrics.lrc"));
         Thread.sleep(1100);VisionLyricsSource.poll();
         check(VisionLyricsSource.current()==null,"deleted LRC clears old text");
+        check(VisionLyricsSource.importText("\uFEFF[ti:Example]\n[00:00:00]<00:00.00>First\n[00:02.00] Second\n[00:04.00] "),"import handles BOM, enhanced LRC, and colon fractions");
+        check(VisionLyricsSource.plainMode()&&VisionLyricsSource.current().equals("First"),"import without media starts in plain mode without exposing timing tags or metadata");
+        check(VisionLyricsSource.setManualClock(2500,false)&&!VisionLyricsSource.plainMode()&&VisionLyricsSource.current().equals("Second"),"paused manual clock renders correct offline LRC line");
+        check(VisionLyricsSource.setManualClock(4500,false)&&VisionLyricsSource.current().isEmpty(),"manual clock preserves instrumental gaps");
+        check(!VisionLyricsSource.importText("[00:00.00]\n[00:02.00]")&&VisionLyricsSource.hasImport(),"empty LRC does not replace imported words");
+        VisionLyricsSource.useAutomaticClock();
+        VisionLyricsSource.receiveMediaTrack("Local","Test","Missing lyrics",2500,true);
+        VisionLyricsSource.setMediaLyrics("Test","Missing lyrics","[00:00]Catalog result");
+        check(VisionLyricsSource.current().equals("Second"),"import takes priority and follows the native song clock");
+        VisionLyricsSource.clearMediaTrack();
+        VisionLyricsSource.receiveMediaTrack("Local","Test","Missing lyrics",2500,true);
+        check(VisionLyricsSource.current().equals("Second"),"same song reconnect retains its imported words");
+        VisionLyricsSource.receiveMediaTrack("Local","Test","Next song",2500,true);
+        check(!VisionLyricsSource.hasImport()&&VisionLyricsSource.current().isEmpty(),"previous import does not carry across a track change");
+        check(VisionLyricsSource.importText("Совсем редкая песня\nЕщё строка"),"plain clipboard text imports without a catalog");
+        check(!VisionLyricsSource.setManualClock(0,true)&&VisionLyricsSource.plainMode(),"plain words cannot start a timed clock");
+        VisionLyricsSource.movePlainLine(1);
+        check(VisionLyricsSource.current().equals("Ещё строка"),"imported plain words page independently");
+        VisionLyricsSource.clearImport();
+        check(VisionLyricsSource.current().isEmpty(),"removing import returns to the active native track");
+        VisionLyricsSource.receiveMediaTrack(new SystemMediaTrack("Local","Next song","Test",0,false,9000,1,false),System.nanoTime());
+        VisionLyricsSource.setMediaLyrics("Test","Next song","[00:00]First\n[00:00.100]Second");
+        check(VisionLyricsSource.setManualClock(0,true),"manual clock starts for automatic LRC without native position");
+        Thread.sleep(150);
+        check(VisionLyricsSource.current().equals("Second"),"manual clock advances on real elapsed time");
+        VisionLyricsSource.useAutomaticClock();
+        check(VisionLyricsSource.plainMode(),"restoring auto clock without media position falls back to manual pages");
         System.out.println("PASS: "+checks+" lyric source assertions (test scheduler, not Minecraft)");
     }
 }

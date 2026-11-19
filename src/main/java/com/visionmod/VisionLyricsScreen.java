@@ -18,7 +18,7 @@ public final class VisionLyricsScreen extends VisionPanelScreen {
         button(g,x+16,top,w-32,24,VisionExtendedFeatures.enabled(3)?"Включено · музыка определяется системой":"Включить World Lyrics",VisionExtendedFeatures.enabled(3),mx,my);
         line(g,VisionMediaSession.state(),top+35,VisionMenuTheme.WHITE);
         line(g,VisionLyricsSource.mediaConnected()?VisionLyricsSource.trackLabel():"Включи музыку и возвращайся в игру.",top+53,VisionMenuTheme.MUTED);
-        line(g,VisionLyricsLookup.status(),top+71,VisionMenuTheme.CYAN);
+        line(g,VisionLyricsSource.hasImport()||VisionLyricsSource.manualClock()?VisionLyricsSource.status():VisionLyricsLookup.status(),top+71,VisionMenuTheme.CYAN);
         int row=layout.bodyBottom()-47,half=(w-42)/2;
         if(row>top+117)line(g,VisionLyricsSource.plainMode()?"Без точной синхронизации: строки листаются стрелками.":"Текст в мире · плавно следует за игроком",top+91,VisionMenuTheme.MUTED);
         button(g,x+16,row,half,22,"Яндекс Музыка",YandexMusicAccess.connected(),mx,my);
@@ -27,9 +27,11 @@ public final class VisionLyricsScreen extends VisionPanelScreen {
             button(g,right,row,30,22,"<",false,mx,my);button(g,right+half-30,row,30,22,">",false,mx,my);
             VisionFonts.centered(g,font,(VisionLyricsSource.plainLineIndex()+1)+"/"+VisionLyricsSource.plainLineCount(),right+half/2,row+7,VisionMenuTheme.WHITE);
         }
+        button(g,x+16,y+h-29,w-125,20,"Импорт текста и синхронизация",VisionLyricsSource.hasImport(),mx,my);
     }
     private void line(GuiGraphics g,String text,int top,int color){VisionFonts.fit(g,font,text,x+16,top,w-32,color);}
     @Override public boolean mouseClicked(MouseButtonEvent e,boolean doubled){
+        if(e.button()==0&&hit(e.x(),e.y(),x+16,y+h-29,w-125,20)){minecraft.setScreen(new VisionManualLyricsScreen(this));return true;}
         if(e.button()==0&&hit(e.x(),e.y(),x+16,layout.bodyTop(),w-32,24)){VisionExtendedFeatures.toggle(3);return true;}
         int row=layout.bodyBottom()-47,half=(w-42)/2,right=x+26+half;
         if(e.button()==0&&hit(e.x(),e.y(),x+16,row,half,22)){minecraft.setScreen(new VisionYandexScreen());return true;}

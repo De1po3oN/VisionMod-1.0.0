@@ -50,6 +50,7 @@ public final class MultiLyricsRegressionTest {
             catalogHits.incrementAndGet();int m=mode.get();
             if(m==6){slowStarted.countDown();try{slowRelease.await(2,TimeUnit.SECONDS);}catch(InterruptedException interrupted){Thread.currentThread().interrupt();}try{reply(exchange,404,"");}catch(java.io.IOException expected){}return;}
             if(m==8){reply(exchange,200,exchange.getRequestURI().getPath().endsWith("/get")?PLAIN:"{broken");return;}
+            if(m==10){reply(exchange,429,"");return;}
             if(m==0)reply(exchange,200,LRC);else if(m==1)reply(exchange,200,PLAIN);else if(m==2)reply(exchange,503,"");else reply(exchange,404,"");
         });
         server.createContext("/search",exchange->{
@@ -57,12 +58,15 @@ public final class MultiLyricsRegressionTest {
             if(mode.get()==4){reply(exchange,401,"{}");return;}
             if(mode.get()==7){reply(exchange,451,"{}");return;}
             String artist=mode.get()==5?"Unrelated Artist":"Artist";
-            reply(exchange,200,"{\"result\":{\"tracks\":{\"results\":[{\"id\":123,\"title\":\"Song\",\"artists\":[{\"name\":\""+artist+"\"}],\"durationMs\":200000}]}}}");
+            String track="{\"id\":123,\"title\":\"Song\",\"artists\":[{\"name\":\""+artist+"\"}],\"durationMs\":200000}";
+            String second=mode.get()==9?","+track.replace("123","456").replace("200000","200200"):"";
+            reply(exchange,200,"{\"result\":{\"tracks\":{\"results\":["+track+second+"]}}}");
         });
         server.createContext("/tracks/",exchange->{
             yandexHits.incrementAndGet();check(("OAuth "+TOKEN).equals(exchange.getRequestHeaders().getFirst("Authorization")),"lyric metadata uses the account token");
             check(exchange.getRequestURI().getRawQuery().contains("sign=")&&exchange.getRequestURI().getRawQuery().contains("timeStamp="),"authenticated lyrics request has a timestamp and signature");
             if(mode.get()==3&&exchange.getRequestURI().getQuery().contains("format=LRC")){reply(exchange,404,"{}");return;}
+            if(mode.get()==9&&exchange.getRequestURI().getPath().startsWith("/tracks/123/")){reply(exchange,404,"{}");return;}
             reply(exchange,200,"{\"result\":{\"downloadUrl\":\""+base+"/content\"}}");
         });
         server.createContext("/content",exchange->{
@@ -86,6 +90,11 @@ public final class MultiLyricsRegressionTest {
             check(found.source().equals("Яндекс Музыка")&&yandexHits.get()==withoutSearch+1,"known browser track skips fuzzy catalog search");
             mode.set(3);found=VisionLyricsLookup.fetchAll(base,base,base,query,200000,TOKEN).get(5,TimeUnit.SECONDS);
             check(found.timed().isBlank()&&found.plain().contains("Words from Yandex"),"TEXT format is tried when Yandex has no LRC");
+            mode.set(9);found=VisionLyricsLookup.fetchAll(base,base,base,query,200000,TOKEN).get(5,TimeUnit.SECONDS);
+            check(!found.timed().isBlank()&&found.source().equals("Яндекс Музыка"),"an alternate release of the same recording supplies lyrics when the first ID has none");
+            int requestsBeforeLimit=catalogHits.get();
+            mode.set(10);found=VisionLyricsLookup.fetchAll(base,base,base,query,200000,"").get(5,TimeUnit.SECONDS);
+            check(found.source().equals("lyrics.ovh")&&catalogHits.get()==requestsBeforeLimit+1,"rate limiting stops this provider while other sources can recover");
             YandexMusicAccess.connect(TOKEN);
             mode.set(4);found=VisionLyricsLookup.fetchAll(base,base,base,query,200000,TOKEN).get(5,TimeUnit.SECONDS);
             check(found.source().equals("lyrics.ovh")&&found.plain().contains("Fallback words"),"a denied Yandex token does not block other lyrics sources");

@@ -5,9 +5,10 @@ public record LyricsResult(String timed,String plain,String source) {
     public static final LyricsResult EMPTY=new LyricsResult("","","");
     public LyricsResult {
         timed=timed==null?"":timed;plain=plain==null?"":plain;source=source==null?"":source;
-        if(LrcTimeline.parse(timed).isEmpty())timed="";
+        LrcTimeline timeline=LrcTimeline.parse(timed);
+        if(!timeline.hasWords())timed="";
         if(plain.length()>200_000)plain="";
-        if(plain.isBlank()&&!timed.isBlank())plain=timed.replaceAll("(?m)^(?:\\[[^\\]\\r\\n]*\\])+","");
+        if(plain.isBlank()&&!timed.isBlank())plain=timeline.words();
         plain=plain.replaceAll("[\\p{Cntrl}&&[^\\r\\n\\t]]|§","").strip();
     }
     public boolean hasText(){return !timed.isBlank()||!plain.isBlank();}
@@ -16,7 +17,7 @@ public record LyricsResult(String timed,String plain,String source) {
         for(String row:plain.split("\\R")){
             row=row.strip();
             while(!row.isBlank()&&lines.size()<1200){
-                int end=Math.min(50,row.length());
+                int end=row.offsetByCodePoints(0,Math.min(50,row.codePointCount(0,row.length())));
                 if(end<row.length()){int space=row.lastIndexOf(' ',end);if(space>20)end=space;}
                 lines.add(row.substring(0,end).strip());row=row.substring(end).strip();
             }

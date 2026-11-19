@@ -8,7 +8,9 @@ import java.util.regex.Pattern;
 
 /** Immutable, bounded LRC timeline; independent of Minecraft for regression tests. */
 public final class LrcTimeline {
-    private static final Pattern TAG = Pattern.compile("\\[(\\d{1,3}):(\\d{2})(?:\\.(\\d{1,3}))?\\]");
+    private static final String TIMESTAMP = "(\\d{1,3}):(\\d{2})(?:[.:](\\d{1,3}))?";
+    private static final Pattern TAG = Pattern.compile("\\[" + TIMESTAMP + "\\]");
+    private static final Pattern WORD_TAG = Pattern.compile("<" + TIMESTAMP + ">");
     private static final Pattern OFFSET = Pattern.compile("(?im)^\\s*\\[offset:([+-]?\\d{1,8})\\]\\s*$");
     private record Line(long millis, String text) {}
     public static final LrcTimeline EMPTY = new LrcTimeline(List.of());
@@ -16,9 +18,14 @@ public final class LrcTimeline {
     private LrcTimeline(List<Line> lines) { this.lines = List.copyOf(lines); }
     public boolean isEmpty() { return lines.isEmpty(); }
     public int size() { return lines.size(); }
+    public boolean hasWords() { return lines.stream().anyMatch(line -> !line.text.isBlank()); }
+    public String words() {
+        return String.join("\n", lines.stream().map(Line::text).filter(line -> !line.isBlank()).toList());
+    }
 
     public static LrcTimeline parse(String lrc) {
         if (lrc == null || lrc.length() > 200_000) return EMPTY;
+        if (lrc.startsWith("\uFEFF")) lrc = lrc.substring(1);
         long offset = 0;
         Matcher offsets = OFFSET.matcher(lrc);
         if (offsets.find()) offset = Long.parseLong(offsets.group(1));
@@ -35,11 +42,13 @@ public final class LrcTimeline {
                 int ms = fraction == null ? 0 : Integer.parseInt((fraction + "00").substring(0, 3));
                 times.add(Math.max(0, (Long.parseLong(tags.group(1)) * 60 + seconds) * 1000 + ms + offset));
                 end = tags.end();
+                while (end < input.length() && (input.charAt(end) == ' ' || input.charAt(end) == '\t')) end++;
                 if (times.size() == 32) break;
             }
             if (times.isEmpty()) continue;
-            String text = input.substring(end).replaceAll("[\\p{Cntrl}§]", "").strip();
-            if (text.length() > 140) text = text.substring(0, 140);
+            String text = WORD_TAG.matcher(input.substring(end)).replaceAll("")
+                .replaceAll("[\\p{Cntrl}§]", "").strip();
+            if (text.codePointCount(0, text.length()) > 140) text = text.substring(0, text.offsetByCodePoints(0, 140));
             for (long time : times) {
                 result.add(new Line(time, text)); // Blank timed lines intentionally clear old words.
                 if (result.size() == 1200) break;

@@ -16,6 +16,7 @@ public final class VisionMediaSession {
     private static volatile boolean running;
     private static volatile String status="Включи World Lyrics";
     private static long retryAt;
+    private static long lastMediaSample;
     private static boolean wasEnabled;
     private VisionMediaSession(){}
     public static String state(){return status;}
@@ -39,6 +40,8 @@ public final class VisionMediaSession {
     private static void stop(){
         generation++;
         SystemMediaReader currentReader=reader;if(currentReader!=null)currentReader.close();
+        retryAt=0;
+        lastMediaSample=0;
         running=false;status="World Lyrics выключен";
         VisionLyricsSource.clearMediaTrack();VisionLyricsLookup.clear();
     }
@@ -47,7 +50,7 @@ public final class VisionMediaSession {
         try(SystemMediaReader nativeReader=new SystemMediaReader()){
             reader=nativeReader;
             if(!active(current))return;
-            nativeReader.read(track->publish(current,track));
+            nativeReader.read((track,observedNanos)->publish(current,track,observedNanos));
             if(active(current))status="Медиасессия недоступна · повторим автоматически";
         }catch(UnsupportedOperationException e){
             if(active(current))status="Системное чтение музыки доступно на Windows и Linux";
@@ -57,17 +60,25 @@ public final class VisionMediaSession {
             reader=null;
             if(current==generation){
                 running=false;
-                Minecraft.getInstance().execute(()->{if(current==generation)VisionLyricsSource.clearMediaTrack();});
+                Minecraft.getInstance().execute(()->{
+                    if(current==generation){
+                        lastMediaSample=0;
+                        VisionLyricsSource.clearMediaTrack();
+                    }
+                });
             }
         }
     }
-    private static void publish(int current,SystemMediaTrack track){
-        long observedNanos=System.nanoTime();
+    private static void publish(int current,SystemMediaTrack track,long observedNanos){
         Minecraft.getInstance().execute(()->{
             if(!active(current))return;
             if(track==null||track.title().isBlank()){
+                // Native sessions can briefly return empty metadata between successful polls.
+                if(lastMediaSample!=0&&observedNanos-lastMediaSample<1_500_000_000L)return;
+                lastMediaSample=0;
                 status="Включи музыку в браузере или плеере";VisionLyricsSource.clearMediaTrack();return;
             }
+            lastMediaSample=observedNanos;
             status=track.serviceName()+(track.paused()?" · пауза":" · подключено");
             VisionLyricsSource.receiveMediaTrack(track,observedNanos);
         });

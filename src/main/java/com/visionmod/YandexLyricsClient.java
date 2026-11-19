@@ -4,7 +4,10 @@ import com.google.gson.*;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Base64;
+import java.util.Comparator;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
@@ -23,13 +26,21 @@ final class YandexLyricsClient {
         URI search=service.resolve("/search?type=track&page=0&nocorrect=true&text="+LyricsHttp.encode(query.artist()+" "+query.title()));
         return LyricsHttp.get(search,token,flight).thenCompose(reply->{
             if(!allowed(reply.code(),token))return CompletableFuture.completedFuture(LyricsResult.EMPTY);
-            String id=selectTrack(reply.text(),query,duration);
-            if(id.isEmpty())return CompletableFuture.completedFuture(LyricsResult.EMPTY);
-            return bothFormats(service,id,token,flight);
+            return selectLyrics(service,tracks(reply.text(),query,duration),0,token,flight,LyricsResult.EMPTY);
         });
     }
     private static CompletableFuture<LyricsResult> bothFormats(URI service,String id,String token,LyricsHttp.Flight flight){
         return words(service,id,"LRC",token,flight).thenCompose(result->result.hasText()?CompletableFuture.completedFuture(result):words(service,id,"TEXT",token,flight));
+    }
+    private static CompletableFuture<LyricsResult> selectLyrics(URI service, List<Candidate> tracks, int index,
+            String token, LyricsHttp.Flight flight, LyricsResult plain) {
+        if (index >= tracks.size() || flight.cancelled() || flight.remainingNanos() <= 0)
+            return CompletableFuture.completedFuture(plain);
+        return bothFormats(service, tracks.get(index).id(), token, flight).thenCompose(found -> {
+            if (!found.timed().isBlank()) return CompletableFuture.completedFuture(found);
+            return selectLyrics(service, tracks, index + 1, token, flight, plain.hasText() ? plain : found);
+        }).exceptionallyCompose(error -> plain.hasText() && !flight.cancelled()
+            ? CompletableFuture.completedFuture(plain) : CompletableFuture.failedFuture(error));
     }
     static String trackId(String value){
         try{
@@ -40,23 +51,51 @@ final class YandexLyricsClient {
         }catch(IllegalArgumentException ignored){return "";}
     }
     static String selectTrack(String json,LyricsSearch.Query query,long duration){
+        var candidates = tracks(json, query, duration);
+        return candidates.isEmpty() ? "" : candidates.getFirst().id();
+    }
+    private record Candidate(String id, List<String> artists, double difference, int penalty) {}
+
+    private static List<Candidate> tracks(String json,LyricsSearch.Query query,long duration){
         JsonObject root=JsonParser.parseString(json).getAsJsonObject();
-        if(!root.has("result")||!root.get("result").isJsonObject())return "";
-        var result=root.getAsJsonObject("result");if(!result.has("tracks")||!result.get("tracks").isJsonObject())return "";
-        var tracks=result.getAsJsonObject("tracks");if(!tracks.has("results")||!tracks.get("results").isJsonArray())return "";
-        var items=tracks.getAsJsonArray("results");String best="";double score=Double.POSITIVE_INFINITY;
+        if(!root.has("result")||!root.get("result").isJsonObject())return List.of();
+        var result=root.getAsJsonObject("result");if(!result.has("tracks")||!result.get("tracks").isJsonObject())return List.of();
+        var tracks=result.getAsJsonObject("tracks");if(!tracks.has("results")||!tracks.get("results").isJsonArray())return List.of();
+        var items=tracks.getAsJsonArray("results");
+        List<Candidate> matches=new ArrayList<>();
         for(int i=0;i<Math.min(items.size(),40);i++){
             if(!items.get(i).isJsonObject())continue;var item=items.get(i).getAsJsonObject();
             String title=text(item,"title"),version=text(item,"version");if(!version.isBlank())title+=" ("+version+")";
-            StringBuilder artist=new StringBuilder();
-            if(item.has("artists")&&item.get("artists").isJsonArray())for(var value:item.getAsJsonArray("artists"))if(value.isJsonObject())artist.append(text(value.getAsJsonObject(),"name")).append(", ");
-            if(!LyricsSearch.matches(title,artist.toString(),query))continue;
-            double difference=0;
-            if(duration>0){try{difference=Math.abs(item.get("durationMs").getAsDouble()-duration);}catch(RuntimeException ignored){continue;}if(!Double.isFinite(difference)||difference>5000)continue;}
+            List<String> artists=new ArrayList<>();
+            if (item.has("artists") && item.get("artists").isJsonArray()) {
+                for (var value : item.getAsJsonArray("artists")) {
+                    if (value.isJsonObject()) artists.add(text(value.getAsJsonObject(),"name"));
+                }
+            }
+            int penalty=LyricsSearch.matchPenalty(title,String.join(", ",artists),query);
+            if(penalty<0)continue;
+            double difference=LyricsSearch.durationDifference(item,"durationMs",duration);
+            if(difference>5000)continue;
             String id=text(item,"id");if(!id.matches("[0-9]{1,20}"))continue;
-            if(difference<score){score=difference;best=id;}
+            matches.add(new Candidate(id,artists,difference,penalty));
         }
-        return best;
+        matches.sort(Comparator.comparingDouble(candidate -> candidate.difference() + candidate.penalty() * 500));
+        if (matches.isEmpty()) return List.of();
+        Candidate best=matches.getFirst();
+        if (query.artist().isBlank() && matches.stream().anyMatch(candidate -> candidate.difference()<=best.difference()+1500
+            && !candidate.artists().equals(best.artists()))) return List.of();
+
+        // Album reissues can duplicate the same recording, but the first ID sometimes has no text.
+        List<Candidate> selected=new ArrayList<>();
+        selected.add(best);
+        for (Candidate candidate : matches.subList(1,matches.size())) {
+            if (!candidate.id().equals(best.id()) && candidate.artists().equals(best.artists())
+                && candidate.difference() <= best.difference() + 1500) {
+                selected.add(candidate);
+                break;
+            }
+        }
+        return selected;
     }
     private static CompletableFuture<LyricsResult> words(URI service,String id,String format,String token,LyricsHttp.Flight flight){
         long timestamp=Instant.now().getEpochSecond();

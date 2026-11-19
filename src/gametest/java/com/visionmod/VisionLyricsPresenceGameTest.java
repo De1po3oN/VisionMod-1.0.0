@@ -69,7 +69,9 @@ final class VisionLyricsPresenceGameTest {
             var box=(net.minecraft.client.gui.components.EditBox)GuiTestInput.field(mc.screen,"token");box.setValue("fixture-token-never-submitted");box.setFocused(false);
             check(!YandexMusicAccess.connected(),"Editing a token field submitted it before connection");
         });
-        VisualWorldGameTest.capture(context,"25-yandex-access-editor");context.setScreen(()->null);
+        VisualWorldGameTest.capture(context,"25-yandex-access-editor");
+        runManualImport(context);
+        context.setScreen(()->null);
         context.runOnClient(mc->{VisionLyricsSource.clearMediaTrack();VisionExtendedFeatures.setCustomText("");mc.options.hideGui=false;});
         context.waitFor(mc->VisionPresenceClient.confirmed(mc.player.getUUID()),100);
         context.runOnClient(mc->{
@@ -104,5 +106,39 @@ final class VisionLyricsPresenceGameTest {
         });
         context.waitFor(mc->VisionPresenceClient.confirmed(mc.player.getUUID()),100);
         System.out.println("[VisionMod][LYRICS_PRESENCE] PASS: player-anchored world plane, immediate timed seek, blank interval, plain words and actual paging/Yandex editor, server handshake/withdraw/restore, real name tag/TAB hooks and unknown-player exclusion");
+    }
+
+    private static void runManualImport(ClientGameTestContext context)throws Exception{
+        context.setScreen(VisionLyricsScreen::new);context.waitTicks(1);
+        double[] importer=context.computeOnClient(mc->{
+            var screen=(VisionLyricsScreen)mc.screen;
+            return new double[]{screen.x+30,screen.y+screen.h-19};
+        });
+        GuiTestInput.click(context,importer[0],importer[1],0);context.waitTicks(1);
+        String clipboard=context.computeOnClient(mc->mc.keyboardHandler.getClipboard());
+        try{
+            double[] paste=context.computeOnClient(mc->{
+                check(mc.screen instanceof VisionManualLyricsScreen,"Import editor did not open");
+                var screen=(VisionManualLyricsScreen)mc.screen;
+                VisionLyricsSource.receiveMediaTrack(new SystemMediaTrack("Fixture","Unknown track","Fixture",0,true,10000,1,false),System.nanoTime());
+                mc.keyboardHandler.setClipboard("[00:00]First imported words\n[00:03]Second imported words");
+                return new double[]{screen.x+30,screen.layout.bodyTop()+26};
+            });
+            GuiTestInput.click(context,paste[0],paste[1],0);context.waitTicks(1);
+            double[] play=context.computeOnClient(mc->{
+                check(VisionLyricsSource.hasImport()&&VisionLyricsSource.plainMode(),"Clipboard LRC should be readable before a clock is selected");
+                var screen=(VisionManualLyricsScreen)mc.screen;
+                var input=(net.minecraft.client.gui.components.EditBox)GuiTestInput.field(screen,"position");
+                input.setValue("00:03.100");
+                return new double[]{screen.x+110,screen.layout.bodyTop()+71};
+            });
+            GuiTestInput.click(context,play[0],play[1],0);context.waitTicks(2);
+            context.runOnClient(mc->check(VisionLyricsSource.manualPlaying()&&VisionWorldLyrics.lastRenderedText().equals("Second imported words"),
+                "Manual playback did not render the pasted LRC at the entered position"));
+            VisualWorldGameTest.capture(context,"36-lyrics-manual-import");
+            System.out.println("[VisionMod][LYRICS_IMPORT] PASS: clipboard LRC, missing native position, actual manual start button, rendered lyric");
+        }finally{
+            context.runOnClient(mc->{mc.keyboardHandler.setClipboard(clipboard);VisionLyricsSource.clearImport();});
+        }
     }
 }
