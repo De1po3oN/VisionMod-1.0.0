@@ -1,0 +1,536 @@
+{
+  "lrclib_ru": [
+    {
+      "id": 30707808,
+      "trackName": "Священная война",
+      "artistName": "The Alexandrov Red Army Chorus",
+      "albumName": "Священная война",
+      "duration": 212.0,
+      "instrumental": false,
+      "timedLines": 40,
+      "plain": true
+    },
+    {
+      "id": 13522729,
+      "trackName": "Священная война",
+      "artistName": "Ансамбль песни и пляски Российской Армии им. А.В. Александрова",
+      "albumName": "Священная война",
+      "duration": 212.741224,
+      "instrumental": false,
+      "timedLines": 41,
+      "plain": true
+    },
+    {
+      "id": 33356621,
+      "trackName": "Священная война",
+      "artistName": "Адмиралтейский оркестр ленинградской военно-морской базы",
+      "albumName": "Священная война",
+      "duration": 125.0,
+      "instrumental": true,
+      "timedLines": 0,
+      "plain": false
+    },
+    {
+      "id": 34361281,
+      "trackName": "священная война",
+      "artistName": "урал гайсин - Topic",
+      "albumName": "священная война",
+      "duration": 103.0,
+      "instrumental": false,
+      "timedLines": 26,
+      "plain": true
+    },
+    {
+      "id": 37870167,
+      "trackName": "священная война",
+      "artistName": "урал гайсин",
+      "albumName": "священная война",
+      "duration": 102.0,
+      "instrumental": false,
+      "timedLines": 32,
+      "plain": true
+    },
+    {
+      "id": 20908478,
+      "trackName": "Вечер на рейде",
+      "artistName": "The Red Army Choir",
+      "albumName": "Священная война",
+      "duration": 256.0,
+      "instrumental": false,
+      "timedLines": 0,
+      "plain": true
+    },
+    {
+      "id": 21086833,
+      "trackName": "Нам нужна одна победа!",
+      "artistName": "Военный оркестр Министерства Обороны СССР",
+      "albumName": "Священная война",
+      "duration": 128.0,
+      "instrumental": true,
+      "timedLines": 0,
+      "plain": false
+    },
+    {
+      "id": 17769491,
+      "trackName": "Вечер на рейде",
+      "artistName": "Академический ансамбль песни и пляски Российской Армии имени А. В. Александрова",
+      "albumName": "Священная война",
+      "duration": 319.906667,
+      "instrumental": false,
+      "timedLines": 32,
+      "plain": true
+    },
+    {
+      "id": 18799697,
+      "trackName": "Вечер на рейде",
+      "artistName": "The Alexandrov Red Army Chorus",
+      "albumName": "Священная война",
+      "duration": 319.906667,
+      "instrumental": false,
+      "timedLines": 0,
+      "plain": true
+    },
+    {
+      "id": 20387808,
+      "trackName": "В землянке",
+      "artistName": "The Alexandrov Red Army Chorus",
+      "albumName": "Священная война",
+      "duration": 191.066667,
+      "instrumental": false,
+      "timedLines": 0,
+      "plain": true
+    },
+    {
+      "id": 17318989,
+      "trackName": "Моя любимая",
+      "artistName": "The Red Army Choir",
+      "albumName": "Священная война",
+      "duration": 134.0,
+      "instrumental": false,
+      "timedLines": 25,
+      "plain": true
+    },
+    {
+      "id": 15915912,
+      "trackName": "Заветный камень",
+      "artistName": "Академический ансамбль песни и пляски Российской Армии имени А. В. Александрова",
+      "albumName": "Священная война",
+      "duration": 365.106667,
+      "instrumental": false,
+      "timedLines": 0,
+      "plain": true
+    },
+    {
+      "id": 16186940,
+      "trackName": "Вечер на рейде",
+      "artistName": "Ансамбль песни и пляски Российской Армии им. А.В. Александрова",
+      "albumName": "Священная война",
+      "duration": 319.9477549,
+      "instrumental": false,
+      "timedLines": 32,
+      "plain": true
+    },
+    {
+      "id": 14796786,
+      "trackName": "Да здравствует наша Держава",
+      "artistName": "The Red Army Choir",
+      "albumName": "Священная война",
+      "duration": 260.0,
+      "instrumental": false,
+      "timedLines": 0,
+      "plain": true
+    },
+    {
+      "id": 14660125,
+      "trackName": "В землянке",
+      "artistName": "Академический ансамбль песни и пляски Российской Армии имени А. В. Александрова",
+      "albumName": "Священная война",
+      "duration": 191.066667,
+      "instrumental": false,
+      "timedLines": 0,
+      "plain": true
+    },
+    {
+      "id": 14828460,
+      "trackName": "Вечер на рейде",
+      "artistName": "The Red Army Choir",
+      "albumName": "Священная война",
+      "duration": 320.0,
+      "instrumental": false,
+      "timedLines": 0,
+      "plain": true
+    },
+    {
+      "id": 15223064,
+      "trackName": "Шумел сурово брянский лес",
+      "artistName": "The Alexandrov Red Army Chorus",
+      "albumName": "Священная война",
+      "duration": 268.0,
+      "instrumental": false,
+      "timedLines": 0,
+      "plain": true
+    },
+    {
+      "id": 13394995,
+      "trackName": "Катюша",
+      "artistName": "Военный оркестр Народно-Освободительной Армии",
+      "albumName": "Священная война",
+      "duration": 170.0,
+      "instrumental": true,
+      "timedLines": 0,
+      "plain": false
+    },
+    {
+      "id": 13579955,
+      "trackName": "Заветный камень",
+      "artistName": "Various Artists",
+      "albumName": "Священная война",
+      "duration": 360.6,
+      "instrumental": false,
+      "timedLines": 0,
+      "plain": true
+    },
+    {
+      "id": 13522715,
+      "trackName": "Да здравствует наша держава",
+      "artistName": "Ансамбль песни и пляски Российской Армии им. А.В. Александрова",
+      "albumName": "Священная война",
+      "duration": 259.813878,
+      "instrumental": false,
+      "timedLines": 0,
+      "plain": true
+    }
+  ],
+  "lrclib_en": [
+    {
+      "id": 13772831,
+      "trackName": "The Sacred War",
+      "artistName": "The Red Army Choir",
+      "albumName": "Soviet War Songs",
+      "duration": 206.0,
+      "instrumental": false,
+      "timedLines": 37,
+      "plain": true
+    },
+    {
+      "id": 21010640,
+      "trackName": "The Sacred War",
+      "artistName": "The Red Army Choir",
+      "albumName": "The Best of the Red Army Choir",
+      "duration": 256.809796,
+      "instrumental": false,
+      "timedLines": 0,
+      "plain": true
+    },
+    {
+      "id": 24279147,
+      "trackName": "The Sacred War",
+      "artistName": "The Red Army Choir",
+      "albumName": "The Stalin Album",
+      "duration": 256.8,
+      "instrumental": false,
+      "timedLines": 0,
+      "plain": true
+    },
+    {
+      "id": 30047960,
+      "trackName": "The Sacred War",
+      "artistName": "The Red Army Choir",
+      "albumName": "The Red Army Choir",
+      "duration": 156.0,
+      "instrumental": false,
+      "timedLines": 37,
+      "plain": true
+    },
+    {
+      "id": 30881853,
+      "trackName": "The Sacred War",
+      "artistName": "The Red Army Choir",
+      "albumName": "The Russian Year 2010",
+      "duration": 213.0,
+      "instrumental": false,
+      "timedLines": 37,
+      "plain": true
+    },
+    {
+      "id": 23313430,
+      "trackName": "The Sacred War",
+      "artistName": "The Red Army Choir",
+      "albumName": "The Russian Year 2010",
+      "duration": 207.281633,
+      "instrumental": false,
+      "timedLines": 0,
+      "plain": true
+    },
+    {
+      "id": 35059987,
+      "trackName": "The Sacred War",
+      "artistName": "The Red Army Choir",
+      "albumName": "The Red Army Choir",
+      "duration": 201.0,
+      "instrumental": false,
+      "timedLines": 37,
+      "plain": true
+    },
+    {
+      "id": 38277364,
+      "trackName": "The Sacred War",
+      "artistName": "The Red Army Choir",
+      "albumName": "The Red Army Choir",
+      "duration": 164.0,
+      "instrumental": false,
+      "timedLines": 0,
+      "plain": true
+    },
+    {
+      "id": 13522685,
+      "trackName": "The Sacred War",
+      "artistName": "The Red Army Choir",
+      "albumName": "The Best of the Red Army Choir (50 hits remastered)",
+      "duration": 256.766259,
+      "instrumental": false,
+      "timedLines": 0,
+      "plain": true
+    },
+    {
+      "id": 21350148,
+      "trackName": "The sacred war",
+      "artistName": "The Red Army Choir",
+      "albumName": "The Definitive Anthology (CD 2)",
+      "duration": 153.813333,
+      "instrumental": false,
+      "timedLines": 0,
+      "plain": true
+    },
+    {
+      "id": 34028998,
+      "trackName": "The Sacred War",
+      "artistName": "The Alexandrov Red Army Chorus",
+      "albumName": "The Red Army Choir",
+      "duration": 155.0,
+      "instrumental": false,
+      "timedLines": 0,
+      "plain": true
+    },
+    {
+      "id": 12508648,
+      "trackName": "The Sacred War",
+      "artistName": "The Alexandrov Red Army Chorus",
+      "albumName": "The Best of the Red Army Choir (50 hits remastered)",
+      "duration": 256.0,
+      "instrumental": false,
+      "timedLines": 0,
+      "plain": true
+    },
+    {
+      "id": 19812637,
+      "trackName": "The Sacred War",
+      "artistName": "The Red Army Choir",
+      "albumName": "The B-Side Album, Vol. 1",
+      "duration": 197.0,
+      "instrumental": false,
+      "timedLines": 0,
+      "plain": true
+    },
+    {
+      "id": 25497953,
+      "trackName": "The Sacred War",
+      "artistName": "The Red Army Choir, Boris Alexandrov",
+      "albumName": "The Best of the Red Army Choir50 hits remastered",
+      "duration": 256.766259,
+      "instrumental": false,
+      "timedLines": 0,
+      "plain": true
+    },
+    {
+      "id": 28766816,
+      "trackName": "The Sacred War",
+      "artistName": "The Red Army Choir",
+      "albumName": "The Red Army Choir Live In Paris",
+      "duration": 156.0,
+      "instrumental": false,
+      "timedLines": 37,
+      "plain": true
+    },
+    {
+      "id": 37121374,
+      "trackName": "The Sacred War",
+      "artistName": "The Red Army Choir/Геннадий Саченюк",
+      "albumName": "Songs of the Victory",
+      "duration": 241.0,
+      "instrumental": false,
+      "timedLines": 33,
+      "plain": true
+    },
+    {
+      "id": 35331995,
+      "trackName": "The Sacred War",
+      "artistName": "The Red Army Choir, Геннадий Саченюк",
+      "albumName": "Songs of the Victory",
+      "duration": 183.0,
+      "instrumental": false,
+      "timedLines": 33,
+      "plain": true
+    },
+    {
+      "id": 35332001,
+      "trackName": "The Sacred War",
+      "artistName": "The Red Army Choir, Геннадий Саченюк",
+      "albumName": "Songs of the Victory",
+      "duration": 182.0,
+      "instrumental": false,
+      "timedLines": 33,
+      "plain": true
+    },
+    {
+      "id": 35332005,
+      "trackName": "The Sacred War",
+      "artistName": "The Red Army Choir, Геннадий Саченюк",
+      "albumName": "Songs of the Victory",
+      "duration": 186.0,
+      "instrumental": false,
+      "timedLines": 33,
+      "plain": true
+    },
+    {
+      "id": 35331992,
+      "trackName": "The Sacred War",
+      "artistName": "The Red Army Choir, Геннадий Саченюк",
+      "albumName": "Songs of the Victory",
+      "duration": 180.0,
+      "instrumental": false,
+      "timedLines": 33,
+      "plain": true
+    }
+  ],
+  "lrclib_transliterated": [],
+  "commons_ru": [],
+  "commons_en": [
+    {
+      "title": "File:The Sacred War.ogg",
+      "audio": [
+        {
+          "url": "https://upload.wikimedia.org/wikipedia/commons/c/cd/The_Sacred_War.ogg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+          "mime": "application/ogg",
+          "extmetadata": {
+            "LicenseShortName": {
+              "value": "Public domain",
+              "source": "commons-desc-page",
+              "hidden": ""
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "archive": [
+    {
+      "creator": "aleksandr-mihajlovskij-julija-markova",
+      "identifier": "1941_20240226",
+      "title": "Год 1941, Священная Война"
+    },
+    {
+      "identifier": "holy-war-by-ural-gaysin",
+      "title": "Священная Война - Урал Гайсин"
+    },
+    {
+      "identifier": "20240910_20240910_2003",
+      "title": "Священная Война Хор"
+    },
+    {
+      "creator": "Автор контента",
+      "identifier": "20251107_20251107_2108",
+      "title": "Священная война"
+    },
+    {
+      "identifier": "piste-02_202011",
+      "title": "Священная война - The Sacred War - A. Alexandrov Choeur de l'Armée Rouge"
+    }
+  ],
+  "itunes": [
+    {
+      "trackName": "священная война",
+      "artistName": "урал гайсин",
+      "collectionName": "саундклауд пак",
+      "trackTimeMillis": 102259,
+      "trackViewUrl": "https://music.apple.com/us/album/%D1%81%D0%B2%D1%8F%D1%89%D0%B5%D0%BD%D0%BD%D0%B0%D1%8F-%D0%B2%D0%BE%D0%B9%D0%BD%D0%B0/1816976371?i=1816976387&uo=4"
+    },
+    {
+      "trackName": "Священная война",
+      "artistName": "Alexandrov Ensemble",
+      "collectionName": "Священная война",
+      "trackTimeMillis": 212693,
+      "trackViewUrl": "https://music.apple.com/us/album/%D1%81%D0%B2%D1%8F%D1%89%D0%B5%D0%BD%D0%BD%D0%B0%D1%8F-%D0%B2%D0%BE%D0%B9%D0%BD%D0%B0/1113377720?i=1113378202&uo=4"
+    },
+    {
+      "trackName": "Священная Война (HARDTEKK REMIX SLOWED)",
+      "artistName": "pasha",
+      "collectionName": "Священная Война (HARDTEKK REMIX SLOWED) - Single",
+      "trackTimeMillis": 115513,
+      "trackViewUrl": "https://music.apple.com/us/album/%D1%81%D0%B2%D1%8F%D1%89%D0%B5%D0%BD%D0%BD%D0%B0%D1%8F-%D0%B2%D0%BE%D0%B9%D0%BD%D0%B0-hardtekk-remix-slowed/6779736427?i=6779736428&uo=4"
+    },
+    {
+      "trackName": "Священная война",
+      "artistName": "Alexandrov Ensemble",
+      "collectionName": "Когда поют солдаты...",
+      "trackTimeMillis": 258613,
+      "trackViewUrl": "https://music.apple.com/us/album/%D1%81%D0%B2%D1%8F%D1%89%D0%B5%D0%BD%D0%BD%D0%B0%D1%8F-%D0%B2%D0%BE%D0%B9%D0%BD%D0%B0/1637599680?i=1637599690&uo=4"
+    },
+    {
+      "trackName": "Священная Война",
+      "artistName": "Хор Сретенского монастыря",
+      "collectionName": "78-летию Великой Победы посвящается",
+      "trackTimeMillis": 213830,
+      "trackViewUrl": "https://music.apple.com/us/album/%D1%81%D0%B2%D1%8F%D1%89%D0%B5%D0%BD%D0%BD%D0%B0%D1%8F-%D0%B2%D0%BE%D0%B9%D0%BD%D0%B0/6784237604?i=6784237607&uo=4"
+    },
+    {
+      "trackName": "Священная война (feat. Геннадий Саченюк)",
+      "artistName": "Alexandrov Ensemble",
+      "collectionName": "Песни Победы",
+      "trackTimeMillis": 181315,
+      "trackViewUrl": "https://music.apple.com/us/album/%D1%81%D0%B2%D1%8F%D1%89%D0%B5%D0%BD%D0%BD%D0%B0%D1%8F-%D0%B2%D0%BE%D0%B9%D0%BD%D0%B0-feat-%D0%B3%D0%B5%D0%BD%D0%BD%D0%B0%D0%B4%D0%B8%D0%B9-%D1%81%D0%B0%D1%87%D0%B5%D0%BD%D1%8E%D0%BA/1511033371?i=1511033372&uo=4"
+    },
+    {
+      "trackName": "Священная война",
+      "artistName": "Elena Vaenga",
+      "collectionName": "Песни военных лет",
+      "trackTimeMillis": 166558,
+      "trackViewUrl": "https://music.apple.com/us/album/%D1%81%D0%B2%D1%8F%D1%89%D0%B5%D0%BD%D0%BD%D0%B0%D1%8F-%D0%B2%D0%BE%D0%B9%D0%BD%D0%B0/1107593945?i=1107593996&uo=4"
+    },
+    {
+      "trackName": "Sacred War (1941)",
+      "artistName": "Ансамбль песни и пляски советской армии",
+      "collectionName": "Russian Songs of World War II (1939 - 1945)",
+      "trackTimeMillis": 158660,
+      "trackViewUrl": "https://music.apple.com/us/album/sacred-war-1941/726698181?i=726698255&uo=4"
+    },
+    {
+      "trackName": "Тёмная ночь",
+      "artistName": "Mark Bernes",
+      "collectionName": "Священная война",
+      "trackTimeMillis": 206520,
+      "trackViewUrl": "https://music.apple.com/us/album/%D1%82%D1%91%D0%BC%D0%BD%D0%B0%D1%8F-%D0%BD%D0%BE%D1%87%D1%8C/1509045792?i=1509045799&uo=4"
+    },
+    {
+      "trackName": "Священная война",
+      "artistName": "Адмиралтейский оркестр ленинградской военно-морской базы",
+      "collectionName": "Священная война",
+      "trackTimeMillis": 125320,
+      "trackViewUrl": "https://music.apple.com/us/album/%D1%81%D0%B2%D1%8F%D1%89%D0%B5%D0%BD%D0%BD%D0%B0%D1%8F-%D0%B2%D0%BE%D0%B9%D0%BD%D0%B0/1546458204?i=1546458205&uo=4"
+    },
+    {
+      "trackName": "Марш \"Прощание Славянки\"",
+      "artistName": "Образцовый военный оркестр Почётного караула Московского гарнизона",
+      "collectionName": "Священная война",
+      "trackTimeMillis": 190333,
+      "trackViewUrl": "https://music.apple.com/us/album/%D0%BC%D0%B0%D1%80%D1%88-%D0%BF%D1%80%D0%BE%D1%89%D0%B0%D0%BD%D0%B8%D0%B5-%D1%81%D0%BB%D0%B0%D0%B2%D1%8F%D0%BD%D0%BA%D0%B8/1546458204?i=1546458206&uo=4"
+    },
+    {
+      "trackName": "Песня защитников Москвы",
+      "artistName": "Alexandrov Ensemble",
+      "collectionName": "Священная война",
+      "trackTimeMillis": 237267,
+      "trackViewUrl": "https://music.apple.com/us/album/%D0%BF%D0%B5%D1%81%D0%BD%D1%8F-%D0%B7%D0%B0%D1%89%D0%B8%D1%82%D0%BD%D0%B8%D0%BA%D0%BE%D0%B2-%D0%BC%D0%BE%D1%81%D0%BA%D0%B2%D1%8B/1113377720?i=1113378553&uo=4"
+    }
+  ]
+}
